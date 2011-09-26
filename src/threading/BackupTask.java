@@ -18,11 +18,10 @@
 package threading;
 
 import java.io.IOException;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.Server;
 import io.FileUtils;
 import java.util.Calendar;
-import backup.PropertiesSystem;
+import backup.Properties;
 import backup.PropertyConstants;
 import java.io.File;
 import java.util.ArrayList;
@@ -40,12 +39,12 @@ import static io.FileUtils.FILE_SEPARATOR;
  */
 public class BackupTask implements Runnable, PropertyConstants {
 
-    private final PropertiesSystem pSystem;
+    private final Properties properties;
     private final LinkedList<String> worldsToBackup;
     private final Server server;
     private final String backupName;
-    public BackupTask (PropertiesSystem pSystem, LinkedList<String> worldsToBackup, Server server, String backupName) {
-        this.pSystem = pSystem;
+    public BackupTask (Properties properties, LinkedList<String> worldsToBackup, Server server, String backupName) {
+        this.properties = properties;
         this.worldsToBackup = worldsToBackup;
         this.server = server;
         this.backupName = backupName;
@@ -63,8 +62,8 @@ public class BackupTask implements Runnable, PropertyConstants {
 
     public void backup() throws Exception {
 
-        if (pSystem.getBooleanProperty(BOOL_SUMMARIZE_CONTENT)) {
-            String backupDirName = pSystem.getStringProperty(STRING_BACKUP_FOLDER).concat(FILE_SEPARATOR);
+        if (properties.getBooleanProperty(BOOL_SUMMARIZE_CONTENT)) {
+            String backupDirName = properties.getStringProperty(STRING_BACKUP_FOLDER).concat(FILE_SEPARATOR);
             if (backupName != null)
                 backupDirName = backupDirName.concat("custom").concat(FILE_SEPARATOR).concat(backupName);
             else
@@ -82,19 +81,19 @@ public class BackupTask implements Runnable, PropertyConstants {
                     server.broadcastMessage("[BACKUP] An error occurs while backup. Please report an admin!");
                 }
             }
-            if (pSystem.getBooleanProperty(BOOL_BACKUP_PLUGINS))
+            if (properties.getBooleanProperty(BOOL_BACKUP_PLUGINS))
                 FileUtils.copyDirectory("plugins", backupDirName.concat(FILE_SEPARATOR).concat("plugins"));
 
-            if (pSystem.getBooleanProperty(BOOL_ZIP)) {
+            if (properties.getBooleanProperty(BOOL_ZIP)) {
                 FileUtils.zipDir(backupDirName, backupDirName);
                 FileUtils.deleteDirectory(backupDir);
             }
         }
         else {
-            String backupDirName = pSystem.getStringProperty(STRING_BACKUP_FOLDER).concat(FILE_SEPARATOR);
+            String backupDirName = properties.getStringProperty(STRING_BACKUP_FOLDER).concat(FILE_SEPARATOR);
             File backupDir = new File(backupDirName);
             backupDir.mkdir();
-            boolean zip = pSystem.getBooleanProperty(BOOL_ZIP);
+            boolean zip = properties.getBooleanProperty(BOOL_ZIP);
             while (!worldsToBackup.isEmpty()) {
                 String worldName = worldsToBackup.removeFirst();
                 String destDir = backupDirName.concat(FILE_SEPARATOR).concat(worldName).concat("-").concat(getDate());
@@ -104,7 +103,7 @@ public class BackupTask implements Runnable, PropertyConstants {
                     FileUtils.deleteDirectory(new File(destDir));
                 }
             }
-            if (pSystem.getBooleanProperty(BOOL_BACKUP_PLUGINS)) {
+            if (properties.getBooleanProperty(BOOL_BACKUP_PLUGINS)) {
                 String destDir = backupDirName.concat(FILE_SEPARATOR).concat("plugins").concat("-").concat(getDate());
                 FileUtils.copyDirectory("plugins", destDir);
                 if (zip) {
@@ -127,7 +126,7 @@ public class BackupTask implements Runnable, PropertyConstants {
         // Java string (and date) formatting:
         // http://download.oracle.com/javase/1.5.0/docs/api/java/util/Formatter.html#syntax
         try {
-            formattedDate = String.format(pSystem.getStringProperty(STRING_CUSTOM_DATE_FORMAT),cal);
+            formattedDate = String.format(properties.getStringProperty(STRING_CUSTOM_DATE_FORMAT),cal);
         }
         catch (Exception e) {
             System.out.println("[BACKUP] Error formatting date, bad format string! Formatting date with default format string...");
@@ -144,7 +143,7 @@ public class BackupTask implements Runnable, PropertyConstants {
     private void deleteOldBackups () {
         try {
             //
-            File backupDir = new File(pSystem.getStringProperty(STRING_BACKUP_FOLDER));
+            File backupDir = new File(properties.getStringProperty(STRING_BACKUP_FOLDER));
             // get every zip file in the backup Dir
             File[] tempArray = backupDir.listFiles();
             File[] array = new File[tempArray.length - 1];
@@ -155,7 +154,7 @@ public class BackupTask implements Runnable, PropertyConstants {
                 array[j++] = tempArray[i];
             }
             tempArray = array;
-            final int maxBackups = pSystem.getIntProperty(INT_MAX_BACKUPS);
+            final int maxBackups = properties.getIntProperty(INT_MAX_BACKUPS);
             // when are more backups existing as allowed as to store
             if (tempArray.length > maxBackups) {
                 System.out.println("Delete old backups");
@@ -203,9 +202,9 @@ public class BackupTask implements Runnable, PropertyConstants {
         Runnable run = new Runnable() {
             @Override
             public void run () {
-                if (pSystem.getBooleanProperty(BOOL_ACTIVATE_AUTOSAVE))
+                if (properties.getBooleanProperty(BOOL_ACTIVATE_AUTOSAVE))
                     server.dispatchCommand(server.getConsoleSender(), "save-on");
-                String completedBackupMessage = pSystem.getStringProperty(STRING_FINISH_BACKUP_MESSAGE);
+                String completedBackupMessage = properties.getStringProperty(STRING_FINISH_BACKUP_MESSAGE);
                 if (completedBackupMessage != null && !completedBackupMessage.trim().isEmpty()) {
                     server.broadcastMessage(completedBackupMessage);
                     System.out.println(completedBackupMessage);

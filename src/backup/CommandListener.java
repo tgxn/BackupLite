@@ -31,12 +31,12 @@ import org.bukkit.plugin.Plugin;
 public class CommandListener extends PlayerListener implements PropertyConstants {
 
     private PrepareBackupTask backupTask = null;
-    private PropertiesSystem pSystem = null;
+    private Properties properties = null;
     private final Plugin plugin;
 
-    public CommandListener (PrepareBackupTask backupTask, PropertiesSystem pSystem, Plugin plugin) {
+    public CommandListener (PrepareBackupTask backupTask, Properties pSystem, Plugin plugin) {
         this.backupTask = backupTask;
-        this.pSystem = pSystem;
+        this.properties = pSystem;
         this.plugin = plugin;
     }
 
@@ -51,7 +51,7 @@ public class CommandListener extends PlayerListener implements PropertyConstants
             // only Player can backup when the properties only ops can backup is set by the server AND the player is an operator
             if (Main.Permissions != null && !Main.Permissions.has(player, "backup.canbackup"))
                 return;
-            if (pSystem.getBooleanProperty(BOOL_ONLY_OPS) && !player.isOp()) {
+            if (properties.getBooleanProperty(BOOL_ONLY_OPS) && !player.isOp()) {
                 player.sendMessage("You do not have the rights to run a backup!");
                 return;
             }

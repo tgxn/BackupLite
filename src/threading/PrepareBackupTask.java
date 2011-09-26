@@ -17,7 +17,7 @@
 
 package threading;
 
-import backup.PropertiesSystem;
+import backup.Properties;
 import backup.PropertyConstants;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -38,7 +38,7 @@ public class PrepareBackupTask implements Runnable, PropertyConstants {
 
     // The server where the Task is running
     private final Server server;
-    private final PropertiesSystem pSystem;
+    private final Properties properties;
     private String backupName;
     private boolean isManuelBackup;
 
@@ -47,27 +47,27 @@ public class PrepareBackupTask implements Runnable, PropertyConstants {
      * @param server The server where the Task is running on
      * @param pSystem This must be a loaded PropertiesSystem
      */
-    public PrepareBackupTask (Server server, PropertiesSystem pSystem) {
+    public PrepareBackupTask (Server server, Properties properties) {
         this.server = server;
-        this.pSystem = pSystem;
+        this.properties = properties;
     }
 
     @Override
     public void run () {
-        boolean backupOnlyWithPlayer = pSystem.getBooleanProperty(BOOL_BACKUP_ONLY_PLAYER);
+        boolean backupOnlyWithPlayer = properties.getBooleanProperty(BOOL_BACKUP_ONLY_PLAYER);
         if ((backupOnlyWithPlayer && server.getOnlinePlayers().length > 0)
                 || !backupOnlyWithPlayer
                 || isManuelBackup
                 || backupName != null)
             prepareBackup();
         else
-            System.out.println("[BACKUP] Scheduled backup was aborted due to lack of players. Next backup attempt in " + pSystem.getIntProperty(INT_BACKUP_INTERVALL) / 1200 + " minutes.");
+            System.out.println("[BACKUP] Scheduled backup was aborted due to lack of players. Next backup attempt in " + properties.getIntProperty(INT_BACKUP_INTERVALL) / 1200 + " minutes.");
     }
 
     protected void prepareBackup() {
 
         // start broadcast informing the players about the backup
-        String startBackupMessage = pSystem.getStringProperty(STRING_START_BACKUP_MESSAGE);
+        String startBackupMessage = properties.getStringProperty(STRING_START_BACKUP_MESSAGE);
         if (startBackupMessage != null && !startBackupMessage.trim().isEmpty()) {
             System.out.println(startBackupMessage);
             server.broadcastMessage(startBackupMessage);
@@ -86,7 +86,7 @@ public class PrepareBackupTask implements Runnable, PropertyConstants {
         LinkedList<String> worldsToBackup = new LinkedList<String>();
 
         // shall the backups stored and compress via ZIP?
-        boolean hasToZIP = pSystem.getBooleanProperty(BOOL_ZIP);
+        boolean hasToZIP = properties.getBooleanProperty(BOOL_ZIP);
             if (!hasToZIP)
                 // send a hint, because this shall not be the normal case!
                 System.out.println("[BACKUP] Backup compression is disabled.");
@@ -102,13 +102,13 @@ public class PrepareBackupTask implements Runnable, PropertyConstants {
             worldsToBackup.add(worldName);
             world.save();
         }
-        server.getScheduler().scheduleAsyncDelayedTask(server.getPluginManager().getPlugin("Backup"), new BackupTask(pSystem,worldsToBackup,server,backupName));
+        server.getScheduler().scheduleAsyncDelayedTask(server.getPluginManager().getPlugin("Backup"), new BackupTask(properties,worldsToBackup,server,backupName));
         backupName = null;
         isManuelBackup = false;
     }
 
     private String[] getToIgnoreWorlds () {
-        String[] worldNames = pSystem.getStringProperty(STRING_NO_BACKUP_WORLDNAMES).split(";");
+        String[] worldNames = properties.getStringProperty(STRING_NO_BACKUP_WORLDNAMES).split(";");
         if (worldNames.length > 0 && !worldNames[0].isEmpty()) {
             System.out.println("[BACKUP] Backup is disabled for the following world(s):");
             System.out.println(Arrays.toString(worldNames));

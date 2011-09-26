@@ -17,7 +17,7 @@
 
 package threading;
 
-import backup.PropertiesSystem;
+import backup.Properties;
 import org.bukkit.Server;
 
 /**
@@ -28,8 +28,8 @@ public class LastBackupTask extends PrepareBackupTask {
 
     private Server server = null;
 
-    public LastBackupTask (Server server, PropertiesSystem pSystem) {
-        super(server, pSystem);
+    public LastBackupTask (Server server, Properties properties) {
+        super(server, properties);
         this.server = server;
     }
 

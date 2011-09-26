@@ -1,6 +1,8 @@
 name: Backup
+version: 1.8
+description: Server Backup plugin.
+authors: [Meldanor, gamerx]
 main: backup.Main
-version: 1.7
 commands:
   backup:
     description: Starts a backup of the server

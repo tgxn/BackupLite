@@ -55,31 +55,31 @@ public class Main extends JavaPlugin implements PropertyConstants {
         File backupDir = new File("plugins".concat(FILE_SEPARATOR).concat("Backup"));
         if (!backupDir.exists())
             backupDir.mkdirs();
-        backupDir = new File("backup");
+        backupDir = new File("backups");
         if (!backupDir.exists())
             backupDir.mkdirs();
-        backupDir = new File("backup".concat(FILE_SEPARATOR).concat("custom"));
+        backupDir = new File("backups".concat(FILE_SEPARATOR).concat("custom"));
         if (!backupDir.exists())
             backupDir.mkdirs();
         // load the properties
-        PropertiesSystem pSystem = new PropertiesSystem(this);
+        Properties properties = new Properties(this);
 
         Server server = getServer();
         PluginManager pm = server.getPluginManager();
 
         // the backupTask, which backups the system every X minutes
-        run = new PrepareBackupTask(server, pSystem);
+        run = new PrepareBackupTask(server, properties);
 
         // for manuell backups
-        pm.registerEvent(Type.PLAYER_COMMAND_PREPROCESS, new CommandListener(run, pSystem, this), Priority.Normal, this);
+        pm.registerEvent(Type.PLAYER_COMMAND_PREPROCESS, new CommandListener(run, properties, this), Priority.Normal, this);
 
-        if (pSystem.getBooleanProperty(BOOL_BACKUP_ONLY_PLAYER)) {
-            LoginListener ll = new LoginListener(this, pSystem);
+        if (properties.getBooleanProperty(BOOL_BACKUP_ONLY_PLAYER)) {
+            LoginListener ll = new LoginListener(this, properties);
             pm.registerEvent(Type.PLAYER_LOGIN, ll, Priority.Normal, this);
             pm.registerEvent(Type.PLAYER_QUIT, ll, Priority.Normal, this);
         }
         // start the backupTask, which will starts after X minutes and backup after X minutes
-        int intervall = pSystem.getIntProperty(INT_BACKUP_INTERVALL);
+        int intervall = properties.getIntProperty(INT_BACKUP_INTERVALL);
         if (intervall != -1)
             server.getScheduler().scheduleSyncRepeatingTask(this, run, intervall, intervall);
         else
