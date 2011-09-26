@@ -207,7 +207,7 @@ public class BackupTask implements Runnable, PropertyConstants {
                 String completedBackupMessage = properties.getStringProperty(STRING_FINISH_BACKUP_MESSAGE);
                 if (completedBackupMessage != null && !completedBackupMessage.trim().isEmpty()) {
                     server.broadcastMessage(completedBackupMessage);
-                    System.out.println(completedBackupMessage);
+                    //System.out.println(completedBackupMessage);
                 }
             }
         };

@@ -69,7 +69,7 @@ public class PrepareBackupTask implements Runnable, PropertyConstants {
         // start broadcast informing the players about the backup
         String startBackupMessage = properties.getStringProperty(STRING_START_BACKUP_MESSAGE);
         if (startBackupMessage != null && !startBackupMessage.trim().isEmpty()) {
-            System.out.println(startBackupMessage);
+            //System.out.println(startBackupMessage);
             server.broadcastMessage(startBackupMessage);
         }
 
