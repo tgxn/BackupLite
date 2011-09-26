@@ -1,0 +1,62 @@
+## How often show the backup run? (Default: 15)
+# (Note: -1 Will disable automatic backups.)
+backupinterval: 15
+
+## How many backups are retained? If this limit ihit, the oldest backup will be removed. (#)
+maxbackups: 50
+
+## Only allow Ops to preform manual backups? (true/false)
+onlyops: true
+
+## Should backups only be preformed when there are players on the server? (Default: true)
+# Note: When the last player leaves the server, a final backup will be made.
+# The automatic backup cycle will resume when a player re-joins.
+backuponlywithplayer: true
+
+## Messages related to backup (MOVE TO STRINGS)
+messagestartbackup: Started Backup...
+messagefinishbackup: Finished Backup!
+
+
+## What to backup. (Default: true, true)
+backupworlds: true
+backupplugins: true
+
+
+## Worlds and plugins for the backup to skip. (Default: none)
+# Seperate by a semicolon. eg. World1;World2;Nether
+skipworlds:
+skipplugins:
+  
+## Whether to ZIP Backups or not. (Default: true)
+# If enabled, backups will be compressed and stored in a ZIP archive named with the current timestamp.
+# If disabled, the backup will stored in a folder with the timestamp.
+zipbackup: true
+
+## Custom date format string that is appended to every backup.
+## If left empty, the default date format is used.
+## This has to be a Java String.format string, see
+## http://download.oracle.com/javase/1.5.0/docs/api/java/util/Formatter.html#syntax
+##for reference.
+## Example: -%1$tY%1$tm%1$td-%1$tH%1$tM%1$tS (YYYYMMDD-HHMMSS: 20101201-011323) (conforms to ISO 8601)
+dateformat: '%1$td%1$tm%1$tY-%1$tH%1$tM%1$tS'
+
+## Enables the auto-save function after the backup. (Defualt: true)
+# Note: If you set this to false, this plugin will backup your worlds but not save the data from the memory to your hard disc. If the server crashes between
+# backups, all work is lost. Disable if you use another plugin to save the world to disk (EG: autosave).
+enableautosave: true
+
+## Directory to store backup in. (Default: backups)
+# Note: Path can be relative, or absolute.
+backuppath: backups
+
+## Store all worlds and plugins in a single file/folder. (Default: true)
+# If false every worlds backup is saved in one directory named in the format:
+# WORLDNAME_TIMESTAMP
+singlebackup: true
+
+###############################################
+##   Internal Settings (Read: DO NOT EDIT)   ##
+###############################################
+
+version: 1.8
