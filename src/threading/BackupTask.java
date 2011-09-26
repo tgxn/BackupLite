@@ -94,6 +94,8 @@ public class BackupTask implements Runnable, PropertyConstants {
             File backupDir = new File(backupDirName);
             backupDir.mkdir();
             boolean zip = properties.getBooleanProperty(BOOL_ZIP);
+            if (!zip)
+                 System.out.println("[BACKUP] Zipping backup is disabled!");
             while (!worldsToBackup.isEmpty()) {
                 String worldName = worldsToBackup.removeFirst();
                 String destDir = backupDirName.concat(FILE_SEPARATOR).concat(worldName).concat("-").concat(getDate());
