@@ -75,6 +75,9 @@ public class BackupTask implements Runnable, PropertyConstants {
                 try {
                     FileUtils.copyDirectory(worldName, backupDirName.concat(FILE_SEPARATOR).concat(worldName));
                 }
+                catch(FileNotFoundException e) {
+                    
+                }
                 catch (IOException e) {
                     System.out.println("[BACKUP] An error occurs while creating a temporary copy of world ".concat(worldName).concat(". Maybe the complete world isn' backuped, please take a look at it!"));
                     e.printStackTrace(System.out);
