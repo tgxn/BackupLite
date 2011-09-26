@@ -147,7 +147,7 @@ public class BackupTask implements Runnable, PropertyConstants {
             // get every zip file in the backup Dir
             File[] tempArray = backupDir.listFiles();
             File[] array = new File[tempArray.length - 1];
-            for (int i = 0 , j = 0; i < tempArray.length ; ++i) {
+            for (int i = 0 , j = 0; i < tempArray.length-1 ; ++i) {
                 File file = tempArray[i];
                 if (file.isDirectory() && file.getName().equals("custom"))
                     continue;
