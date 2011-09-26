@@ -18,7 +18,6 @@
 package backup;
 
 import threading.PrepareBackupTask;
-
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerListener;
@@ -53,7 +52,7 @@ public class CommandListener extends PlayerListener implements PropertyConstants
             if (Main.Permissions != null && !Main.Permissions.has(player, "backup.canbackup"))
                 return;
             if (pSystem.getBooleanProperty(BOOL_ONLY_OPS) && !player.isOp()) {
-                player.sendMessage("You dont have the rights to backup the server!");
+                player.sendMessage("You do not have the rights to run a backup!");
                 return;
             }
             if (split.length == 1) {

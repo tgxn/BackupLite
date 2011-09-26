@@ -204,7 +204,7 @@ public class BackupTask implements Runnable, PropertyConstants {
             @Override
             public void run () {
                 if (pSystem.getBooleanProperty(BOOL_ACTIVATE_AUTOSAVE))
-                    server.dispatchCommand(new ConsoleCommandSender(server), "save-on");
+                    server.dispatchCommand(server.getConsoleSender(), "save-on");
                 String completedBackupMessage = pSystem.getStringProperty(STRING_FINISH_BACKUP_MESSAGE);
                 if (completedBackupMessage != null && !completedBackupMessage.trim().isEmpty()) {
                     server.broadcastMessage(completedBackupMessage);

@@ -34,7 +34,7 @@ import org.bukkit.command.ConsoleCommandSender;
  * @author Kilian Gaertner
  * @see BackupTask
  */
-public class PrepareBackupTask implements Runnable, PropertyConstants{
+public class PrepareBackupTask implements Runnable, PropertyConstants {
 
     // The server where the Task is running
     private final Server server;
@@ -73,8 +73,8 @@ public class PrepareBackupTask implements Runnable, PropertyConstants{
             server.broadcastMessage(startBackupMessage);
         }
 
-        // a hack like methode to send the console command for disabling every world save
-        ConsoleCommandSender ccs = new ConsoleCommandSender(server);
+        // a hack like method to send the console command for disabling every world save
+        ConsoleCommandSender ccs = server.getConsoleSender();
         server.dispatchCommand(ccs, "save-all");
         server.dispatchCommand(ccs, "save-off");
 

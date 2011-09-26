@@ -55,10 +55,10 @@ public class Main extends JavaPlugin implements PropertyConstants {
         File backupDir = new File("plugins".concat(FILE_SEPARATOR).concat("Backup"));
         if (!backupDir.exists())
             backupDir.mkdirs();
-        backupDir = new File("backups");
+        backupDir = new File("backup");
         if (!backupDir.exists())
             backupDir.mkdirs();
-        backupDir = new File("backups".concat(FILE_SEPARATOR).concat("custom"));
+        backupDir = new File("backup".concat(FILE_SEPARATOR).concat("custom"));
         if (!backupDir.exists())
             backupDir.mkdirs();
         // load the properties

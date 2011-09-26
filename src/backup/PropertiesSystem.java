@@ -56,7 +56,7 @@ public class PropertiesSystem implements PropertyConstants {
         sBuilder.append("config.ini");
         File configFile = new File(sBuilder.toString());
         if (!configFile.exists()) {
-            System.out.println("[Backup] couldn't find the config, create a default one!");
+            System.out.println("[Backup] Couldn't find the config, create a default one!");
             createDefaultSettings(configFile);
         }
         loadProperties(configFile, plugin);
