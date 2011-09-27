@@ -26,7 +26,6 @@ import org.bukkit.Server;
 import io.FileUtils;
 import java.util.Calendar;
 import backup.Properties;
-import backup.PropertyConstants;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +40,7 @@ import static io.FileUtils.FILE_SEPARATOR;
  * security and performance.
  * @author Kilian Gaertner
  */
-public class BackupTask implements Runnable, PropertyConstants {
+public class BackupTask implements Runnable {
 
     private final Properties properties;
     private Strings strings;
@@ -71,15 +70,15 @@ public class BackupTask implements Runnable, PropertyConstants {
     public void backup() throws Exception {
         
         // Backup directory name
-        String backupDirName = properties.getStringProperty(STRING_BACKUP_FOLDER).concat(FILE_SEPARATOR);
+        String backupDirName = properties.getStringProp("backuppath").concat(FILE_SEPARATOR);
         
         // Prefs
-        boolean ShouldZIP = properties.getBooleanProperty(BOOL_ZIP);
-        boolean BackupWorlds = properties.getBooleanProperty(BOOL_BACKUP_WORLDS);
-        boolean BackupPlugins = properties.getBooleanProperty(BOOL_BACKUP_PLUGINS);
+        boolean ShouldZIP = properties.getBooleanProp("zipbackup");
+        boolean BackupWorlds = properties.getBooleanProp("backupworlds");
+        boolean BackupPlugins = properties.getBooleanProp("backupplugins");
         
         
-        if (properties.getBooleanProperty(BOOL_SUMMARIZE_CONTENT)) { // Store backups in one container.
+        if (properties.getBooleanProp("singlebackup")) { // Store backups in one container.
             
             backupDirName = backupDirName.concat(getDate());
             
@@ -162,7 +161,7 @@ public class BackupTask implements Runnable, PropertyConstants {
         // Java string (and date) formatting:
         // http://download.oracle.com/javase/1.5.0/docs/api/java/util/Formatter.html#syntax
         try {
-            formattedDate = String.format(properties.getStringProperty(STRING_CUSTOM_DATE_FORMAT),cal);
+            formattedDate = String.format(properties.getStringProp("dateformat"),cal);
         } catch (Exception e) {
             System.out.println(strings.getString("errordateformat"));
             formattedDate = String.format("%1$td%1$tm%1$tY-%1$tH%1$tM%1$tS", cal);
@@ -177,7 +176,7 @@ public class BackupTask implements Runnable, PropertyConstants {
      */
     private void deleteOldBackups () {
         try {
-            File backupDir = new File(properties.getStringProperty(STRING_BACKUP_FOLDER));
+            File backupDir = new File(properties.getStringProp("backuppath"));
            
             // List files
             File[] tempArray = backupDir.listFiles();
@@ -188,7 +187,7 @@ public class BackupTask implements Runnable, PropertyConstants {
             }
             tempArray = array;
             
-            final int maxBackups = properties.getIntProperty(INT_MAX_BACKUPS);
+            final int maxBackups = properties.getIntProp("maxbackups");
             
             // When there are more than the max.
             if (tempArray.length > maxBackups) {
@@ -235,7 +234,7 @@ public class BackupTask implements Runnable, PropertyConstants {
         Runnable run = new Runnable() {
             @Override
             public void run () {
-                if (properties.getBooleanProperty(BOOL_ACTIVATE_AUTOSAVE))
+                if (properties.getBooleanProp("enableautosave"))
                     server.dispatchCommand(server.getConsoleSender(), "save-on");
                 String completedBackupMessage = strings.getString("backupfinished");
                 if (completedBackupMessage != null && !completedBackupMessage.trim().isEmpty()) {

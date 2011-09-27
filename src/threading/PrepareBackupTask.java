@@ -19,9 +19,7 @@
 package threading;
 
 import backup.Properties;
-import backup.PropertyConstants;
 import backup.Strings;
-import java.io.File;
 import java.util.Arrays;
 import java.util.LinkedList;
 import org.bukkit.Server;
@@ -38,7 +36,7 @@ import org.bukkit.plugin.Plugin;
  * @author Kilian Gaertner
  * @see BackupTask
  */
-public class PrepareBackupTask implements Runnable, PropertyConstants {
+public class PrepareBackupTask implements Runnable {
 
     private final Server server;
     private final Properties properties;
@@ -63,11 +61,11 @@ public class PrepareBackupTask implements Runnable, PropertyConstants {
     public void run () {
         
         // Check if we should be doing backup
-        boolean backupOnlyWithPlayer = properties.getBooleanProperty(BOOL_BACKUP_ONLY_PLAYER);
+        boolean backupOnlyWithPlayer = properties.getBooleanProp("backuponlywithplayer");
         if ((backupOnlyWithPlayer && server.getOnlinePlayers().length > 0) || !backupOnlyWithPlayer || isManualBackup || backupName != null)
             prepareBackup();
         else
-            System.out.println(strings.getStringWOPT("abortedbackup", Integer.toString(properties.getIntProperty(INT_BACKUP_INTERVALL) / 1200)));
+            System.out.println(strings.getStringWOPT("abortedbackup", Integer.toString(properties.getIntProp("backupinterval") / 1200)));
     }
 
     protected void prepareBackup() {
@@ -91,7 +89,7 @@ public class PrepareBackupTask implements Runnable, PropertyConstants {
         LinkedList<String> worldsToBackup = new LinkedList<String>();
 
         // Determine if backups should be ZIP'd.
-        boolean hasToZIP = properties.getBooleanProperty(BOOL_ZIP);
+        boolean hasToZIP = properties.getBooleanProp("zipbackup");
         
         // Send a message advising that it is disabled.
         if (!hasToZIP)
@@ -115,7 +113,7 @@ public class PrepareBackupTask implements Runnable, PropertyConstants {
     }
 
     private String[] getToIgnoreWorlds () {
-        String[] worldNames = properties.getStringProperty(STRING_NO_BACKUP_WORLDNAMES).split(";");
+        String[] worldNames = properties.getStringProp("skipworlds").split(";");
         if (worldNames.length > 0 && !worldNames[0].isEmpty()) {
             
             // Log what worlds are disabled.

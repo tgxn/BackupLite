@@ -27,7 +27,7 @@ import org.bukkit.plugin.Plugin;
  *
  * @author Kilian Gaertner
  */
-public class LoginListener extends PlayerListener implements PropertyConstants {
+public class LoginListener extends PlayerListener {
 
     private int taskID = -2;
     private Properties properties;
@@ -58,7 +58,7 @@ public class LoginListener extends PlayerListener implements PropertyConstants {
         Player player = event.getPlayer();
         Server server = player.getServer();
         if (server.getOnlinePlayers().length <= 1) {
-            int interval = properties.getIntProperty(INT_BACKUP_INTERVALL);
+            int interval = properties.getIntProp("backupinterval");
             if (interval != -1) {
                 interval *= 1200;
                 taskID = server.getScheduler().scheduleSyncDelayedTask(plugin, new LastBackupTask(server, properties), interval);

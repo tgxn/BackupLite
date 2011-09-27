@@ -31,7 +31,7 @@ import org.bukkit.plugin.Plugin;
  * For manual backups
  * @author Kilian Gaertner
  */
-public class CommandListener extends PlayerListener implements PropertyConstants, CommandExecutor {
+public class CommandListener extends PlayerListener implements CommandExecutor {
 
     private PrepareBackupTask backupTask = null;
     private Properties properties;
@@ -60,7 +60,7 @@ public class CommandListener extends PlayerListener implements PropertyConstants
                  if(!Main.Permissions.has(player, "backup.backup"))
                     player.sendMessage(strings.getString("norights"));
                  return true;
-            } else if (properties.getBooleanProperty(BOOL_ONLY_OPS) && !player.isOp()) {
+            } else if (properties.getBooleanProp("onlyops") && !player.isOp()) {
                  player.sendMessage(strings.getString("norights"));
                  return true;
             }

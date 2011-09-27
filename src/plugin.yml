@@ -1,5 +1,5 @@
 name: Backup
-version: 1.8
+version: 1.8.1-dev
 description: CraftBukkit server Backup plugin.
 authors: [Meldanor, gamerx]
 main: backup.Main

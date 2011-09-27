@@ -29,7 +29,7 @@ import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 import org.bukkit.plugin.Plugin;
 
-public class Main extends JavaPlugin implements PropertyConstants {
+public class Main extends JavaPlugin {
 
     public static PermissionHandler Permissions;
     private PrepareBackupTask run;
@@ -39,48 +39,48 @@ public class Main extends JavaPlugin implements PropertyConstants {
     @Override
     public void onEnable () {
         
-        //check plugin Data Folder, create if not exist.
+        // Check plugin Data Folder, create if not exist.
         if (!this.getDataFolder().exists())
             this.getDataFolder().mkdirs();
         
-        // Load Properties
+        // Load Properties.
         properties = new Properties(this);
         
-        // Load Strings
+        // Load Strings.
         strings = new Strings(this);
         
-        // Check and load permissions system
+        // Check and load permissions system.
         setupPermissions();
         
         // Check backup folder, create if needed
-        // Note: Can this be relative AND absolute?
-        File plugindatafolder = new File(properties.getStringProperty(STRING_BACKUP_FOLDER));
+        // Query: Can this be relative AND absolute? (Read: Doe it WORK?)
+        File plugindatafolder = new File(properties.getStringProp("backuppath"));
         if (!plugindatafolder.exists()) {
             plugindatafolder.mkdirs();
             System.out.println(strings.getString("createbudir"));
         }
         
-        // Get server object
+        // Get server object.
         Server server = getServer();
         
-        // Get PluginManager object
+        // Get PluginManager object.
         PluginManager pm = server.getPluginManager();
 
-        // Setup the sceduled BackupTask
+        // Setup the sceduled BackupTask.
         run = new PrepareBackupTask(server, properties);
 
-        // Setup the CommandListener, for commands
+        // Setup the CommandListener, for commands.
         getCommand("backup").setExecutor(new CommandListener(run, properties, this));
         
-        // Setup LoginListener if we require it
-        if (properties.getBooleanProperty(BOOL_BACKUP_ONLY_PLAYER)) {
+        // Setup LoginListener if we require it.
+        if (properties.getBooleanProp("backuponlywithplayer")) {
             LoginListener loginlistener = new LoginListener(this, properties);
             pm.registerEvent(Type.PLAYER_LOGIN, loginlistener, Priority.Normal, this);
             pm.registerEvent(Type.PLAYER_QUIT, loginlistener, Priority.Normal, this);
         }
         
         // Setup the sceduled backuptask, or turn it off if not needed.
-        int interval = properties.getIntProperty(INT_BACKUP_INTERVALL);
+        int interval = properties.getIntProp("backupinterval");
         if (interval != -1) {
             interval *= 1200;
             server.getScheduler().scheduleSyncRepeatingTask(this, run, interval, interval);
