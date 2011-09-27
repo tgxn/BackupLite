@@ -43,19 +43,16 @@ public interface PropertyConstants {
     
     public final int BOOL_BACKUP_WORLDS         = 6;
 //----------------------------------------------------------------------------//
-    /** the index for the starting backup message */
-    public final int STRING_START_BACKUP_MESSAGE    = 0;
-    /** the index for the starting backup message */
-    public final int STRING_FINISH_BACKUP_MESSAGE   = 1;
+
     /** the index for the world that shouldn't get backuped.
      *  This is one line and each world name is seperated by a ; , so you have
      * to split them firstly.
      */
-    public final int STRING_NO_BACKUP_WORLDNAMES    = 2;
+    public final int STRING_NO_BACKUP_WORLDNAMES    = 0;
     /** the index for the custom date format string (optional) */
-    public final int STRING_CUSTOM_DATE_FORMAT      = 3;
+    public final int STRING_CUSTOM_DATE_FORMAT      = 1;
     /** the folder where the backups are stored */
-    public final int STRING_BACKUP_FOLDER           = 4;
+    public final int STRING_BACKUP_FOLDER           = 2;
     
-    public final int STRING_NO_BACKUP_PLUGINS       = 5;
+    public final int STRING_NO_BACKUP_PLUGINS       = 3;
 }

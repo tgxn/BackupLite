@@ -37,7 +37,7 @@ import static io.FileUtils.FILE_SEPARATOR;
 /**
  * The Task copies and backups the worlds and delete older backups. This task
  * is only runes once in backup and doing all the thread safe options.
- * The PrepareBackupTask and BackupTask are two threads to find a compromiss between
+ * The PrepareBackupTask and BackupTask are two threads to find a compromise between
  * security and performance.
  * @author Kilian Gaertner
  */
@@ -73,43 +73,51 @@ public class BackupTask implements Runnable, PropertyConstants {
         // Backup directory name
         String backupDirName = properties.getStringProperty(STRING_BACKUP_FOLDER).concat(FILE_SEPARATOR);
         
-        //TODO: FINISH FIXING/COMMENTING THIS.
-        if (properties.getBooleanProperty(BOOL_SUMMARIZE_CONTENT)) {
+        // Prefs
+        boolean ShouldZIP = properties.getBooleanProperty(BOOL_ZIP);
+        boolean BackupWorlds = properties.getBooleanProperty(BOOL_BACKUP_WORLDS);
+        boolean BackupPlugins = properties.getBooleanProperty(BOOL_BACKUP_PLUGINS);
+        
+        
+        if (properties.getBooleanProperty(BOOL_SUMMARIZE_CONTENT)) { // Store backups in one container.
             
-            if (backupName != null)
-                backupDirName = backupDirName.concat("custom").concat(FILE_SEPARATOR).concat(backupName);
-            else
-                backupDirName = backupDirName.concat(getDate());
+            backupDirName = backupDirName.concat(getDate());
             
+            //get Bakcup DIR and create if does not exist.
             File backupDir = new File(backupDirName);
-            backupDir.mkdir();
-            while (!worldsToBackup.isEmpty()) {
-                String worldName = worldsToBackup.removeFirst();
-                try {
-                    FileUtils.copyDirectory(worldName, backupDirName.concat(FILE_SEPARATOR).concat(worldName));
-                } catch(FileNotFoundException ex) {
-                    
-                } catch (IOException e) {
-                    System.out.println(strings.getStringWOPT("errorcreatetemp", worldName));
-                    e.printStackTrace(System.out);
-                    server.broadcastMessage(strings.getString("backupfailed"));
-                }
+            if (!backupDir.exists()) {
+                backupDir.mkdir();
             }
-            if (properties.getBooleanProperty(BOOL_BACKUP_PLUGINS))
-                FileUtils.copyDirectory("plugins", backupDirName.concat(FILE_SEPARATOR).concat("plugins"));
+            
+            if(BackupWorlds) {
+                while (!worldsToBackup.isEmpty()) {
+                    String worldName = worldsToBackup.removeFirst();
+                    try {
+                        FileUtils.copyDirectory(worldName, backupDirName.concat(FILE_SEPARATOR).concat(worldName));
+                    } catch(FileNotFoundException ex) {
 
-            if (properties.getBooleanProperty(BOOL_ZIP)) {
+                    } catch (IOException e) {
+                        System.out.println(strings.getStringWOPT("errorcreatetemp", worldName));
+                        e.printStackTrace(System.out);
+                        server.broadcastMessage(strings.getString("backupfailed"));
+                    }
+                }
+            } else {
+                System.out.println(strings.getString("skipworlds"));
+            }
+            
+            if (BackupPlugins) {
+                FileUtils.copyDirectory("plugins", backupDirName.concat(FILE_SEPARATOR).concat("plugins"));
+            } else {
+                System.out.println(strings.getString("skipplugins"));
+            }
+            if (ShouldZIP) {
                 FileUtils.zipDir(backupDirName, backupDirName);
                 FileUtils.deleteDirectory(backupDir);
             }
             
         } else { //single backup
-            
-            // Prefs
-            boolean ShouldZIP = properties.getBooleanProperty(BOOL_ZIP);
-            boolean BackupWorlds = properties.getBooleanProperty(BOOL_BACKUP_WORLDS);
-            boolean BackupPlugins = properties.getBooleanProperty(BOOL_BACKUP_PLUGINS);
-            
+
             if(BackupWorlds) {
                 while (!worldsToBackup.isEmpty()) {
                     String worldName = worldsToBackup.removeFirst();
@@ -125,7 +133,7 @@ public class BackupTask implements Runnable, PropertyConstants {
                     }
                 }
             } else {
-                System.out.println("world backup is disabled");
+                System.out.println(strings.getString("skipworlds"));
             }
             if (BackupPlugins) {
                     String destDir = backupDirName.concat(FILE_SEPARATOR).concat("plugins").concat("-").concat(getDate());
@@ -136,7 +144,7 @@ public class BackupTask implements Runnable, PropertyConstants {
                     }
                 
             } else {
-                System.out.println("plugin backup is disabled");
+                System.out.println(strings.getString("skipplugins"));
             }
 
         }

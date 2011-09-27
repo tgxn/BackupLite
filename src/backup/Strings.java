@@ -44,6 +44,10 @@ public class Strings {
         strings.getString("createbudir",    "[Backup] Created folder for backups."); // On first load will need to create the folder specified in properties if not found.
         strings.getString("zipdisabled",    "[Backup] Backup compression is disabled."); // If ZIP'in is disabled.
         
+        strings.getString("skipworlds",     "[Backup] Skipping worlds backup, for all worlds."); // Skipping worlds.
+        strings.getString("skipplugins",    "[Backup] Skipping plugin backup, for all plugins."); // Skipping plugins.
+        
+        
         strings.getString("stoppedlast",    "[Backup] Stopped last backup, start with normal backup cycle!"); // When a player joins after inactivity.
 
         strings.getString("lastbackup",     "[Backup] Set last backup. It will start in %%ARG%% minutes of server inactivity."); // When last player leaves.
@@ -61,9 +65,6 @@ public class Strings {
         strings.getString("errorcreatetemp","[Backup] An error occurs while creating a temporary copy of world %%ARG%%.  Maybe the complete world didnt backup, please take a look at it!"); // Temp file copy error.
         
         strings.getString("backupfailed",   "[Backup] An error occured while backing up. Please report to an admin!"); // Backup failure.
-        
-        
-        
         
         strings.getString("stringnotfound", "String not found - "); // If we couldnt find the string.
 

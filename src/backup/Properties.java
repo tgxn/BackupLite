@@ -36,7 +36,7 @@ public class Properties implements PropertyConstants {
     /** How big is the int value array*/
     private final int INT_VALUES_SIZE       = 2;
     private final int BOOL_VALUES_SIZE      = 7;
-    private final int STRING_VALUES_SIZE    = 6;
+    private final int STRING_VALUES_SIZE    = 4;
     /** Stores every int property*/
     private int[] intValues = new int[INT_VALUES_SIZE];
     /** Stores every bool property*/
@@ -117,8 +117,6 @@ public class Properties implements PropertyConstants {
           boolValues[BOOL_BACKUP_WORLDS] = config.getBoolean("backupworlds", true);
           boolValues[BOOL_BACKUP_PLUGINS] = config.getBoolean("backupplugins", true);
           boolValues[BOOL_SUMMARIZE_CONTENT] = config.getBoolean("singlebackup", true);
-          stringValues[STRING_START_BACKUP_MESSAGE] = config.getString("messagestartbackup", "");
-          stringValues[STRING_FINISH_BACKUP_MESSAGE] = config.getString("messagefinishbackup", "");
           stringValues[STRING_NO_BACKUP_WORLDNAMES] = config.getString("skipworlds", "");
           stringValues[STRING_NO_BACKUP_PLUGINS] = config.getString("skipplugins", "");
           stringValues[STRING_CUSTOM_DATE_FORMAT] = config.getString("dateformat", "'%1$td%1$tm%1$tY-%1$tH%1$tM%1$tS'");
