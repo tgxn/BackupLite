@@ -1,5 +1,6 @@
 /*
  *  Copyright (C) 2011 Kilian Gaertner
+ *  Modified      2011 Domenic Horner
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,8 +35,8 @@ public class Properties implements PropertyConstants {
 
     /** How big is the int value array*/
     private final int INT_VALUES_SIZE       = 2;
-    private final int BOOL_VALUES_SIZE      = 6;
-    private final int STRING_VALUES_SIZE    = 5;
+    private final int BOOL_VALUES_SIZE      = 7;
+    private final int STRING_VALUES_SIZE    = 6;
     /** Stores every int property*/
     private int[] intValues = new int[INT_VALUES_SIZE];
     /** Stores every bool property*/
@@ -108,19 +109,18 @@ public class Properties implements PropertyConstants {
             
     
           intValues[INT_BACKUP_INTERVALL] = config.getInt("backupinterval", 15);
-          if (intValues[INT_BACKUP_INTERVALL] != -1)
-                        intValues[INT_BACKUP_INTERVALL] *= 1200;
-          
           intValues[INT_MAX_BACKUPS] = config.getInt("maxbackups", 50);
           boolValues[BOOL_ONLY_OPS] = config.getBoolean("onlyops", true);
           boolValues[BOOL_BACKUP_ONLY_PLAYER] = config.getBoolean("backuponlywithplayer", true);        
           boolValues[BOOL_ZIP] =  config.getBoolean("zipbackup", true);
           boolValues[BOOL_ACTIVATE_AUTOSAVE] = config.getBoolean("enableautosave", true);
+          boolValues[BOOL_BACKUP_WORLDS] = config.getBoolean("backupworlds", true);
           boolValues[BOOL_BACKUP_PLUGINS] = config.getBoolean("backupplugins", true);
           boolValues[BOOL_SUMMARIZE_CONTENT] = config.getBoolean("singlebackup", true);
           stringValues[STRING_START_BACKUP_MESSAGE] = config.getString("messagestartbackup", "");
           stringValues[STRING_FINISH_BACKUP_MESSAGE] = config.getString("messagefinishbackup", "");
           stringValues[STRING_NO_BACKUP_WORLDNAMES] = config.getString("skipworlds", "");
+          stringValues[STRING_NO_BACKUP_PLUGINS] = config.getString("skipplugins", "");
           stringValues[STRING_CUSTOM_DATE_FORMAT] = config.getString("dateformat", "'%1$td%1$tm%1$tY-%1$tH%1$tM%1$tS'");
           stringValues[STRING_BACKUP_FOLDER] = config.getString("backuppath", "backups");
  

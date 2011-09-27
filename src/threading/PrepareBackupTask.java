@@ -1,5 +1,6 @@
 /*
  *  Copyright (C) 2011 Kilian Gaertner
+ *  Modified      2011 Domenic Horner
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,11 +20,14 @@ package threading;
 
 import backup.Properties;
 import backup.PropertyConstants;
+import backup.Strings;
+import java.io.File;
 import java.util.Arrays;
 import java.util.LinkedList;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.plugin.Plugin;
 
 /**
  * This task is running by a syncronized thread from the sheduler. It prepare
@@ -36,62 +40,64 @@ import org.bukkit.command.ConsoleCommandSender;
  */
 public class PrepareBackupTask implements Runnable, PropertyConstants {
 
-    // The server where the Task is running
     private final Server server;
     private final Properties properties;
+    public Strings strings;
     private String backupName;
-    private boolean isManuelBackup;
+    private boolean isManualBackup;
+    private Plugin plugin;
 
     /**
-     * The only constructur for the BackupTask.
+     * The only constructor for the BackupTask.
      * @param server The server where the Task is running on
-     * @param pSystem This must be a loaded PropertiesSystem
+     * @param properties This must be a loaded PropertiesSystem
      */
     public PrepareBackupTask (Server server, Properties properties) {
         this.server = server;
         this.properties = properties;
+        this.plugin = server.getPluginManager().getPlugin("Backup");
+        this.strings = new Strings(plugin);
     }
 
     @Override
     public void run () {
+        
+        // Check if we should be doing backup
         boolean backupOnlyWithPlayer = properties.getBooleanProperty(BOOL_BACKUP_ONLY_PLAYER);
-        if ((backupOnlyWithPlayer && server.getOnlinePlayers().length > 0)
-                || !backupOnlyWithPlayer
-                || isManuelBackup
-                || backupName != null)
+        if ((backupOnlyWithPlayer && server.getOnlinePlayers().length > 0) || !backupOnlyWithPlayer || isManualBackup || backupName != null)
             prepareBackup();
         else
-            System.out.println("[BACKUP] Scheduled backup was aborted due to lack of players. Next backup attempt in " + properties.getIntProperty(INT_BACKUP_INTERVALL) / 1200 + " minutes.");
+            System.out.println(strings.getStringWOPT("abortedbackup", Integer.toString(properties.getIntProperty(INT_BACKUP_INTERVALL) / 1200)));
     }
 
     protected void prepareBackup() {
 
-        // start broadcast informing the players about the backup
-        String startBackupMessage = properties.getStringProperty(STRING_START_BACKUP_MESSAGE);
+        // Inform players backup is about to happen.
+        String startBackupMessage = strings.getString("backupstarted");
         if (startBackupMessage != null && !startBackupMessage.trim().isEmpty()) {
-            //System.out.println(startBackupMessage);
             server.broadcastMessage(startBackupMessage);
         }
 
-        // a hack like method to send the console command for disabling every world save
+        // Save to file, and then turn saving off.
         ConsoleCommandSender ccs = server.getConsoleSender();
         server.dispatchCommand(ccs, "save-all");
         server.dispatchCommand(ccs, "save-off");
 
-        // the Player Position are getting stored
+        // Save players current values.
         server.savePlayers();
 
-        // get the names of the worlds which shall not backuped
+        // Get list of worlds to ignore.
         String[] ignoredWorlds = getToIgnoreWorlds();
         LinkedList<String> worldsToBackup = new LinkedList<String>();
 
-        // shall the backups stored and compress via ZIP?
+        // Determine if backups should be ZIP'd.
         boolean hasToZIP = properties.getBooleanProperty(BOOL_ZIP);
-            if (!hasToZIP)
-                // send a hint, because this shall not be the normal case!
-                System.out.println("[BACKUP] Backup compression is disabled.");
+        
+        // Send a message advising that it is disabled.
+        if (!hasToZIP)
+            System.out.println(strings.getString("zipdisabled"));
 
-        // iterate through all worlds and filter the one, that shall get backuped!
+        // Iterate through all possible worlds, and add them to queue.
         outer:
         for (World world : server.getWorlds()) {
             String worldName = world.getName();
@@ -102,25 +108,28 @@ public class PrepareBackupTask implements Runnable, PropertyConstants {
             worldsToBackup.add(worldName);
             world.save();
         }
-        server.getScheduler().scheduleAsyncDelayedTask(server.getPluginManager().getPlugin("Backup"), new BackupTask(properties,worldsToBackup,server,backupName));
+        
+        server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(properties, worldsToBackup, server, backupName));
         backupName = null;
-        isManuelBackup = false;
+        isManualBackup = false;
     }
 
     private String[] getToIgnoreWorlds () {
         String[] worldNames = properties.getStringProperty(STRING_NO_BACKUP_WORLDNAMES).split(";");
         if (worldNames.length > 0 && !worldNames[0].isEmpty()) {
-            System.out.println("[BACKUP] Backup is disabled for the following world(s):");
+            
+            // Log what worlds are disabled.
+            System.out.println(strings.getString("disabledworlds"));
             System.out.println(Arrays.toString(worldNames));
         }
         return worldNames;
     }
-    
+
     public void setBackupName (String backupName) {
         this.backupName = backupName;
     }
 
-    public void setAsManuelBackup () {
-        this.isManuelBackup = true;
+    public void setAsManualBackup () {
+        this.isManualBackup = true;
     }
 }

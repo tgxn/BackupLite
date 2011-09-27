@@ -1,5 +1,6 @@
 /*
  *  Copyright (C) 2011 Kilian Gaertner
+ *  Modified      2011 Domenic Horner
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,90 +21,95 @@ package backup;
 import threading.PrepareBackupTask;
 import java.io.File;
 import org.bukkit.Server;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event.Type;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 import org.bukkit.plugin.Plugin;
 
-import static io.FileUtils.FILE_SEPARATOR;
-
-/**
- *
- * @author Kilian Gaertner
- */
 public class Main extends JavaPlugin implements PropertyConstants {
 
     public static PermissionHandler Permissions;
     private PrepareBackupTask run;
-
-    @Override
-    public void onDisable () {
-        this.getServer().getScheduler().cancelTasks(this);
-    }
+    protected static Strings strings;
+    protected static Properties properties;
     
     @Override
     public void onEnable () {
-
+        
+        //check plugin Data Folder, create if not exist.
+        if (!this.getDataFolder().exists())
+            this.getDataFolder().mkdirs();
+        
+        // Load Properties
+        properties = new Properties(this);
+        
+        // Load Strings
+        strings = new Strings(this);
+        
+        // Check and load permissions system
         setupPermissions();
-
-        File backupDir = new File("plugins".concat(FILE_SEPARATOR).concat("Backup"));
-        if (!backupDir.exists())
-            backupDir.mkdirs();
-        backupDir = new File("backups");
-        if (!backupDir.exists())
-            backupDir.mkdirs();
-        backupDir = new File("backups".concat(FILE_SEPARATOR).concat("custom"));
-        if (!backupDir.exists())
-            backupDir.mkdirs();
-        // load the properties
-        Properties properties = new Properties(this);
-
+        
+        // Check backup folder, create if needed
+        // Note: Can this be relative AND absolute?
+        File plugindatafolder = new File(properties.getStringProperty(STRING_BACKUP_FOLDER));
+        if (!plugindatafolder.exists()) {
+            plugindatafolder.mkdirs();
+            System.out.println(strings.getString("createbudir"));
+        }
+        
+        // Get server object
         Server server = getServer();
+        
+        // Get PluginManager object
         PluginManager pm = server.getPluginManager();
 
-        // the backupTask, which backups the system every X minutes
+        // Setup the sceduled BackupTask
         run = new PrepareBackupTask(server, properties);
 
-        // for manuell backups
-        pm.registerEvent(Type.PLAYER_COMMAND_PREPROCESS, new CommandListener(run, properties, this), Priority.Normal, this);
-
+        // Setup the CommandListener, for commands
+        getCommand("backup").setExecutor(new CommandListener(run, properties, this));
+        
+        // Setup LoginListener if we require it
         if (properties.getBooleanProperty(BOOL_BACKUP_ONLY_PLAYER)) {
-            LoginListener ll = new LoginListener(this, properties);
-            pm.registerEvent(Type.PLAYER_LOGIN, ll, Priority.Normal, this);
-            pm.registerEvent(Type.PLAYER_QUIT, ll, Priority.Normal, this);
+            LoginListener loginlistener = new LoginListener(this, properties);
+            pm.registerEvent(Type.PLAYER_LOGIN, loginlistener, Priority.Normal, this);
+            pm.registerEvent(Type.PLAYER_QUIT, loginlistener, Priority.Normal, this);
         }
-        // start the backupTask, which will starts after X minutes and backup after X minutes
-        int intervall = properties.getIntProperty(INT_BACKUP_INTERVALL);
-        if (intervall != -1)
-            server.getScheduler().scheduleSyncRepeatingTask(this, run, intervall, intervall);
-        else
-            System.out.println("[BACKUP] You have disabled the automatic backup function!");
+        
+        // Setup the sceduled backuptask, or turn it off if not needed.
+        int interval = properties.getIntProperty(INT_BACKUP_INTERVALL);
+        if (interval != -1) {
+            interval *= 1200;
+            server.getScheduler().scheduleSyncRepeatingTask(this, run, interval, interval);
+        } else
+            System.out.println(strings.getString("disbaledauto"));
+        
+        // Inform Startup Complete.
         System.out.println(this.getDescription().getFullName() + " was sucessfully loaded!");
     }
-
+    
     @Override
-    public boolean onCommand (CommandSender sender, Command command, String label, String[] args) {
-        run.setAsManuelBackup();
-        if (args != null && args.length == 1)
-            run.setBackupName(args[0]);
-        this.getServer().getScheduler().scheduleSyncDelayedTask(this, run);
-
-        return true;
+    public void onDisable () {
+        
+        // Cancell any sceduled tasks.
+        this.getServer().getScheduler().cancelTasks(this);
+        
+        // Inform shutdown successfull
+        System.out.println(this.getDescription().getFullName() + " was sucessfully unloaded!");
     }
-
+     
+    
+    // Check if the Permissions System is available.
     private void setupPermissions () {
-        Plugin test = this.getServer().getPluginManager().getPlugin("Permissions");
-
+        Plugin loadPerms = this.getServer().getPluginManager().getPlugin("Permissions");
         if (Permissions == null)
-            if (test != null)
-                Permissions = ((Permissions) test).getHandler();
-            else
-                this.getServer().getLogger().info("[Backup] Permission system not detected, defaulting to OP");
+            if (loadPerms != null) {
+                Permissions = ((Permissions) loadPerms).getHandler();
+                System.out.println(strings.getString("hookedperms"));
+            } else
+                System.out.println(strings.getString("defaultperms"));
     }
 }

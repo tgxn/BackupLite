@@ -1,5 +1,6 @@
 /*
  *  Copyright (C) 2011 Kilian Gaertner
+ *  Modified      2011 Domenic Horner
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,9 +18,11 @@
 
 package backup;
 
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import threading.PrepareBackupTask;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.plugin.Plugin;
 
@@ -28,43 +31,47 @@ import org.bukkit.plugin.Plugin;
  * For manual backups
  * @author Kilian Gaertner
  */
-public class CommandListener extends PlayerListener implements PropertyConstants {
+public class CommandListener extends PlayerListener implements PropertyConstants, CommandExecutor {
 
     private PrepareBackupTask backupTask = null;
-    private Properties properties = null;
+    private Properties properties;
     private final Plugin plugin;
+    private Strings strings;
+    private Player player;
+    
 
-    public CommandListener (PrepareBackupTask backupTask, Properties pSystem, Plugin plugin) {
+    public CommandListener (PrepareBackupTask backupTask, Properties properties, Plugin plugin) {
         this.backupTask = backupTask;
-        this.properties = pSystem;
+        this.properties = properties;
         this.plugin = plugin;
+        this.strings = new Strings(plugin);
     }
 
+    
     @Override
-    public void onPlayerCommandPreprocess (PlayerCommandPreprocessEvent event) {
-        Player player = event.getPlayer();
-        String command = event.getMessage();
-        String[] split = command.split(" ");
-        if (!event.isCancelled() && split[0].equalsIgnoreCase("/backup")) {
-            event.setCancelled(true);
-            // only Player which has the Permissions by the plugin Permission can backup
-            // only Player can backup when the properties only ops can backup is set by the server AND the player is an operator
-            if (Main.Permissions != null && !Main.Permissions.has(player, "backup.canbackup"))
-                return;
-            if (properties.getBooleanProperty(BOOL_ONLY_OPS) && !player.isOp()) {
-                player.sendMessage("You do not have the rights to run a backup!");
-                return;
+    public boolean onCommand (CommandSender cs, Command command, String label, String[] args) {
+        if((cs instanceof Player)) { // In-Game Command
+            
+            // Get player object
+            player = (Player)cs;
+            
+            // Verify Permissions
+            if (Main.Permissions != null) { //permissions loaded
+                 if(!Main.Permissions.has(player, "backup.backup"))
+                    player.sendMessage(strings.getString("norights"));
+                 return true;
+            } else if (properties.getBooleanProperty(BOOL_ONLY_OPS) && !player.isOp()) {
+                 player.sendMessage(strings.getString("norights"));
+                 return true;
             }
-            if (split.length == 1) {
-                backupTask.setAsManuelBackup();
-                player.getServer().getScheduler().scheduleSyncDelayedTask(plugin, backupTask);
-            }
-            else if (split.length == 2) {
-                backupTask.setBackupName(split[1]);
-                player.getServer().getScheduler().scheduleSyncDelayedTask(plugin, backupTask);
-            }
-            else
-                player.sendMessage("/backup OPTIONALNAME");
         }
+        
+        if (label.equalsIgnoreCase("backup")) {
+            backupTask.setAsManualBackup();
+            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, backupTask);
+        }
+        
+       return true;
     }
+    
 }

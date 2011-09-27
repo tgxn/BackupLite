@@ -32,19 +32,23 @@ public class LoginListener extends PlayerListener implements PropertyConstants {
     private int taskID = -2;
     private Properties properties;
     private Plugin plugin;
+    private Strings strings;
 
     public LoginListener (Plugin plugin, Properties properties) {
         this.properties = properties;
         this.plugin = plugin;
+        this.strings = new Strings(plugin);
     }
 
     @Override
     public void onPlayerLogin (PlayerLoginEvent event) {
         Player player = event.getPlayer();
         Server server = player.getServer();
+        
+ 
         if (taskID != -2 && server.getOnlinePlayers().length == 0) {
             server.getScheduler().cancelTask(taskID);
-            System.out.println("[BACKUP] Stopped last backup, start with normal backup cyclus!");
+            System.out.println(strings.getString("stoppedlast"));
             taskID = -2;
         }
     }
@@ -54,9 +58,13 @@ public class LoginListener extends PlayerListener implements PropertyConstants {
         Player player = event.getPlayer();
         Server server = player.getServer();
         if (server.getOnlinePlayers().length <= 1) {
-            int intervall = properties.getIntProperty(INT_BACKUP_INTERVALL);
-            System.out.println("[BACKUP] Initiate a last backup because the last player left. It will start to backup in " + (intervall / 1200) + " minutes when no player will have connected in this time.");
-            taskID = server.getScheduler().scheduleSyncDelayedTask(plugin, new LastBackupTask(server, properties), intervall);
+            int interval = properties.getIntProperty(INT_BACKUP_INTERVALL);
+            if (interval != -1) {
+                interval *= 1200;
+                taskID = server.getScheduler().scheduleSyncDelayedTask(plugin, new LastBackupTask(server, properties), interval);
+                System.out.println(strings.getStringWOPT("lastbackup", Integer.toString(interval / 1200)));
+            }
+            
         }
     }
 }

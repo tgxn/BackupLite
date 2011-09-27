@@ -31,12 +31,13 @@ public class LastBackupTask extends PrepareBackupTask {
     public LastBackupTask (Server server, Properties properties) {
         super(server, properties);
         this.server = server;
+        this.strings = super.strings;
     }
 
     @Override
     public void run () {
         if (server.getOnlinePlayers().length <= 0) {
-            System.out.println("[BACKUP] Start last backup. When this is done, the server will not run a backup until a player joins the server.");
+            System.out.println(strings.getString("startlast"));
             super.prepareBackup();
         }
     }

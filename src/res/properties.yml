@@ -3,7 +3,7 @@
 backupinterval: 15
 
 ## How many backups are retained? If this limit ihit, the oldest backup will be removed. (#)
-maxbackups: 50
+maxbackups: 25
 
 ## Only allow Ops to preform manual backups? (true/false)
 onlyops: true
@@ -13,15 +13,9 @@ onlyops: true
 # The automatic backup cycle will resume when a player re-joins.
 backuponlywithplayer: true
 
-## Messages related to backup (MOVE TO STRINGS)
-messagestartbackup: Started Backup...
-messagefinishbackup: Finished Backup!
-
-
 ## What to backup. (Default: true, true)
 backupworlds: true
 backupplugins: true
-
 
 ## Worlds and plugins for the backup to skip. (Default: none)
 # Seperate by a semicolon. eg. World1;World2;Nether

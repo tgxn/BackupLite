@@ -1,5 +1,6 @@
 /*
  *  Copyright (C) 2011 Kilian Gaertner
+ *  Modified      2011 Domenic Horner
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,6 +18,9 @@
 
 package threading;
 
+import org.bukkit.plugin.Plugin;
+import backup.Strings;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.bukkit.Server;
 import io.FileUtils;
@@ -40,6 +44,8 @@ import static io.FileUtils.FILE_SEPARATOR;
 public class BackupTask implements Runnable, PropertyConstants {
 
     private final Properties properties;
+    private Strings strings;
+    private Plugin plugin;
     private final LinkedList<String> worldsToBackup;
     private final Server server;
     private final String backupName;
@@ -48,6 +54,8 @@ public class BackupTask implements Runnable, PropertyConstants {
         this.worldsToBackup = worldsToBackup;
         this.server = server;
         this.backupName = backupName;
+        this.plugin = server.getPluginManager().getPlugin("Backup");
+        this.strings = new Strings(plugin);
     }
 
     @Override
@@ -59,29 +67,32 @@ public class BackupTask implements Runnable, PropertyConstants {
             ex.printStackTrace(System.out);
         }
     }
-
+    // Do the backup
     public void backup() throws Exception {
-
+        
+        // Backup directory name
+        String backupDirName = properties.getStringProperty(STRING_BACKUP_FOLDER).concat(FILE_SEPARATOR);
+        
+        //TODO: FINISH FIXING/COMMENTING THIS.
         if (properties.getBooleanProperty(BOOL_SUMMARIZE_CONTENT)) {
-            String backupDirName = properties.getStringProperty(STRING_BACKUP_FOLDER).concat(FILE_SEPARATOR);
+            
             if (backupName != null)
                 backupDirName = backupDirName.concat("custom").concat(FILE_SEPARATOR).concat(backupName);
             else
                 backupDirName = backupDirName.concat(getDate());
+            
             File backupDir = new File(backupDirName);
             backupDir.mkdir();
             while (!worldsToBackup.isEmpty()) {
                 String worldName = worldsToBackup.removeFirst();
                 try {
                     FileUtils.copyDirectory(worldName, backupDirName.concat(FILE_SEPARATOR).concat(worldName));
-                }
-                catch(FileNotFoundException e) {
+                } catch(FileNotFoundException ex) {
                     
-                }
-                catch (IOException e) {
-                    System.out.println("[BACKUP] An error occurs while creating a temporary copy of world ".concat(worldName).concat(". Maybe the complete world isn' backuped, please take a look at it!"));
+                } catch (IOException e) {
+                    System.out.println(strings.getStringWOPT("errorcreatetemp", worldName));
                     e.printStackTrace(System.out);
-                    server.broadcastMessage("[BACKUP] An error occurs while backup. Please report an admin!");
+                    server.broadcastMessage(strings.getString("backupfailed"));
                 }
             }
             if (properties.getBooleanProperty(BOOL_BACKUP_PLUGINS))
@@ -91,33 +102,45 @@ public class BackupTask implements Runnable, PropertyConstants {
                 FileUtils.zipDir(backupDirName, backupDirName);
                 FileUtils.deleteDirectory(backupDir);
             }
-        }
-        else {
-            String backupDirName = properties.getStringProperty(STRING_BACKUP_FOLDER).concat(FILE_SEPARATOR);
-            File backupDir = new File(backupDirName);
-            backupDir.mkdir();
-            boolean zip = properties.getBooleanProperty(BOOL_ZIP);
-            if (!zip)
-                 System.out.println("[BACKUP] Zipping backup is disabled!");
-            while (!worldsToBackup.isEmpty()) {
-                String worldName = worldsToBackup.removeFirst();
-                String destDir = backupDirName.concat(FILE_SEPARATOR).concat(worldName).concat("-").concat(getDate());
-                FileUtils.copyDirectory(worldName, destDir);
-                if (zip) {
-                    FileUtils.zipDir(destDir, destDir);
-                    FileUtils.deleteDirectory(new File(destDir));
+            
+        } else { //single backup
+            
+            // Prefs
+            boolean ShouldZIP = properties.getBooleanProperty(BOOL_ZIP);
+            boolean BackupWorlds = properties.getBooleanProperty(BOOL_BACKUP_WORLDS);
+            boolean BackupPlugins = properties.getBooleanProperty(BOOL_BACKUP_PLUGINS);
+            
+            if(BackupWorlds) {
+                while (!worldsToBackup.isEmpty()) {
+                    String worldName = worldsToBackup.removeFirst();
+                    String destDir = backupDirName.concat(FILE_SEPARATOR).concat(worldName).concat("-").concat(getDate());
+                    
+                    
+                    FileUtils.copyDirectory(worldName, destDir);
+                    
+                    
+                    if (ShouldZIP) {
+                      FileUtils.zipDir(destDir, destDir);
+                      FileUtils.deleteDirectory(new File(destDir));
+                    }
                 }
+            } else {
+                System.out.println("world backup is disabled");
             }
-            if (properties.getBooleanProperty(BOOL_BACKUP_PLUGINS)) {
-                String destDir = backupDirName.concat(FILE_SEPARATOR).concat("plugins").concat("-").concat(getDate());
-                FileUtils.copyDirectory("plugins", destDir);
-                if (zip) {
-                    FileUtils.zipDir(destDir, destDir);
-                    FileUtils.deleteDirectory(new File(destDir));
-                }
+            if (BackupPlugins) {
+                    String destDir = backupDirName.concat(FILE_SEPARATOR).concat("plugins").concat("-").concat(getDate());
+                    FileUtils.copyDirectory("plugins", destDir);
+                    if (ShouldZIP) {
+                        FileUtils.zipDir(destDir, destDir);
+                        FileUtils.deleteDirectory(new File(destDir));
+                    }
+                
+            } else {
+                System.out.println("plugin backup is disabled");
             }
+
         }
-        deleteOldBackups ();
+        deleteOldBackups();
         finish();
     }
 
@@ -132,9 +155,8 @@ public class BackupTask implements Runnable, PropertyConstants {
         // http://download.oracle.com/javase/1.5.0/docs/api/java/util/Formatter.html#syntax
         try {
             formattedDate = String.format(properties.getStringProperty(STRING_CUSTOM_DATE_FORMAT),cal);
-        }
-        catch (Exception e) {
-            System.out.println("[BACKUP] Error formatting date, bad format string! Formatting date with default format string...");
+        } catch (Exception e) {
+            System.out.println(strings.getString("errordateformat"));
             formattedDate = String.format("%1$td%1$tm%1$tY-%1$tH%1$tM%1$tS", cal);
             System.out.println(e);
         }
@@ -142,28 +164,26 @@ public class BackupTask implements Runnable, PropertyConstants {
     }
 
     /**
-     * Check whethere there are more backups as allowed to store. When this case
+     * Check wether there are more backups as allowed to store. When this case
      * is true, it deletes oldest ones
      */
     private void deleteOldBackups () {
         try {
-            //
             File backupDir = new File(properties.getStringProperty(STRING_BACKUP_FOLDER));
-            // get every zip file in the backup Dir
+           
+            // List files
             File[] tempArray = backupDir.listFiles();
             File[] array = new File[tempArray.length - 1];
             for (int i = 0 , j = 0; i < tempArray.length-1 ; ++i) {
                 File file = tempArray[i];
-                if (file.isDirectory() && file.getName().equals("custom"))
-                    continue;
                 array[j++] = tempArray[i];
             }
             tempArray = array;
+            
             final int maxBackups = properties.getIntProperty(INT_MAX_BACKUPS);
-            // when are more backups existing as allowed as to store
+            
+            // When there are more than the max.
             if (tempArray.length > maxBackups) {
-                System.out.println("Delete old backups");
-
                 // Store the to delete backups in a list
                 ArrayList<File> backups = new ArrayList<File>(tempArray.length);
                 // For this add all backups in the list and remove later the newest ones
@@ -187,7 +207,7 @@ public class BackupTask implements Runnable, PropertyConstants {
                     }
                     backups.remove(maxModifiedIndex);
                 }
-                System.out.println("[BACKUP] Removing the following backups due to age:");
+                System.out.println(strings.getString("removeold"));
                 System.out.println(Arrays.toString(backups.toArray()));
                 // this are the oldest backups, so delete them
                 for (File backupToDelete : backups)
@@ -201,7 +221,7 @@ public class BackupTask implements Runnable, PropertyConstants {
 
     /**
      * Creates a temporary Runnable that is running on the main thread by the
-     * sheduler to prevent thread problems.
+     * sceduler to prevent thread problems.
      */
     private void finish() {
         Runnable run = new Runnable() {
@@ -209,13 +229,13 @@ public class BackupTask implements Runnable, PropertyConstants {
             public void run () {
                 if (properties.getBooleanProperty(BOOL_ACTIVATE_AUTOSAVE))
                     server.dispatchCommand(server.getConsoleSender(), "save-on");
-                String completedBackupMessage = properties.getStringProperty(STRING_FINISH_BACKUP_MESSAGE);
+                String completedBackupMessage = strings.getString("backupfinished");
                 if (completedBackupMessage != null && !completedBackupMessage.trim().isEmpty()) {
                     server.broadcastMessage(completedBackupMessage);
                     //System.out.println(completedBackupMessage);
                 }
             }
         };
-        server.getScheduler().scheduleSyncDelayedTask(server.getPluginManager().getPlugin("Backup"), run);
+        server.getScheduler().scheduleSyncDelayedTask(plugin, run);
     }
 }

@@ -1,9 +1,9 @@
 name: Backup
 version: 1.8
-description: Server Backup plugin.
+description: CraftBukkit server Backup plugin.
 authors: [Meldanor, gamerx]
 main: backup.Main
 commands:
   backup:
     description: Starts a backup of the server
-    usage: /<command> OPTIONAL_NAME
+    usage: "Usage: /<command> [Args]"

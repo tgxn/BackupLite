@@ -40,6 +40,8 @@ public interface PropertyConstants {
     public final int BOOL_BACKUP_PLUGINS        = 4;
     /** Summarice all worlds in one archive/folder or in seperate one */
     public final int BOOL_SUMMARIZE_CONTENT     = 5;
+    
+    public final int BOOL_BACKUP_WORLDS         = 6;
 //----------------------------------------------------------------------------//
     /** the index for the starting backup message */
     public final int STRING_START_BACKUP_MESSAGE    = 0;
@@ -54,4 +56,6 @@ public interface PropertyConstants {
     public final int STRING_CUSTOM_DATE_FORMAT      = 3;
     /** the folder where the backups are stored */
     public final int STRING_BACKUP_FOLDER           = 4;
+    
+    public final int STRING_NO_BACKUP_PLUGINS       = 5;
 }
