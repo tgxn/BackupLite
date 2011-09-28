@@ -20,6 +20,7 @@ package threading;
 
 import backup.Properties;
 import backup.Strings;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.LinkedList;
 import org.bukkit.Server;
@@ -75,9 +76,15 @@ public class PrepareBackupTask implements Runnable {
         if (startBackupMessage != null && !startBackupMessage.trim().isEmpty()) {
             server.broadcastMessage(startBackupMessage);
         }
-
+        
+        ConsoleCommandSender ccs;
+        // Compatible with dev build (more than 857)
+            //ccs = server.getConsoleSender();
+            
+        // Compatable with RB. (less than 857)
+            ccs = new ConsoleCommandSender(server);
+            
         // Save to file, and then turn saving off.
-        ConsoleCommandSender ccs = server.getConsoleSender();
         server.dispatchCommand(ccs, "save-all");
         server.dispatchCommand(ccs, "save-off");
 
@@ -122,6 +129,7 @@ public class PrepareBackupTask implements Runnable {
         }
         return worldNames;
     }
+    
 
     public void setBackupName (String backupName) {
         this.backupName = backupName;

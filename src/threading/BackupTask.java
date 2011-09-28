@@ -18,6 +18,7 @@
 
 package threading;
 
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.Plugin;
 import backup.Strings;
 import java.io.FileNotFoundException;
@@ -235,7 +236,7 @@ public class BackupTask implements Runnable {
             @Override
             public void run () {
                 if (properties.getBooleanProp("enableautosave"))
-                    server.dispatchCommand(server.getConsoleSender(), "save-on");
+                    server.dispatchCommand(new ConsoleCommandSender(server), "save-on");
                 String completedBackupMessage = strings.getString("backupfinished");
                 if (completedBackupMessage != null && !completedBackupMessage.trim().isEmpty()) {
                     server.broadcastMessage(completedBackupMessage);
