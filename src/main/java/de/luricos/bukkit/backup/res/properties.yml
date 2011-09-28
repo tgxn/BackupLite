@@ -53,4 +53,4 @@ singlebackup: true
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
-version: 1.7.2-dev
+version: 1.8

@@ -1,5 +1,10 @@
 /*
- *  Copyright (C) 2011 Kilian Gaertner
+ *  Backup - CraftBukkit server Backup plugin (continued)
+ *  Copyright (C) 2011 Domenic Horner <https://github.com/gamerx/Backup>
+ *  Copyright (C) 2011 Lycano <https://github.com/gamerx/Backup>
+ *
+ *  Backup - CraftBukkit server Backup plugin (original author)
+ *  Copyright (C) 2011 Kilian Gaertner <https://github.com/Meldanor/Backup>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,12 +20,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package backup;
+package de.luricos.bukkit.backup.listeners;
 
-import threading.LastBackupTask;
+import de.luricos.bukkit.backup.config.Properties;
+import de.luricos.bukkit.backup.config.Strings;
+import de.luricos.bukkit.backup.threading.LastBackupTask;
+import de.luricos.bukkit.backup.utils.BackupLogger;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerListener;
+import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 
 /**
@@ -44,11 +54,11 @@ public class LoginListener extends PlayerListener {
     public void onPlayerLogin (PlayerLoginEvent event) {
         Player player = event.getPlayer();
         Server server = player.getServer();
-        
- 
+
+
         if (taskID != -2 && server.getOnlinePlayers().length == 0) {
             server.getScheduler().cancelTask(taskID);
-            System.out.println(strings.getString("stoppedlast"));
+            BackupLogger.prettyLog(strings.getString("stoppedlast"));
             taskID = -2;
         }
     }
@@ -58,11 +68,11 @@ public class LoginListener extends PlayerListener {
         Player player = event.getPlayer();
         Server server = player.getServer();
         if (server.getOnlinePlayers().length <= 1) {
-            int interval = properties.getIntProp("backupinterval");
+            int interval = properties.getIntProperty("backupinterval");
             if (interval != -1) {
                 interval *= 1200;
                 taskID = server.getScheduler().scheduleSyncDelayedTask(plugin, new LastBackupTask(server, properties), interval);
-                System.out.println(strings.getStringWOPT("lastbackup", Integer.toString(interval / 1200)));
+                BackupLogger.prettyLog(strings.getStringWOPT("lastbackup", Integer.toString(interval / 1200)));
             }
             
         }

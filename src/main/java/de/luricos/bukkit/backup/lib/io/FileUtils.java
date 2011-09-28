@@ -13,17 +13,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * (modified version)
  */
 
-package io;
+package de.luricos.bukkit.backup.lib.io;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
@@ -209,9 +205,9 @@ public class FileUtils {
             throw new NullPointerException("Source must not be null");
         if (destDir == null)
             throw new NullPointerException("Destination must not be null");
-        if (srcDir.exists() == false)
+        if (!srcDir.exists())
             throw new FileNotFoundException("Source '" + srcDir + "' does not exist");
-        if (srcDir.isDirectory() == false)
+        if (!srcDir.isDirectory())
             throw new IOException("Source '" + srcDir + "' exists but is not a directory");
         if (srcDir.getCanonicalPath().equals(destDir.getCanonicalPath()))
             throw new IOException("Source '" + srcDir + "' and destination '" + destDir + "' are the same");
@@ -249,12 +245,12 @@ public class FileUtils {
         if (files == null)  // null if security restricted
             throw new IOException("Failed to list contents of " + srcDir);
         if (destDir.exists()) {
-            if (destDir.isDirectory() == false)
+            if (!destDir.isDirectory())
                 throw new IOException("Destination '" + destDir + "' exists but is not a directory");
         }
-        else if (destDir.mkdirs() == false)
+        else if (!destDir.mkdirs())
             throw new IOException("Destination '" + destDir + "' directory cannot be created");
-        if (destDir.canWrite() == false)
+        if (!destDir.canWrite())
             throw new IOException("Destination '" + destDir + "' cannot be written to");
         for (File file : files) {
             File copiedFile = new File(destDir, file.getName());
@@ -454,10 +450,7 @@ public class FileUtils {
             fileInCanonicalDir = new File(canonicalDir, file.getName());
         }
 
-        if (fileInCanonicalDir.getCanonicalFile().equals(fileInCanonicalDir.getAbsoluteFile()))
-            return false;
-        else
-            return true;
+        return !fileInCanonicalDir.getCanonicalFile().equals(fileInCanonicalDir.getAbsoluteFile());
     }
 
     /**

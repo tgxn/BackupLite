@@ -1,69 +1,70 @@
 /*
- *  Copyright (C) 2011 Kilian Gaertner
- *  Modified      2011 Domenic Horner
- * 
+ *  Backup - CraftBukkit server Backup plugin (continued)
+ *  Copyright (C) 2011 Domenic Horner <https://github.com/gamerx/Backup>
+ *  Copyright (C) 2011 Lycano <https://github.com/gamerx/Backup>
+ *
+ *  Backup - CraftBukkit server Backup plugin (original author)
+ *  Copyright (C) 2011 Kilian Gaertner <https://github.com/Meldanor/Backup>
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package backup;
+package de.luricos.bukkit.backup.config;
 
-import org.bukkit.util.config.Configuration;
+import de.luricos.bukkit.backup.utils.BackupLogger;
 import org.bukkit.plugin.Plugin;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
+import org.bukkit.util.config.Configuration;
+
+import java.io.*;
+import java.util.logging.Level;
 
 public class Properties {
+    private Configuration config;
 
-    // The configs.
-    public Configuration config;
-    
-    /**
-     * When constructed all properties are loaded. When no properties.yml exists, the
-     * default values are used
-     */
-    public Properties (Plugin plugin) {
-        File configFile = new File(plugin.getDataFolder(),  "properties.yml");
+    public Properties(Plugin plugin) {
+        File configFile = new File(plugin.getDataFolder(), "properties.yml");
         if (!configFile.exists()) {
-            System.out.println("[Backup] Couldn't find the config, create a default one!");
+            BackupLogger.prettyLog(Level.WARNING, false, "Couldn't find a config file, creating default!");
             createDefaultSettings(configFile);
         }
+
         loadProperties(configFile, plugin);
     }
 
     /**
      * Load the properties.yml from the JAR and place it in the backup DIR.
+     *
      * @param configFile The configFile, that needs to be created.
      */
-    private void createDefaultSettings (File configFile) {
+    private void createDefaultSettings(File configFile) {
         BufferedReader bReader = null;
         BufferedWriter bWriter = null;
+        
         try {
-            // open a stream to the config.ini in the jar, because we can only accecs
+            // open a stream to the property.yml in the jar, because we can only accecs
             // over the class loader
             bReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/res/properties.yml")));
-            String line = "";
+            String line;
             bWriter = new BufferedWriter(new FileWriter(configFile));
+            
             // copy the content
             while ((line = bReader.readLine()) != null) {
                 bWriter.write(line);
                 bWriter.newLine();
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
+            /** @TODO create exception classes **/
             e.printStackTrace(System.out);
         } // so we can be sure, that the streams are really closed
         finally {
@@ -72,8 +73,8 @@ public class Properties {
                     bReader.close();
                 if (bWriter != null)
                     bWriter.close();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
+                /** @TODO create exception classes **/
                 e.printStackTrace(System.out);
             }
         }
@@ -81,53 +82,53 @@ public class Properties {
 
     /**
      * Load the properties from the properties.yml.
+     *
      * @param configFile The properties.yml in the servers DIR.
+     * @param plugin The plugin
      */
-    private void loadProperties (File configFile, Plugin plugin) {
+    private void loadProperties(File configFile, Plugin plugin) {
         //Create new configuration file
-	config = new Configuration(configFile);
-        try{
+        config = new Configuration(configFile);
+        try {
             config.load();
-	} catch(Exception ex){
+        } catch (Exception ex) {
+            /** @TODO create exception classes **/
             ex.printStackTrace(System.out);
         }
-        
+
         String version = config.getString("version", plugin.getDescription().getVersion());
         if (version == null || !version.equals(plugin.getDescription().getVersion()))
-            System.out.println("[BACKUP] Your config file is outdated! Please delete your config.ini and the newest will be created!");
+            BackupLogger.prettyLog(Level.SEVERE, false, "Your config file is outdated! Please delete your properties.yml and the newest will be created after a server reload");
 
     }
 
     /**
      * Get a value of the integer stored properties
-     * @param property see the constants of PropertiesSystem
-     * @return The value of the propertie
+     *
+     * @param property see the constants of propertiesSystem
+     * @return The value of the property
      */
-    public int getIntProp (String sname) {
-        int integer = config.getInt(sname, -1);
-        return integer;
+    public int getIntProperty(String property) {
+        return config.getInt(property, -1);
     }
-    
+
     /**
      * Get a value of the boolean stored properties
-     * @param property see the constants of PropertiesSystem
-     * @return The value of the propertie
+     *
+     * @param property property see the constants of propertiesSystem
+     * @return The value of the property
      */
-    public boolean getBooleanProp (String sname) {
-        boolean bool = config.getBoolean(sname, true);
-        return bool;
+    public boolean getBooleanProperty(String property) {
+        return config.getBoolean(property, true);
     }
 
     /**
      * Get a value of the string stored properties
-     * @param property see the constants of PropertiesSystem
-     * @return The value of the propertie
+     *
+     * @param property see the constants of propertiesSystem
+     * @return The value of the property
      */
-    public String getStringProp (String sname) {
-        String string = config.getString(sname);
-        if(string != null)
-            return string;
-        else
-            return "";
+    public String getStringProperty(String property) {
+        return config.getString(property, "");
     }
 }

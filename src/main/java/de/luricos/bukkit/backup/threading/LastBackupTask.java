@@ -1,5 +1,10 @@
 /*
- *  Copyright (C) 2011 Kilian Gaertner
+ *  Backup - CraftBukkit server Backup plugin (continued)
+ *  Copyright (C) 2011 Domenic Horner <https://github.com/gamerx/Backup>
+ *  Copyright (C) 2011 Lycano <https://github.com/gamerx/Backup>
+ *
+ *  Backup - CraftBukkit server Backup plugin (original author)
+ *  Copyright (C) 2011 Kilian Gaertner <https://github.com/Meldanor/Backup>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,9 +20,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package threading;
+package de.luricos.bukkit.backup.threading;
 
-import backup.Properties;
+import de.luricos.bukkit.backup.config.Properties;
 import org.bukkit.Server;
 
 /**

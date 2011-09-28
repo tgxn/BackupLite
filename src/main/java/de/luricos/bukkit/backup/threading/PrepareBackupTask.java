@@ -1,32 +1,37 @@
 /*
- *  Copyright (C) 2011 Kilian Gaertner
- *  Modified      2011 Domenic Horner
- * 
+ *  Backup - CraftBukkit server Backup plugin (continued)
+ *  Copyright (C) 2011 Domenic Horner <https://github.com/gamerx/Backup>
+ *  Copyright (C) 2011 Lycano <https://github.com/gamerx/Backup>
+ *
+ *  Backup - CraftBukkit server Backup plugin (original author)
+ *  Copyright (C) 2011 Kilian Gaertner <https://github.com/Meldanor/Backup>
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package threading;
+package de.luricos.bukkit.backup.threading;
 
-import backup.Properties;
-import backup.Strings;
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.LinkedList;
+import de.luricos.bukkit.backup.config.Properties;
+import de.luricos.bukkit.backup.config.Strings;
+import de.luricos.bukkit.backup.utils.BackupLogger;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.Plugin;
+
+import java.util.*;
+import java.util.logging.Level;
 
 /**
  * This task is running by a syncronized thread from the sheduler. It prepare
@@ -60,13 +65,14 @@ public class PrepareBackupTask implements Runnable {
 
     @Override
     public void run () {
-        
+
         // Check if we should be doing backup
-        boolean backupOnlyWithPlayer = properties.getBooleanProp("backuponlywithplayer");
-        if ((backupOnlyWithPlayer && server.getOnlinePlayers().length > 0) || !backupOnlyWithPlayer || isManualBackup || backupName != null)
+        boolean backupOnlyWithPlayer = properties.getBooleanProperty("backuponlywithplayer");
+        if ((backupOnlyWithPlayer && server.getOnlinePlayers().length > 0) || !backupOnlyWithPlayer || isManualBackup || backupName != null) {
             prepareBackup();
-        else
-            System.out.println(strings.getStringWOPT("abortedbackup", Integer.toString(properties.getIntProp("backupinterval") / 1200)));
+        } else {
+            BackupLogger.prettyLog(Level.INFO, false, strings.getStringWOPT("abortedbackup", Integer.toString(properties.getIntProperty("backupinterval") / 1200)));
+        }
     }
 
     protected void prepareBackup() {
@@ -76,60 +82,46 @@ public class PrepareBackupTask implements Runnable {
         if (startBackupMessage != null && !startBackupMessage.trim().isEmpty()) {
             server.broadcastMessage(startBackupMessage);
         }
-        
-        ConsoleCommandSender ccs;
-        // Compatible with dev build (more than 857)
-            //ccs = server.getConsoleSender();
-            
-        // Compatable with RB. (less than 857)
-            ccs = new ConsoleCommandSender(server);
-            
+
         // Save to file, and then turn saving off.
-        server.dispatchCommand(ccs, "save-all");
-        server.dispatchCommand(ccs, "save-off");
+        ConsoleCommandSender consoleCommandSender = new ConsoleCommandSender(server);
+        server.dispatchCommand(consoleCommandSender, "save-all");
+        server.dispatchCommand(consoleCommandSender, "save-off");
 
         // Save players current values.
         server.savePlayers();
 
-        // Get list of worlds to ignore.
-        String[] ignoredWorlds = getToIgnoreWorlds();
-        LinkedList<String> worldsToBackup = new LinkedList<String>();
-
         // Determine if backups should be ZIP'd.
-        boolean hasToZIP = properties.getBooleanProp("zipbackup");
-        
+        boolean hasToZIP = properties.getBooleanProperty("zipbackup");
+
         // Send a message advising that it is disabled.
         if (!hasToZIP)
             System.out.println(strings.getString("zipdisabled"));
 
-        // Iterate through all possible worlds, and add them to queue.
-        outer:
+        // Create list of worlds to ignore.
+        List<String> ignoredWorldNames = getIgnoredWorldNames();
+        LinkedList<String> worldsToBackup = null;
         for (World world : server.getWorlds()) {
-            String worldName = world.getName();
-            for (String ignoredWorldName : ignoredWorlds) {
-                if (ignoredWorldName.equalsIgnoreCase(worldName))
-                    continue outer;
+            if ((world.getName() != null) && (world.getName() != "") && (!ignoredWorldNames.contains(world.getName()))) {
+                worldsToBackup.add(world.getName());
             }
-            worldsToBackup.add(worldName);
-            world.save();
         }
-        
+
         server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(properties, worldsToBackup, server, backupName));
         backupName = null;
         isManualBackup = false;
     }
 
-    private String[] getToIgnoreWorlds () {
-        String[] worldNames = properties.getStringProp("skipworlds").split(";");
-        if (worldNames.length > 0 && !worldNames[0].isEmpty()) {
-            
+    private List<String> getIgnoredWorldNames() {
+        List<String> worldNames = Arrays.asList(properties.getStringProperty("skipworlds").split(";"));
+        if (worldNames.size() > 0 && !worldNames.isEmpty()) {
             // Log what worlds are disabled.
-            System.out.println(strings.getString("disabledworlds"));
-            System.out.println(Arrays.toString(worldNames));
+            BackupLogger.prettyLog(strings.getString("disabledworlds"));
+            BackupLogger.prettyLog(worldNames.toString());
         }
+
         return worldNames;
     }
-    
 
     public void setBackupName (String backupName) {
         this.backupName = backupName;

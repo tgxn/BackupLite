@@ -1,0 +1,9 @@
+name: Backup
+version: 1.8.1
+description: CraftBukkit server Backup plugin.
+authors: [Meldanor, gamerx, lycano]
+main: de.luricos.bukkit.backup.BackupPlugin
+commands:
+  backup:
+    description: Starts a backup of the server
+    usage: "Usage: /<command> [Args]"
