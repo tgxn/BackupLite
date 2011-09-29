@@ -2,7 +2,7 @@ name: Backup
 version: 1.8-dev
 description: Backup plugin for Bukkit API.
 authors: [Meldanor, gamerx, lycano]
-main: net.tgxn.bukkit.backup.PluginMain
+main: net.tgxn.bukkit.backup.BackupMain
 commands:
   backup:
     description: Starts a backup of the server

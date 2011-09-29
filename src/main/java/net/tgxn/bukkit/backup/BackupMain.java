@@ -40,7 +40,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 
-public class PluginMain extends JavaPlugin {
+public class BackupMain extends JavaPlugin {
 
     public static PermissionHandler Permissions;
     private PrepareBackupTask run;
@@ -48,12 +48,27 @@ public class PluginMain extends JavaPlugin {
     protected static Properties properties;
     
     @Override
-    public void onEnable () {
+    public void onLoad() {
         
+        // init config
         // Check plugin Data Folder, create if not exist.
-        if (!this.getDataFolder().exists())
-            // @TODO create try catch exception class on error
+        if (!this.getDataFolder().exists()) {
+            //@TODO create try catch exception class on error
             this.getDataFolder().mkdirs();
+        }
+
+        // Check backup folder, create if needed
+        File pluginDataFolder = new File(properties.getStringProperty("backuppath"));
+        if (!pluginDataFolder.exists()) {
+            //@TODO create try catch exception class on error
+            pluginDataFolder.mkdirs();
+            System.out.println(strings.getString("createbudir"));
+        }
+
+    }    
+    
+    @Override
+    public void onEnable () {
         
         // Load Properties.
         properties = new Properties(this);
@@ -63,14 +78,6 @@ public class PluginMain extends JavaPlugin {
         
         // Check and load permissions system.
         setupPermissions();
-        
-        // Check backup folder, create if needed
-        // Query: Can this be relative AND absolute? (Read: Doe it WORK?)
-        File plugindatafolder = new File(properties.getStringProperty("backuppath"));
-        if (!plugindatafolder.exists()) {
-            plugindatafolder.mkdirs();
-            System.out.println(strings.getString("createbudir"));
-        }
         
         // Get server object.
         Server server = getServer();

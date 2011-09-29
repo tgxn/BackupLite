@@ -28,7 +28,6 @@ import net.tgxn.bukkit.backup.config.Properties;
 import net.tgxn.bukkit.backup.config.Strings;
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
@@ -101,6 +100,7 @@ public class PrepareBackupTask implements Runnable {
         String[] ignoredWorlds = getToIgnoreWorlds();
         LinkedList<String> worldsToBackup = new LinkedList<String>();
 
+        /** @TODO Fix this, it should be simpler**/
         outer:
         for (World world : server.getWorlds()) {
             String worldName = world.getName();

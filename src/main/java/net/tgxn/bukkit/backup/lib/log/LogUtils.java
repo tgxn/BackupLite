@@ -36,26 +36,58 @@ import java.util.logging.Logger;
  * @author lycano
  */
 public class LogUtils {
+    private static Level logLevel = Level.INFO;
     private static Logger logger = null;
+    private static String logPluginName = null;
+    private static String logPluginVersion = null;
     
     public static void initLogger(String pluginName, String pluginVersion, Level logLevel) {
         if (LogUtils.logger == null) {
             Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin(pluginName);
             if (plugin != null) {
-                LogUtils.logger = Logger.getLogger(plugin.getServer().getLogger().getName());
+                LogUtils.logger = Logger.getLogger(plugin.getServer().getLogger().getName() + "." + pluginName);
             }
- 
+            
+            LogUtils.logLevel = logLevel;
+            LogUtils.logger.setLevel(logLevel);
+            LogUtils.logPluginName = pluginName;
+            LogUtils.logPluginVersion = pluginVersion;
         }
     }
-    public static void sendBroadcast(String message) {
-        
-        sendLog(message);
+    
+    public static void setLogLevel(Level logLevel) {
+        LogUtils.logLevel = logLevel;
+        LogUtils.logger.setLevel(logLevel);
     }
 
-    public static void sendLog(String message) {
+    public static void prettyLog(String message) {
+        prettyLog(Level.INFO, false, message);
+    }
+
+    public static void prettyLog(boolean version, String message) {
+        prettyLog(Level.INFO, version, message);
+    }
+
+    public static void prettyLog(final Level logLevel, final boolean version, final String message) {
+        final String prettyName = ("[" + getName() + "]");
+        final String prettyVersion = ("[v" + getVersion() + "]");
+        String prettyLogLine = prettyName;
+        if (version) {
+            prettyLogLine += prettyVersion;
+        }
         
-        
-        logger.log(Level.INFO, message);
+        logger.log(logLevel, prettyLogLine + " " + message);
     }
     
+    public static Level getLogLevel() {
+        return logLevel;
+    }
+    
+    public static String getVersion() {
+        return logPluginVersion;
+    }
+    
+    public static String getName() {
+        return logPluginName;
+    }
 }

@@ -24,7 +24,7 @@
 
 package net.tgxn.bukkit.backup.listeners;
 
-import net.tgxn.bukkit.backup.PluginMain;
+import net.tgxn.bukkit.backup.BackupMain;
 import net.tgxn.bukkit.backup.config.Properties;
 import net.tgxn.bukkit.backup.config.Strings;
 import org.bukkit.command.Command;
@@ -57,8 +57,8 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
         // If an In-Game Command, check permissions.
         if((sender instanceof Player)) {
             player = (Player) sender;
-            if (PluginMain.Permissions != null) {
-                 if(!PluginMain.Permissions.has(player, "backup.backup"))
+            if (BackupMain.Permissions != null) {
+                 if(!BackupMain.Permissions.has(player, "backup.backup"))
                     player.sendMessage(strings.getString("norights"));
                  return true;
             } else if (properties.getBooleanProperty("onlyops") && !player.isOp()) {
