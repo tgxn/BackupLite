@@ -23,7 +23,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.tgxn.bukkit.backup.lib.log;
+package net.tgnx.bukkit.backup.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;

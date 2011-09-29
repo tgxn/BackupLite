@@ -1,8 +1,8 @@
 name: Backup
 version: 1.8-dev
-description: Backup plugin for Bukkit API.
+description: CraftBukkit server Backup plugin.
 authors: [Meldanor, gamerx, lycano]
-main: net.tgxn.bukkit.backup.BackupMain
+main: net.tgnx.bukkit.backup.BackupMain
 commands:
   backup:
     description: Starts a backup of the server

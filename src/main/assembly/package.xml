@@ -18,12 +18,19 @@
                 <include>gpl.txt</include>
             </includes>
         </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/src/main/resources/</directory>
+            <outputDirectory>/plugins/${finalName}/</outputDirectory>
+            <includes>
+                <include>config.yml</include>
+            </includes>
+        </fileSet>
     </fileSets>
     <files>
         <file>
-            <source>${project.build.directory}/Backup.${project.packaging}</source>
+            <source>${project.build.directory}/${project.build.finalName}.${project.packaging}</source>
             <outputDirectory>/plugins/</outputDirectory>
-            <destName>Backup.${project.packaging}</destName>            
+            <destName>${project.build.finalName}.${project.packaging}</destName>
         </file>
     </files>
 </assembly>
