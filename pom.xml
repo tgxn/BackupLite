@@ -28,11 +28,11 @@
         </includes>
       </resource>
       <resource>
-        <targetPath>defaults/</targetPath>
+        <targetPath>/net/tgxn/bukkit/backup/res/</targetPath>
         <filtering>true</filtering>
-        <directory>${basedir}/src/main/resources/</directory>
+        <directory>${basedir}/src/main/java/net/tgxn/bukkit/backup/res/</directory>
         <includes>
-          <include>${build.sourceDirectory}/res/properties.yml</include>
+          <include>properties.yml</include>
         </includes>
       </resource>
     </resources>      
