@@ -20,12 +20,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.tgnx.bukkit.backup.listeners;
+package net.tgxn.bukkit.backup.listeners;
 
-import net.tgnx.bukkit.backup.config.Settings;
-import net.tgnx.bukkit.backup.config.Strings;
-import net.tgnx.bukkit.backup.threading.LastBackupTask;
-import net.tgnx.bukkit.backup.utils.LogUtils;
+import net.tgxn.bukkit.backup.config.Settings;
+import net.tgxn.bukkit.backup.config.Strings;
+import net.tgxn.bukkit.backup.threading.LastBackupTask;
+import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerListener;

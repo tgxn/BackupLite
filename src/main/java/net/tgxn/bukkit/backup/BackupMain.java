@@ -20,16 +20,16 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.tgnx.bukkit.backup;
+package net.tgxn.bukkit.backup;
 
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
-import net.tgnx.bukkit.backup.config.Settings;
-import net.tgnx.bukkit.backup.config.Strings;
-import net.tgnx.bukkit.backup.listeners.CommandListener;
-import net.tgnx.bukkit.backup.listeners.LoginListener;
-import net.tgnx.bukkit.backup.threading.PrepareBackupTask;
-import net.tgnx.bukkit.backup.utils.LogUtils;
+import net.tgxn.bukkit.backup.config.Settings;
+import net.tgxn.bukkit.backup.config.Strings;
+import net.tgxn.bukkit.backup.listeners.CommandListener;
+import net.tgxn.bukkit.backup.listeners.LoginListener;
+import net.tgxn.bukkit.backup.threading.PrepareBackupTask;
+import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.Server;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event.Type;

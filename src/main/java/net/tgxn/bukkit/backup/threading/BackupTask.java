@@ -20,12 +20,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.tgnx.bukkit.backup.threading;
+package net.tgxn.bukkit.backup.threading;
 
-import net.tgnx.bukkit.backup.config.Settings;
-import net.tgnx.bukkit.backup.config.Strings;
-import net.tgnx.bukkit.backup.utils.FileUtils;
-import net.tgnx.bukkit.backup.utils.LogUtils;
+import net.tgxn.bukkit.backup.config.Settings;
+import net.tgxn.bukkit.backup.config.Strings;
+import net.tgxn.bukkit.backup.utils.FileUtils;
+import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.Server;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.Plugin;
@@ -39,7 +39,7 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.logging.Level;
 
-import static net.tgnx.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
+import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
 
 /**
  * The Task copies and backups the worlds and delete older backups. This task

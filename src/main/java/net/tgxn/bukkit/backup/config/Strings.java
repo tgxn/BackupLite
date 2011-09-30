@@ -20,7 +20,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.tgnx.bukkit.backup.config;
+package net.tgxn.bukkit.backup.config;
 
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.config.Configuration;

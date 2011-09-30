@@ -20,10 +20,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.tgnx.bukkit.backup.threading;
+package net.tgxn.bukkit.backup.threading;
 
-import net.tgnx.bukkit.backup.config.Settings;
-import net.tgnx.bukkit.backup.utils.LogUtils;
+import net.tgxn.bukkit.backup.config.Settings;
+import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.Server;
 
 /**

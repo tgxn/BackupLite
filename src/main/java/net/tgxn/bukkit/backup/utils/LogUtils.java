@@ -23,7 +23,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.tgnx.bukkit.backup.utils;
+package net.tgxn.bukkit.backup.utils;
 
 import org.bukkit.plugin.Plugin;
 import java.util.logging.Level;

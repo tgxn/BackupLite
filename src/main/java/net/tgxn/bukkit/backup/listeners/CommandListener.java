@@ -20,12 +20,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.tgnx.bukkit.backup.listeners;
+package net.tgxn.bukkit.backup.listeners;
 
-import net.tgnx.bukkit.backup.BackupMain;
-import net.tgnx.bukkit.backup.config.Settings;
-import net.tgnx.bukkit.backup.config.Strings;
-import net.tgnx.bukkit.backup.threading.PrepareBackupTask;
+import net.tgxn.bukkit.backup.BackupMain;
+import net.tgxn.bukkit.backup.config.Settings;
+import net.tgxn.bukkit.backup.config.Strings;
+import net.tgxn.bukkit.backup.threading.PrepareBackupTask;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
