@@ -38,47 +38,44 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.util.logging.Level;
 
 public class BackupMain extends JavaPlugin {
+    
     public static PermissionHandler Permissions;
-
     protected static Strings strings;
     protected static Settings settings;
-
     private PrepareBackupTask preparedBackupTask;
 
+    @Override
     public void onLoad() {
-        LogUtils.initLogger("Backup", this.getDescription().getVersion(), Level.INFO);
         
-        LogUtils.prettyLog(true, "Startup in progress ...");
-
-        // Load Properties.
-        settings = new Settings(this);
-
-        // Load Strings.
-        strings = new Strings(this);
-
-        // init config
+        // Init LogUtils.
+        LogUtils.initLogUtils(this);
+        
         // Check plugin Data Folder, create if not exist.
         if (!this.getDataFolder().exists()) {
-            //@TODO create try catch exception class on error
+            // @TODO create try catch exception class on error
             this.getDataFolder().mkdirs();
         }
+        
+        // Load Properties, create if needed.
+        settings = new Settings(this);
 
-        // Check backup folder, create if needed
+        // Load Strings, create if needed.
+        strings = new Strings(this);
+        
+        // Check backup folder, create if needed.
         File pluginDataFolder = new File(settings.getStringProperty("backuppath"));
         if (!pluginDataFolder.exists()) {
             //@TODO create try catch exception class on error
             pluginDataFolder.mkdirs();
-            LogUtils.prettyLog(strings.getString("createbudir"));
+            LogUtils.sendLog(strings.getString("createbudir"));
         }
-
-        LogUtils.prettyLog(true, "Loading completed");
     }    
     
     @Override
     public void onEnable () {
+        
         // Check and load permissions system.
         setupPermissions();
 
@@ -106,12 +103,11 @@ public class BackupMain extends JavaPlugin {
         if (interval != -1) {
             interval *= 1200;
             server.getScheduler().scheduleSyncRepeatingTask(this, preparedBackupTask, interval, interval);
-        } else {
-            LogUtils.prettyLog(strings.getString("disbaledauto"));
-        }
+        } else
+            LogUtils.sendLog(strings.getString("disbaledauto"));
 
         // Inform Startup Complete.
-        LogUtils.prettyLog(true, " sucessfully enabled!");
+        LogUtils.sendLog(this.getDescription().getFullName() + " has completed loading!", false);
     }
     
     @Override
@@ -120,7 +116,7 @@ public class BackupMain extends JavaPlugin {
         this.getServer().getScheduler().cancelTasks(this);
         
         // Inform shutdown successfull
-        LogUtils.prettyLog(true, " sucessfully unloaded!");
+        LogUtils.sendLog(this.getDescription().getFullName() + " has completed un-loading!", false);
     }
      
     
@@ -132,9 +128,9 @@ public class BackupMain extends JavaPlugin {
 
         if (testPermissions != null) {
             Permissions = ((Permissions) testPermissions).getHandler();
-            LogUtils.prettyLog(strings.getString("hookedperms"));
+            LogUtils.sendLog(strings.getString("hookedperms"));
         } else {
-            LogUtils.prettyLog(strings.getString("defaultperms"));
+            LogUtils.sendLog(strings.getString("defaultperms"));
         }
     }
 }

@@ -17,7 +17,7 @@
  * (modified version)
  */
 
-package net.tgnx.bukkit.backup.lib.io;
+package net.tgnx.bukkit.backup.utils;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -356,8 +356,7 @@ public class FileUtils {
             cleanDirectory(directory);
 
         if (!directory.delete()) {
-            String message =
-                    "Unable to delete directory " + directory + ".";
+            String message = "Unable to delete directory " + directory + ".";
             throw new IOException(message);
         }
     }

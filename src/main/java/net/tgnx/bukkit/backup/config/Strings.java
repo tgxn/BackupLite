@@ -28,8 +28,15 @@ import org.bukkit.util.config.Configuration;
 import java.io.File;
 
 public class Strings {
+    
     private Configuration strings;
-
+    
+    /**
+     * Loads the strings configuration file.
+     * If it does not exist, it creates it from defaults.
+     * 
+     * @param plugin The plugin this is for.
+     */
     public Strings(Plugin plugin) {
         strings = new Configuration(new File(plugin.getDataFolder(), "strings.yml"));
         try {
@@ -80,12 +87,23 @@ public class Strings {
         strings.getString("errorcreatetemp", "An error occurs while creating a temporary copy of world %%ARG%%.  Maybe the complete world didnt backup, please take a look at it!");
         /** Backup failure **/
         strings.getString("backupfailed", "An error occured while backing up. Please report to an admin!");
+        
+        strings.getString("newconfigfile",  "Your config file was not found, creating default...");
+        strings.getString("configoutdated", "Your config file file is outdated, please delete it and a new one will be created!");
+        
+        
         /** Requested property not found **/
         strings.getString("stringnotfound", "String not found - ");
 
         strings.save();
     }
-
+    
+    /**
+     * Gets a value of the string property.
+     * 
+     * @param sname The identifier for the string.
+     * @return The string from properties, with colors encoded.
+     */
     public String getString(String property) {
         String string = strings.getString(property);
         if (string != null)
@@ -93,7 +111,14 @@ public class Strings {
         else
             return strings.getString("stringnotfound") + property;
     }
-
+    
+    /**
+     * Gets a value of the string property, and replaces options.
+     * 
+     * @param property The identifier for the string.
+     * @param option The variable to replace %%ARG%% with.
+     * @return The string from properties, with colors encoded, and text replaced.
+     */
     public String getStringWOPT(String property, String option) {
         String string = strings.getString(property);
         if (string != null)
@@ -101,7 +126,14 @@ public class Strings {
         else
             return strings.getString("stringnotfound") + property;
     }
-
+    
+    /**
+     * Encodes the color codes, and returns the encoded string.
+     * If the parameter is blank or null, return blank.
+     * 
+     * @param toColour The string to encode.
+     * @return The encoded string.
+     */
     private String colorizeString(String toColor) {
         if (toColor != null)
             return toColor.replaceAll("&([0-9a-f])", "\u00A7$1");

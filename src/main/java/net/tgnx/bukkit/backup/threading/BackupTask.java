@@ -24,7 +24,7 @@ package net.tgnx.bukkit.backup.threading;
 
 import net.tgnx.bukkit.backup.config.Settings;
 import net.tgnx.bukkit.backup.config.Strings;
-import net.tgnx.bukkit.backup.lib.io.FileUtils;
+import net.tgnx.bukkit.backup.utils.FileUtils;
 import net.tgnx.bukkit.backup.utils.LogUtils;
 import org.bukkit.Server;
 import org.bukkit.command.ConsoleCommandSender;
@@ -39,7 +39,7 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.logging.Level;
 
-import static net.tgnx.bukkit.backup.lib.io.FileUtils.FILE_SEPARATOR;
+import static net.tgnx.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
 
 /**
  * The Task copies and backups the worlds and delete older backups. This task
@@ -106,20 +106,20 @@ public class BackupTask implements Runnable {
                     } catch (FileNotFoundException ex) {
 
                     } catch (IOException e) {
-                        LogUtils.prettyLog(Level.WARNING, false, strings.getStringWOPT("errorcreatetemp", worldName));
+                        LogUtils.sendLog(Level.WARNING, strings.getStringWOPT("errorcreatetemp", worldName), true);
                         /** @TODO create exception classes **/
                         e.printStackTrace(System.out);
                         server.broadcastMessage(strings.getString("backupfailed"));
                     }
                 }
             } else {
-                LogUtils.prettyLog(Level.INFO, false, strings.getString("skipworlds"));
+                LogUtils.sendLog(Level.INFO, strings.getString("skipworlds"), true);
             }
 
             if (BackupPlugins) {
                 FileUtils.copyDirectory("plugins", backupDirName.concat(FILE_SEPARATOR).concat("plugins"));
             } else {
-                LogUtils.prettyLog(Level.INFO, false, strings.getString("skipplugins"));
+                LogUtils.sendLog(Level.INFO, strings.getString("skipplugins"), true);
             }
 
             if (ShouldZIP) {
@@ -142,7 +142,7 @@ public class BackupTask implements Runnable {
                     }
                 }
             } else {
-                LogUtils.prettyLog(strings.getString("skipworlds"));
+                LogUtils.sendLog(strings.getString("skipworlds"));
             }
 
             if (BackupPlugins) {
@@ -154,7 +154,7 @@ public class BackupTask implements Runnable {
                 }
 
             } else {
-                LogUtils.prettyLog(Level.INFO, false, strings.getString("skipplugins"));
+                LogUtils.sendLog(Level.INFO, strings.getString("skipplugins"), true);
             }
 
         }
@@ -178,7 +178,7 @@ public class BackupTask implements Runnable {
         try {
             formattedDate = String.format(settings.getStringProperty("dateformat"), cal);
         } catch (Exception e) {
-            LogUtils.prettyLog(Level.WARNING, false, strings.getString("errordateformat"));
+            LogUtils.sendLog(Level.WARNING, strings.getString("errordateformat"), true);
             formattedDate = String.format("%1$td%1$tm%1$tY-%1$tH%1$tM%1$tS", cal);
 
             // @TODO write exception class
@@ -235,8 +235,8 @@ public class BackupTask implements Runnable {
                     backupList.remove(maxModifiedIndex);
                 }
 
-                LogUtils.prettyLog(strings.getString("removeold"));
-                LogUtils.prettyLog(Arrays.toString(backupList.toArray()));
+                LogUtils.sendLog(strings.getString("removeold"));
+                LogUtils.sendLog(Arrays.toString(backupList.toArray()));
 
                 // this are the oldest backups, so delete them
                 for (File backupToDelete : backupList) {

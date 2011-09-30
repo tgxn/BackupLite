@@ -25,69 +25,85 @@
 
 package net.tgnx.bukkit.backup.utils;
 
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author lycano
- */
 public class LogUtils {
-    private static Level logLevel = Level.INFO;
-    private static Logger logger = null;
-    private static String logPluginName = null;
-    private static String logPluginVersion = null;
     
-    public static void initLogger(String pluginName, String pluginVersion, Level logLevel) {
+    private static Level logLevel = Level.INFO;
+    private static Logger logger;
+    private static Plugin plugin;
+    
+    /**
+     * Main Constructor for LogUtils.
+     * Creates logger, sets default log level and variables.
+     * 
+     * @param plugin The plugin's object.
+     */
+    public static void initLogUtils(Plugin plugin) {
         if (LogUtils.logger == null) {
-            Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin(pluginName);
             if (plugin != null) {
-                LogUtils.logger = Logger.getLogger(plugin.getServer().getLogger().getName() + "." + pluginName);
+                LogUtils.logger = Logger.getLogger(plugin.getServer().getLogger().getName() + "." + plugin.getServer().getName());
             }
             
-            LogUtils.logLevel = logLevel;
-            LogUtils.logger.setLevel(logLevel);
-            LogUtils.logPluginName = pluginName;
-            LogUtils.logPluginVersion = pluginVersion;
+            LogUtils.logLevel = Level.INFO;
+            LogUtils.logger.setLevel(Level.INFO);
+            
+            LogUtils.plugin = plugin;
         }
     }
     
+    /**
+     * Sets the default loglevel.
+     * 
+     * @param logLevel 
+     */
     public static void setLogLevel(Level logLevel) {
         LogUtils.logLevel = logLevel;
         LogUtils.logger.setLevel(logLevel);
     }
 
-    public static void prettyLog(String message) {
-        prettyLog(Level.INFO, false, message);
+    /**
+     * Sends log message.
+     * 
+     * @param message 
+     */
+    public static void sendLog(String message) {
+        sendLog(Level.INFO, message, true);
+    }
+    /**
+     * Sends log message.
+     * 
+     * @param message
+     * @param tags 
+     */
+    public static void sendLog(String message, boolean tags) {
+        sendLog(Level.INFO, message, tags);
     }
 
-    public static void prettyLog(boolean version, String message) {
-        prettyLog(Level.INFO, version, message);
-    }
-
-    public static void prettyLog(final Level logLevel, final boolean version, final String message) {
-        final String prettyName = ("[" + getName() + "]");
-        final String prettyVersion = ("[v" + getVersion() + "]");
-        String prettyLogLine = prettyName;
-        if (version) {
-            prettyLogLine += prettyVersion;
-        }
-        
-        logger.log(logLevel, prettyLogLine + " " + message);
+    /**
+     * Sends log message.
+     * 
+     * @param logLevel
+     * @param message
+     * @param tags 
+     */
+    public static void sendLog(final Level logLevel, final String message, boolean tags) {
+        final String nameTag = ("[" + plugin.getDescription().getName()  + "] ");
+        if(tags)
+            logger.log(logLevel, nameTag + message);
+        else
+            logger.log(logLevel, message);
     }
     
+    /**
+     * Gets the current loglevel.
+     * 
+     * @return The current log level.
+     */
     public static Level getLogLevel() {
         return logLevel;
     }
-    
-    public static String getVersion() {
-        return logPluginVersion;
-    }
-    
-    public static String getName() {
-        return logPluginName;
-    }
+
 }

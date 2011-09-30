@@ -43,7 +43,7 @@ public class LastBackupTask extends PrepareBackupTask {
     @Override
     public void run () {
         if (server.getOnlinePlayers().length <= 0) {
-            LogUtils.prettyLog(strings.getString("startlast"));
+            LogUtils.sendLog(strings.getString("startlast"));
             super.prepareBackup();
         }
     }

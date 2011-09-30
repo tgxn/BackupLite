@@ -58,7 +58,7 @@ public class LoginListener extends PlayerListener {
 
         if (taskID != -2 && server.getOnlinePlayers().length == 0) {
             server.getScheduler().cancelTask(taskID);
-            LogUtils.prettyLog(strings.getString("stoppedlast"));
+            LogUtils.sendLog(strings.getString("stoppedlast"));
             taskID = -2;
         }
     }
@@ -72,7 +72,7 @@ public class LoginListener extends PlayerListener {
             if (interval != -1) {
                 interval *= 1200;
                 taskID = server.getScheduler().scheduleSyncDelayedTask(plugin, new LastBackupTask(server, settings), interval);
-                LogUtils.prettyLog(strings.getStringWOPT("lastbackup", Integer.toString(interval / 1200)));
+                LogUtils.sendLog(strings.getStringWOPT("lastbackup", Integer.toString(interval / 1200)));
             }
             
         }

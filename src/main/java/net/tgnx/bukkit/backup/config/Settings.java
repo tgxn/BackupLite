@@ -30,35 +30,51 @@ import java.io.*;
 import java.util.logging.Level;
 
 public class Settings {
+    
     private Configuration config;
+    private Strings strings;
+    private File configFile;
 
+    /**
+     * Main constructor for properties.
+     * It detects is the properties file exists, and have it created if need be.
+     * 
+     * @param plugin The plugin this is for.
+     */
     public Settings(Plugin plugin) {
-        File configFile = new File(plugin.getDataFolder(), "config.yml");
+        
+        // Load strings.
+        strings = new Strings(plugin);
+        
+        // Create the file object used in this class.
+        configFile = new File(plugin.getDataFolder(), "config.yml");
+       
+        // Check for the config file, have it created if needed.
         if (!configFile.exists()) {
-            LogUtils.prettyLog(Level.WARNING, false, "Couldn't find a config file, creating default!");
-            createDefaultSettings(configFile);
+            LogUtils.sendLog(Level.WARNING, strings.getString("newconfigfile"), true);
+            createDefaultSettings();
         }
 
-        loadProperties(configFile, plugin);
+        // Load the properties.
+        loadProperties(plugin);
     }
 
     /**
-     * Load the properties.yml from the JAR and place it in the backup DIR.
-     *
-     * @param configFile The configFile, that needs to be created.
+     * Load the properties file from the JAR and place it in the backup DIR.
      */
-    private void createDefaultSettings(File configFile) {
+    private void createDefaultSettings() {
         BufferedReader bReader = null;
         BufferedWriter bWriter = null;
         
         try {
-            // open a stream to the property.yml in the jar, because we can only accecs
-            // over the class loader
-            bReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/defaults/config.yml")));
-            String line;
+            
+            // Open a stream to the properties file in the jar, because we can only access over the class loader.
+            bReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/settings/config.yml")));
             bWriter = new BufferedWriter(new FileWriter(configFile));
             
-            // copy the content
+            String line;
+            
+            // Copy the content to the configfile location.
             while ((line = bReader.readLine()) != null) {
                 bWriter.write(line);
                 bWriter.newLine();
@@ -66,7 +82,8 @@ public class Settings {
         } catch (Exception e) {
             /** @TODO create exception classes **/
             e.printStackTrace(System.out);
-        } // so we can be sure, that the streams are really closed
+        }
+        // Make sure everything is closed.
         finally {
             try {
                 if (bReader != null)
@@ -81,14 +98,16 @@ public class Settings {
     }
 
     /**
-     * Load the properties from the config.yml.
-     *
-     * @param configFile The config.yml in the servers DIR.
-     * @param plugin The plugin
+     * Load the properties from the configFile.
+     * 
+     * @param plugin The plugin this is for.
      */
-    private void loadProperties(File configFile, Plugin plugin) {
-        //Create new configuration file
+    private void loadProperties(Plugin plugin) {
+        
+        //Create new configuration file.
         config = new Configuration(configFile);
+        
+        // Attempt to load the configfile.
         try {
             config.load();
         } catch (Exception ex) {
@@ -96,37 +115,38 @@ public class Settings {
             ex.printStackTrace(System.out);
         }
 
+        // Get version, and log message if out-of-date.
         String version = config.getString("version", plugin.getDescription().getVersion());
         if (version == null || !version.equals(plugin.getDescription().getVersion()))
-            LogUtils.prettyLog(Level.SEVERE, false, "Your config file is outdated! Please delete your config.yml in Backup's datafolder and the newest will be created after a server reload");
+            LogUtils.sendLog(Level.SEVERE, strings.getString("configoutdated"), true);
 
     }
 
     /**
-     * Get a value of the integer stored properties
-     *
-     * @param property see the constants of propertiesSystem
-     * @return The value of the property
+     * Gets the value of a integer property.
+     * 
+     * @param property The name of the property.
+     * @return The value of the property, defaults to -1.
      */
     public int getIntProperty(String property) {
         return config.getInt(property, -1);
     }
 
     /**
-     * Get a value of the boolean stored properties
-     *
-     * @param property property see the constants of propertiesSystem
-     * @return The value of the property
+     * Gets the value of a boolean property.
+     * 
+     * @param property The name of the property.
+     * @return The value of the property, defaults to true.
      */
     public boolean getBooleanProperty(String property) {
         return config.getBoolean(property, true);
     }
 
     /**
-     * Get a value of the string stored properties
-     *
-     * @param property see the constants of propertiesSystem
-     * @return The value of the property
+     * Gets a value of the string property and make sure it is not null.
+     * 
+     * @param property The name of the property.
+     * @return The value of the property.
      */
     public String getStringProperty(String property) {
         return config.getString(property, "");

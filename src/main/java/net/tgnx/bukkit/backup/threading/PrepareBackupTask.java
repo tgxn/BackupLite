@@ -25,7 +25,6 @@ package net.tgnx.bukkit.backup.threading;
 import net.tgnx.bukkit.backup.config.Settings;
 import net.tgnx.bukkit.backup.config.Strings;
 import net.tgnx.bukkit.backup.utils.LogUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
@@ -74,7 +73,7 @@ public class PrepareBackupTask implements Runnable {
         if ((backupOnlyWithPlayer && server.getOnlinePlayers().length > 0) || !backupOnlyWithPlayer || isManualBackup || backupName != null) {
             prepareBackup();
         } else {
-            LogUtils.prettyLog(Level.INFO, false, strings.getStringWOPT("abortedbackup", Integer.toString(settings.getIntProperty("backupinterval") / 1200)));
+            LogUtils.sendLog(Level.INFO, strings.getStringWOPT("abortedbackup", Integer.toString(settings.getIntProperty("backupinterval") / 1200)), true);
         }
     }
 
@@ -103,14 +102,14 @@ public class PrepareBackupTask implements Runnable {
 
         // Send a message advising that it is disabled.
         if (!hasToZIP)
-            LogUtils.prettyLog(strings.getString("zipdisabled"));
+            LogUtils.sendLog(strings.getString("zipdisabled"));
 
         // Create list of worlds to ignore.
         List<String> ignoredWorldNames = getIgnoredWorldNames();
         LinkedList<String> worldsToBackup = new LinkedList<String>();
         for (World world : server.getWorlds()) {
             if ((world.getName() != null) && (world.getName() != "") && (!ignoredWorldNames.contains(world.getName()))) {
-                LogUtils.prettyLog(Level.FINE, false, "Adding world '" + world.getName() + "' to backup list");
+                LogUtils.sendLog(Level.FINE, "Adding world '" + world.getName() + "' to backup list", true);
                 worldsToBackup.add(world.getName());
             }
         }
@@ -124,8 +123,8 @@ public class PrepareBackupTask implements Runnable {
         List<String> worldNames = Arrays.asList(settings.getStringProperty("skipworlds").split(";"));
         if (worldNames.size() > 0 && !worldNames.get(0).isEmpty()) {
             // Log what worlds are disabled.
-            LogUtils.prettyLog(strings.getString("disabledworlds"));
-            LogUtils.prettyLog(worldNames.toString());
+            LogUtils.sendLog(strings.getString("disabledworlds"));
+            LogUtils.sendLog(worldNames.toString());
         }
 
         return worldNames;
