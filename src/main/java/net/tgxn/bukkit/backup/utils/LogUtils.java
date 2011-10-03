@@ -29,6 +29,7 @@ import org.bukkit.plugin.Plugin;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 public class LogUtils {
     
     private static Level logLevel = Level.INFO;
@@ -49,7 +50,6 @@ public class LogUtils {
             
             LogUtils.logLevel = Level.INFO;
             LogUtils.logger.setLevel(Level.INFO);
-            
             LogUtils.plugin = plugin;
         }
     }

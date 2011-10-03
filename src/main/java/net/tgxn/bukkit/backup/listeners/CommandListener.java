@@ -33,23 +33,26 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.plugin.Plugin;
 
-
-/**
- * For manual backups
- * @author Kilian Gaertner
- */
 public class CommandListener extends PlayerListener implements CommandExecutor {
 
     private PrepareBackupTask backupTask = null;
     private Settings settings;
     private final Plugin plugin;
     private Strings strings;
-
-    public CommandListener (PrepareBackupTask backupTask, Settings settings, Plugin plugin) {
+    
+    /**
+     * The main constructor to initalize listening for commands.
+     * 
+     * @param backupTask The backuptask.
+     * @param settings Load settings for the plugin.
+     * @param strings The strings configuration for th plugin.
+     * @param plugin The plugin object itself
+     */
+    public CommandListener(PrepareBackupTask backupTask, Settings settings, Strings strings, Plugin plugin) {
         this.backupTask = backupTask;
         this.settings = settings;
         this.plugin = plugin;
-        this.strings = new Strings(plugin);
+        this.strings = strings;
     }
 
     @Override

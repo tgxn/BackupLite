@@ -48,13 +48,13 @@ public class Settings {
         
         // Create the file object used in this class.
         configFile = new File(plugin.getDataFolder(), "config.yml");
-       
+        
         // Check for the config file, have it created if needed.
         if (!configFile.exists()) {
             LogUtils.sendLog(Level.WARNING, strings.getString("newconfigfile"), true);
             createDefaultSettings();
         }
-
+        
         // Load the properties.
         loadProperties(plugin);
     }

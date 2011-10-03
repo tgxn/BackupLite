@@ -40,15 +40,15 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 
 public class BackupMain extends JavaPlugin {
-    
+     
     public static PermissionHandler Permissions;
     protected static Strings strings;
     protected static Settings settings;
     private PrepareBackupTask preparedBackupTask;
-
+    
     @Override
     public void onLoad() {
-        
+         
         // Init LogUtils.
         LogUtils.initLogUtils(this);
         
@@ -60,18 +60,18 @@ public class BackupMain extends JavaPlugin {
         
         // Load Properties, create if needed.
         settings = new Settings(this);
-
+        
         // Load Strings, create if needed.
         strings = new Strings(this);
-        
+
         // Check backup folder, create if needed.
-        File pluginDataFolder = new File(settings.getStringProperty("backuppath"));
-        if (!pluginDataFolder.exists()) {
+        File backupsFolder = new File(settings.getStringProperty("backuppath"));
+        if (!backupsFolder.exists()) {
             //@TODO create try catch exception class on error
-            pluginDataFolder.mkdirs();
+            backupsFolder.mkdirs();
             LogUtils.sendLog(strings.getString("createbudir"));
         }
-    }    
+    }
     
     @Override
     public void onEnable () {
@@ -89,7 +89,7 @@ public class BackupMain extends JavaPlugin {
         preparedBackupTask = new PrepareBackupTask(server, settings);
 
         // Setup the CommandListener, for commands.
-        getCommand("backup").setExecutor(new CommandListener(preparedBackupTask, settings, this));
+        getCommand("backup").setExecutor(new CommandListener(preparedBackupTask, settings, strings, this));
 
         // Setup LoginListener if we require it.
         if (settings.getBooleanProperty("backuponlywithplayer")) {
@@ -120,12 +120,19 @@ public class BackupMain extends JavaPlugin {
     }
      
     
-    // Check if the Permissions System is available.
+    /**
+     * Check if the Permissions System is available.
+     */
     private void setupPermissions () {
-        Plugin testPermissions = this.getServer().getPluginManager().getPlugin("Permissions");
+
+        // Make sure that it hasnt already been loaded.
         if (Permissions != null)
             return;
-
+                
+        // Get permissions plugin.
+        Plugin testPermissions = this.getServer().getPluginManager().getPlugin("Permissions");
+        
+        // If we were able to get the Permissions plugin.
         if (testPermissions != null) {
             Permissions = ((Permissions) testPermissions).getHandler();
             LogUtils.sendLog(strings.getString("hookedperms"));

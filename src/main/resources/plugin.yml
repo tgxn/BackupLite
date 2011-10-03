@@ -1,5 +1,5 @@
 name: Backup
-version: 1.8-dev
+version: 1.8
 description: CraftBukkit server Backup plugin.
 authors: [Meldanor, gamerx, lycano]
 main: net.tgxn.bukkit.backup.BackupMain

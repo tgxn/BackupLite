@@ -33,29 +33,34 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 
-/**
- *
- * @author Kilian Gaertner
- */
+
 public class LoginListener extends PlayerListener {
 
     private int taskID = -2;
     private Settings settings;
     private Plugin plugin;
     private Strings strings;
-
-    public LoginListener (Plugin plugin, Settings settings) {
+    
+    /**
+     * Main constructor for the login listener.
+     * 
+     * @param plugin The plugin object.
+     * @param settings Settings object.
+     */
+    public LoginListener(Plugin plugin, Settings settings) {
         this.settings = settings;
         this.plugin = plugin;
         this.strings = new Strings(plugin);
     }
-
+    
     @Override
     public void onPlayerLogin (PlayerLoginEvent event) {
+        
+        // Get player entities.
         Player player = event.getPlayer();
         Server server = player.getServer();
 
-
+        // If there is a task, and all players 
         if (taskID != -2 && server.getOnlinePlayers().length == 0) {
             server.getScheduler().cancelTask(taskID);
             LogUtils.sendLog(strings.getString("stoppedlast"));

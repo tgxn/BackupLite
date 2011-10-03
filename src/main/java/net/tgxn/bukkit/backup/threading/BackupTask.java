@@ -56,15 +56,13 @@ public class BackupTask implements Runnable {
     private Plugin plugin;
     private final LinkedList<String> worldsToBackup;
     private final Server server;
-    private final String backupName;
 
-    public BackupTask(Settings settings, LinkedList<String> worldsToBackup, Server server, String backupName) {
+    public BackupTask(Settings settings, Strings strings, LinkedList<String> worldsToBackup, Server server) {
         this.settings = settings;
         this.worldsToBackup = worldsToBackup;
         this.server = server;
-        this.backupName = backupName;
         this.plugin = server.getPluginManager().getPlugin("Backup");
-        this.strings = new Strings(plugin);
+        this.strings = strings;
     }
 
     @Override
@@ -77,34 +75,39 @@ public class BackupTask implements Runnable {
         }
     }
 
-    // Do the backup
+    /**
+     * Run the backup.
+     * 
+     * @throws Exception 
+     */
     public void backup() throws Exception {
-        // Backup directory name
+        
+        // Load preferences.
         String backupDirName = settings.getStringProperty("backuppath").concat(FILE_SEPARATOR);
-
-        // Prefs
         boolean ShouldZIP = settings.getBooleanProperty("zipbackup");
         boolean BackupWorlds = settings.getBooleanProperty("backupworlds");
         boolean BackupPlugins = settings.getBooleanProperty("backupplugins");
-
+        
         // Store backups in one container
         if (settings.getBooleanProperty("singlebackup")) {
-            backupDirName = backupDirName.concat(getDate());
-
-            //get Bakcup DIR and create if does not exist.
-            File backupDir = new File(backupDirName);
-            if (!backupDir.exists()) {
-                //@TODO create try catch exception class on error
-                backupDir.mkdir();
-            }
-
+            
+            // Folder to store backup in. IE: "backups/30092011-142238"
+            backupDirName = backupDirName.concat(getFolderName());
+            
+            // If there are worlds to backup, and we are performing world backups.
             if ((worldsToBackup != null) && (BackupWorlds)) {
+                
+                // While we have a worlds to backup.
                 while (!worldsToBackup.isEmpty()) {
+                    
+                    // Remove first world from the array and put it into a var.
                     String worldName = worldsToBackup.removeFirst();
+                    
+                    // Copy this world into the backup directory, in a folder called the worlds name.
                     try {
                         FileUtils.copyDirectory(worldName, backupDirName.concat(FILE_SEPARATOR).concat(worldName));
                     } catch (FileNotFoundException ex) {
-
+                        ex.printStackTrace(System.out);
                     } catch (IOException e) {
                         LogUtils.sendLog(Level.WARNING, strings.getStringWOPT("errorcreatetemp", worldName), true);
                         /** @TODO create exception classes **/
@@ -115,22 +118,30 @@ public class BackupTask implements Runnable {
             } else {
                 LogUtils.sendLog(Level.INFO, strings.getString("skipworlds"), true);
             }
-
+            
+            // We are backing up plugins.
             if (BackupPlugins) {
+                
+                // Copy entire plugins directory to the backup folder.
                 FileUtils.copyDirectory("plugins", backupDirName.concat(FILE_SEPARATOR).concat("plugins"));
             } else {
                 LogUtils.sendLog(Level.INFO, strings.getString("skipplugins"), true);
             }
-
+            
+            // Should we ZIP the backup.
             if (ShouldZIP) {
+                
+                // Add backup folder to a ZIP.
                 FileUtils.zipDir(backupDirName, backupDirName);
-                FileUtils.deleteDirectory(backupDir);
+                
+                // Delete the original backup directory.
+                FileUtils.deleteDirectory(new File(backupDirName));
             }
-        } else { //single backup
+        } else { //Should this be removed, as i do not see why anyone would want this, and it also makes the deleteOldBackups() not very accurate.
             if ((worldsToBackup != null) && (BackupWorlds)) {
                 while (!worldsToBackup.isEmpty()) {
                     String worldName = worldsToBackup.removeFirst();
-                    String destDir = backupDirName.concat(FILE_SEPARATOR).concat(worldName).concat("-").concat(getDate());
+                    String destDir = backupDirName.concat(FILE_SEPARATOR).concat(worldName).concat("-").concat(getFolderName());
 
 
                     FileUtils.copyDirectory(worldName, destDir);
@@ -146,7 +157,7 @@ public class BackupTask implements Runnable {
             }
 
             if (BackupPlugins) {
-                String destDir = backupDirName.concat(FILE_SEPARATOR).concat("plugins").concat("-").concat(getDate());
+                String destDir = backupDirName.concat(FILE_SEPARATOR).concat("plugins").concat("-").concat(getFolderName());
                 FileUtils.copyDirectory("plugins", destDir);
                 if (ShouldZIP) {
                     FileUtils.zipDir(destDir, destDir);
@@ -159,16 +170,19 @@ public class BackupTask implements Runnable {
 
         }
 
-        /** Delete old backups **/
+        // Delete old backups.
         deleteOldBackups();
 
+        // Clean up.
         finish();
     }
-
+    
     /**
-     * @return String representing the current Date in configured format
+     * Get the name of this backups folder.
+     * 
+     * @return The name, as a string.
      */
-    private String getDate() {
+    private String getFolderName() {
 
         Calendar cal = Calendar.getInstance();
         String formattedDate;
@@ -187,62 +201,48 @@ public class BackupTask implements Runnable {
         return formattedDate;
     }
 
-    /**
-     * Check wether there are more backups as allowed to store. When this case
-     * is true, it deletes oldest ones
+   /**
+     * Check whether there are more backups as allowed to store. 
+     * When this case is true, it deletes oldest ones.
      */
     private void deleteOldBackups() {
         try {
+            // Get properties.
             File backupDir = new File(settings.getStringProperty("backuppath"));
-
-            // currently listed files in backupDir;
-            // weird stuff oO
-            File[] tmpFiles = backupDir.listFiles();
-            File[] files = new File[tmpFiles.length - 1];
-            for (int i = 0, j = 0; i < tmpFiles.length - 1; ++i) {
-                files[j++] = tmpFiles[i];
-            }
-
-            tmpFiles = files;
-
             final int maxBackups = settings.getIntProperty("maxbackups");
+            
+            // Store all backup files in an array.
+            File[] filesList = backupDir.listFiles();
 
-            // When there are more than the max.
-            if (tmpFiles.length > maxBackups) {
-                // Store the "to delete backup" in a list
-                ArrayList<File> backupList = new ArrayList<File>(tmpFiles.length);
-
-                // Add all backups in the list and remove the newest later
-                backupList.addAll(Arrays.asList(tmpFiles));
-
-                // the current index of the newest backup
+            // If the amount of files exceeds the max backups to keep.
+            if (filesList.length > maxBackups) {
+                ArrayList<File> backupList = new ArrayList<File>(filesList.length);
+                backupList.addAll(Arrays.asList(filesList));
+                
                 int maxModifiedIndex;
-                // the current time of the newest backup
                 long maxModified;
 
-                //remove all newest backupList from the list to delete
-                for (int i = 0; i < maxBackups; ++i) {
+                //Remove the newst backups from the list.
+                for (int i = 0 ; i < maxBackups ; ++i) {
                     maxModifiedIndex = 0;
                     maxModified = backupList.get(0).lastModified();
-                    for (int j = 1; j < backupList.size(); ++j) {
+                    for (int j = 1 ; j < backupList.size() ; ++j) {
                         File currentFile = backupList.get(j);
                         if (currentFile.lastModified() > maxModified) {
                             maxModified = currentFile.lastModified();
                             maxModifiedIndex = j;
                         }
                     }
-
                     backupList.remove(maxModifiedIndex);
                 }
-
-                LogUtils.sendLog(strings.getString("removeold"));
-                LogUtils.sendLog(Arrays.toString(backupList.toArray()));
-
-                // this are the oldest backups, so delete them
-                for (File backupToDelete : backupList) {
-                    //@TODO create try catch exception class on error
+                
+                //Inform the user what backups are being deleted.
+                System.out.println(strings.getString("removeold"));
+                System.out.println(Arrays.toString(backupList.toArray()));
+                
+                // Finally delete the backups.
+                for (File backupToDelete : backupList)
                     backupToDelete.delete();
-                }
             }
         } catch (Exception e) {
             //@TODO write exception class
@@ -250,15 +250,15 @@ public class BackupTask implements Runnable {
         }
     }
 
-    /**
-     * Creates a temporary Runnable that is running on the main thread by the
-     * scheduler to prevent thread problems.
+   /**
+     * Creates a temporary Runnable that is running on the main thread by the scheduler to prevent thread problems.
      */
     private void finish() {
         Runnable run = new Runnable() {
             @Override
             public void run() {
                 if (settings.getBooleanProperty("enableautosave")) {
+                    
                     // @TODO this needs to be changed to server.getConsoleSender() as soon CB > #1185 is out
                     ConsoleCommandSender consoleCommandSender = new ConsoleCommandSender(server) {
                         @Override
@@ -274,7 +274,7 @@ public class BackupTask implements Runnable {
                 }
             }
         };
-
+        
         server.getScheduler().scheduleSyncDelayedTask(plugin, run);
     }
 }

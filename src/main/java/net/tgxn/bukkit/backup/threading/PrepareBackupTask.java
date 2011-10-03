@@ -49,7 +49,6 @@ public class PrepareBackupTask implements Runnable {
     private final Server server;
     private final Settings settings;
     public Strings strings;
-    private String backupName;
     private boolean isManualBackup;
     private Plugin plugin;
 
@@ -70,7 +69,7 @@ public class PrepareBackupTask implements Runnable {
 
         // Check if we should be doing backup
         boolean backupOnlyWithPlayer = settings.getBooleanProperty("backuponlywithplayer");
-        if ((backupOnlyWithPlayer && server.getOnlinePlayers().length > 0) || !backupOnlyWithPlayer || isManualBackup || backupName != null) {
+        if ((backupOnlyWithPlayer && server.getOnlinePlayers().length > 0) || !backupOnlyWithPlayer || isManualBackup) {
             prepareBackup();
         } else {
             LogUtils.sendLog(Level.INFO, strings.getStringWOPT("abortedbackup", Integer.toString(settings.getIntProperty("backupinterval") / 1200)), true);
@@ -114,8 +113,7 @@ public class PrepareBackupTask implements Runnable {
             }
         }
 
-        server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(settings, worldsToBackup, server, backupName));
-        backupName = null;
+        server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(settings, strings, worldsToBackup, server));
         isManualBackup = false;
     }
 
@@ -128,10 +126,6 @@ public class PrepareBackupTask implements Runnable {
         }
 
         return worldNames;
-    }
-
-    public void setBackupName (String backupName) {
-        this.backupName = backupName;
     }
 
     public void setAsManualBackup () {

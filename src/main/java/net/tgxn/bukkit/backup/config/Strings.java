@@ -38,7 +38,11 @@ public class Strings {
      * @param plugin The plugin this is for.
      */
     public Strings(Plugin plugin) {
+        
+        // Create the new strings file.
         strings = new Configuration(new File(plugin.getDataFolder(), "strings.yml"));
+        
+        // Attempt to load the strings.
         try {
             strings.load();
         } catch (Exception ex) {
@@ -94,7 +98,8 @@ public class Strings {
         
         /** Requested property not found **/
         strings.getString("stringnotfound", "String not found - ");
-
+        
+        // Save the strings file.
         strings.save();
     }
     
@@ -105,7 +110,11 @@ public class Strings {
      * @return The string from properties, with colors encoded.
      */
     public String getString(String property) {
+        
+        // Get string for this name.
         String string = strings.getString(property);
+        
+        // If we cannot find a string for this, return default.
         if (string != null)
             return colorizeString(string);
         else
@@ -120,7 +129,11 @@ public class Strings {
      * @return The string from properties, with colors encoded, and text replaced.
      */
     public String getStringWOPT(String property, String option) {
+        
+        // Get string for this name.
         String string = strings.getString(property);
+        
+        // If we cannot find a string for this, return default.
         if (string != null)
             return colorizeString(string.replaceAll("%%ARG%%", option));
         else
@@ -135,6 +148,8 @@ public class Strings {
      * @return The encoded string.
      */
     private String colorizeString(String toColor) {
+        
+        // Check we got passed a string.
         if (toColor != null)
             return toColor.replaceAll("&([0-9a-f])", "\u00A7$1");
         else

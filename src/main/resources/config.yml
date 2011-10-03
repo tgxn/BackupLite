@@ -49,8 +49,11 @@ backuppath: backups
 # WORLDNAME_TIMESTAMP
 singlebackup: true
 
+## True to enable debug mode
+debugmode: true
+
 ###############################################
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
-version: 1.8-dev
+version: 1.8
