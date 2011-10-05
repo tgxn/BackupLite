@@ -258,14 +258,7 @@ public class BackupTask implements Runnable {
             @Override
             public void run() {
                 if (settings.getBooleanProperty("enableautosave")) {
-                    
-                    // @TODO this needs to be changed to server.getConsoleSender() as soon CB > #1185 is out
-                    ConsoleCommandSender consoleCommandSender = new ConsoleCommandSender(server) {
-                        @Override
-                        public void sendMessage(String message) {
-                        }
-                    };
-                    server.dispatchCommand(consoleCommandSender, "save-on");
+                    server.dispatchCommand(server.getConsoleSender(), "save-on");
                 }
 
                 String completedBackupMessage = strings.getString("backupfinished");

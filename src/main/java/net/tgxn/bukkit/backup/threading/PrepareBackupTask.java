@@ -84,12 +84,7 @@ public class PrepareBackupTask implements Runnable {
         }
 
         // Save to file, and then turn saving off.
-        // @TODO this needs to be changed to server.getConsoleSender() as soon CB > #1185 is out
-        ConsoleCommandSender consoleCommandSender = new ConsoleCommandSender(server) {
-            @Override
-            public void sendMessage(String message) {
-            }
-        };
+        ConsoleCommandSender consoleCommandSender = server.getConsoleSender();
         server.dispatchCommand(consoleCommandSender, "save-all");
         server.dispatchCommand(consoleCommandSender, "save-off");
 
