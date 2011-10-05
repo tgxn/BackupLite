@@ -9,7 +9,7 @@
     <repositories>
         <repository>
             <id>tgxn.net-repo</id>
-            <url>http://maven.tgxn.net/artifactory/bukkit-plugins/</url>
+            <url>http://maven.tgxn.net/bukkit-plugins/</url>
         </repository>
     </repositories>
     <issueManagement>
