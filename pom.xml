@@ -8,8 +8,8 @@
     <url>https://github.com/gamerx/Backup</url>
     <repositories>
         <repository>
-            <id>luricos.de-repo</id>
-            <url>http://repo.luricos.de/bukkit-plugins/</url>
+            <id>tgxn.net-repo</id>
+            <url>http://maven.tgxn.net/artifactory/bukkit-plugins/</url>
         </repository>
     </repositories>
     <issueManagement>
