@@ -56,11 +56,11 @@ public class LoginListener extends PlayerListener {
     @Override
     public void onPlayerLogin (PlayerLoginEvent event) {
         
-        // Get player entities.
+        // Get player event and the server object.
         Player player = event.getPlayer();
         Server server = player.getServer();
 
-        // If there is a task, and all players 
+        // If there is a task, and all players.
         if (taskID != -2 && server.getOnlinePlayers().length == 0) {
             server.getScheduler().cancelTask(taskID);
             LogUtils.sendLog(strings.getString("stoppedlast"));
@@ -69,17 +69,20 @@ public class LoginListener extends PlayerListener {
     }
 
     @Override
-    public void onPlayerQuit (PlayerQuitEvent event) {
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        
+        // Get player event and the server object.
         Player player = event.getPlayer();
         Server server = player.getServer();
+        
+        // Get all online players, check if the last player just left the server.
         if (server.getOnlinePlayers().length <= 1) {
             int interval = settings.getIntProperty("backupinterval");
             if (interval != -1) {
                 interval *= 1200;
-                taskID = server.getScheduler().scheduleSyncDelayedTask(plugin, new LastBackupTask(server, settings), interval);
+                taskID = server.getScheduler().scheduleSyncDelayedTask(plugin, new LastBackupTask(server, settings, strings), interval);
                 LogUtils.sendLog(strings.getStringWOPT("lastbackup", Integer.toString(interval / 1200)));
             }
-            
         }
     }
 }

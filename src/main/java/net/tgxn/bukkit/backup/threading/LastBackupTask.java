@@ -23,26 +23,27 @@
 package net.tgxn.bukkit.backup.threading;
 
 import net.tgxn.bukkit.backup.config.Settings;
+import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.Server;
 
-/**
- *
- * @author Kilian Gaertner
- */
 public class LastBackupTask extends PrepareBackupTask {
 
     private Server server = null;
-
-    public LastBackupTask (Server server, Settings settings) {
-        super(server, settings);
+    
+    public LastBackupTask (Server server, Settings settings, Strings strings) {
+        super(server, settings, strings);
         this.server = server;
         this.strings = super.strings;
     }
 
     @Override
     public void run () {
+        
+        // If there are no players online.
         if (server.getOnlinePlayers().length <= 0) {
+            
+            // Inform we are starting the last backup.
             LogUtils.sendLog(strings.getString("startlast"));
             super.prepareBackup();
         }

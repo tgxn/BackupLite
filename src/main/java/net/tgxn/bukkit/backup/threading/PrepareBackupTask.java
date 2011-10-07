@@ -34,6 +34,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
+import net.tgxn.bukkit.backup.BackupMain;
+import org.bukkit.entity.Player;
 
 /**
  * This task is running by a syncronized thread from the sheduler. It prepare
@@ -57,17 +59,17 @@ public class PrepareBackupTask implements Runnable {
      * @param server The server where the Task is running on
      * @param settings This must be a loaded PropertiesSystem
      */
-    public PrepareBackupTask (Server server, Settings settings) {
+    public PrepareBackupTask (Server server, Settings settings, Strings strings) {
         this.server = server;
         this.settings = settings;
         this.plugin = server.getPluginManager().getPlugin("Backup");
-        this.strings = new Strings(plugin);
+        this.strings = strings;
     }
 
     @Override
     public void run () {
 
-        // Check if we should be doing backup
+        // Check if we should be doing backup.
         boolean backupOnlyWithPlayer = settings.getBooleanProperty("backuponlywithplayer");
         if ((backupOnlyWithPlayer && server.getOnlinePlayers().length > 0) || !backupOnlyWithPlayer || isManualBackup) {
             prepareBackup();
@@ -77,10 +79,35 @@ public class PrepareBackupTask implements Runnable {
     }
 
     protected void prepareBackup() {
+        
         // Inform players backup is about to happen.
         String startBackupMessage = strings.getString("backupstarted");
+        
         if (startBackupMessage != null && !startBackupMessage.trim().isEmpty()) {
-            server.broadcastMessage(startBackupMessage);
+            
+            // Verify Permissions
+            if (BackupMain.Permissions != null) {
+                
+                // Get all players.
+                Player[] players = server.getOnlinePlayers();
+                
+                // Loop through all online players.
+                for(int i = 0; i < players.length; i++) {
+                    Player currentplayer = players[i];
+                    
+                    // If the current player has the right permissions, notify them.
+                    if(BackupMain.Permissions.has(currentplayer, "backup.notify"))
+                        currentplayer.sendMessage(startBackupMessage);
+                }
+                
+                // Send message to log, to be sure.
+                LogUtils.sendLog(startBackupMessage);
+                 
+            } else {
+                
+                // If there are no permissions, notify all.
+                server.broadcastMessage(startBackupMessage);
+            }
         }
 
         // Save to file, and then turn saving off.
@@ -102,27 +129,42 @@ public class PrepareBackupTask implements Runnable {
         List<String> ignoredWorldNames = getIgnoredWorldNames();
         LinkedList<String> worldsToBackup = new LinkedList<String>();
         for (World world : server.getWorlds()) {
-            if ((world.getName() != null) && (world.getName() != "") && (!ignoredWorldNames.contains(world.getName()))) {
+            if ((world.getName() != null) && !world.getName().isEmpty() && (!ignoredWorldNames.contains(world.getName()))) {
                 LogUtils.sendLog(Level.FINE, "Adding world '" + world.getName() + "' to backup list", true);
                 worldsToBackup.add(world.getName());
             }
         }
-
+        
+        // Scedule the backup.
         server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(settings, strings, worldsToBackup, server));
         isManualBackup = false;
     }
-
+    
+    /**
+     * Function to get world names to ignore.
+     * 
+     * @return A List[] of the world names we should not be backing up.
+     */
     private List<String> getIgnoredWorldNames() {
+        
+        // Get skipped worlds form config.
         List<String> worldNames = Arrays.asList(settings.getStringProperty("skipworlds").split(";"));
+        
+        // Loop all ignored worlds.
         if (worldNames.size() > 0 && !worldNames.get(0).isEmpty()) {
+            
             // Log what worlds are disabled.
             LogUtils.sendLog(strings.getString("disabledworlds"));
             LogUtils.sendLog(worldNames.toString());
         }
-
+        
+        // Return the world names.
         return worldNames;
     }
-
+    
+    /**
+     * Set the backup as a manual backup. IE: Not scheduled.
+     */
     public void setAsManualBackup () {
         this.isManualBackup = true;
     }

@@ -86,7 +86,7 @@ public class BackupMain extends JavaPlugin {
         PluginManager pm = server.getPluginManager();
 
         // Setup the scheduled BackupTask.
-        preparedBackupTask = new PrepareBackupTask(server, settings);
+        preparedBackupTask = new PrepareBackupTask(server, settings, strings);
 
         // Setup the CommandListener, for commands.
         getCommand("backup").setExecutor(new CommandListener(preparedBackupTask, settings, strings, this));
@@ -112,10 +112,11 @@ public class BackupMain extends JavaPlugin {
     
     @Override
     public void onDisable () {
+        
         // Cancell any scheduled tasks.
         this.getServer().getScheduler().cancelTasks(this);
         
-        // Inform shutdown successfull
+        // Inform shutdown successfull.
         LogUtils.sendLog(this.getDescription().getFullName() + " has completed un-loading!", false);
     }
      

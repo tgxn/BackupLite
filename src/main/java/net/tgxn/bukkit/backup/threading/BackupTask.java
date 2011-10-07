@@ -22,6 +22,8 @@
 
 package net.tgxn.bukkit.backup.threading;
 
+import org.bukkit.entity.Player;
+import net.tgxn.bukkit.backup.BackupMain;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.utils.FileUtils;
@@ -56,7 +58,15 @@ public class BackupTask implements Runnable {
     private Plugin plugin;
     private final LinkedList<String> worldsToBackup;
     private final Server server;
-
+    
+    /**
+     * The main backup constructor.
+     * 
+     * @param settings The settings object, to get the plugins settings.
+     * @param strings Strings object, for all string values
+     * @param worldsToBackup The list of worlds that need to be backed up.
+     * @param server The server we are backing up.
+     */
     public BackupTask(Settings settings, Strings strings, LinkedList<String> worldsToBackup, Server server) {
         this.settings = settings;
         this.worldsToBackup = worldsToBackup;
@@ -67,7 +77,11 @@ public class BackupTask implements Runnable {
 
     @Override
     public void run() {
+        
+        // This will catch any backup errors.
         try {
+            
+            // Run the backup.
             backup();
         } catch (Exception ex) {
             /** @TODO create exception classes **/
@@ -137,7 +151,7 @@ public class BackupTask implements Runnable {
                 // Delete the original backup directory.
                 FileUtils.deleteDirectory(new File(backupDirName));
             }
-        } else { //Should this be removed, as i do not see why anyone would want this, and it also makes the deleteOldBackups() not very accurate.
+        } else {  // Read: https://github.com/gamerx/Backup/issues/20
             if ((worldsToBackup != null) && (BackupWorlds)) {
                 while (!worldsToBackup.isEmpty()) {
                     String worldName = worldsToBackup.removeFirst();
@@ -183,17 +197,18 @@ public class BackupTask implements Runnable {
      * @return The name, as a string.
      */
     private String getFolderName() {
-
-        Calendar cal = Calendar.getInstance();
+        
+        // Get the calendar, and initalize the date format string.
+        Calendar calendar = Calendar.getInstance();
         String formattedDate;
 
         // Java string (and date) formatting:
         // http://download.oracle.com/javase/1.5.0/docs/api/java/util/Formatter.html#syntax
         try {
-            formattedDate = String.format(settings.getStringProperty("dateformat"), cal);
+            formattedDate = String.format(settings.getStringProperty("dateformat"), calendar);
         } catch (Exception e) {
             LogUtils.sendLog(Level.WARNING, strings.getString("errordateformat"), true);
-            formattedDate = String.format("%1$td%1$tm%1$tY-%1$tH%1$tM%1$tS", cal);
+            formattedDate = String.format("%1$td%1$tm%1$tY-%1$tH%1$tM%1$tS", calendar);
 
             // @TODO write exception class
             System.out.println(e);
@@ -207,6 +222,7 @@ public class BackupTask implements Runnable {
      */
     private void deleteOldBackups() {
         try {
+            
             // Get properties.
             File backupDir = new File(settings.getStringProperty("backuppath"));
             final int maxBackups = settings.getIntProperty("maxbackups");
@@ -236,9 +252,9 @@ public class BackupTask implements Runnable {
                     backupList.remove(maxModifiedIndex);
                 }
                 
-                //Inform the user what backups are being deleted.
-                System.out.println(strings.getString("removeold"));
-                System.out.println(Arrays.toString(backupList.toArray()));
+                // Inform the user what backups are being deleted.
+                LogUtils.sendLog(strings.getString("removeold"));
+                LogUtils.sendLog(Arrays.toString(backupList.toArray()));
                 
                 // Finally delete the backups.
                 for (File backupToDelete : backupList)
@@ -260,14 +276,38 @@ public class BackupTask implements Runnable {
                 if (settings.getBooleanProperty("enableautosave")) {
                     server.dispatchCommand(server.getConsoleSender(), "save-on");
                 }
-
+                
+                // Inform players backup has finished.
                 String completedBackupMessage = strings.getString("backupfinished");
+                
                 if (completedBackupMessage != null && !completedBackupMessage.trim().isEmpty()) {
-                    server.broadcastMessage(completedBackupMessage);
+                    
+                    // Verify Permissions
+                    if (BackupMain.Permissions != null) {
+                        
+                        // Get all players.
+                        Player[] players = server.getOnlinePlayers();
+                        
+                        // Loop through all online players.
+                        for(int i = 0; i < players.length; i++) {
+                            Player currentplayer = players[i];
+                            
+                            // If the current player has the right permissions, notify them.
+                            if(BackupMain.Permissions.has(currentplayer, "backup.notify"))
+                                currentplayer.sendMessage(completedBackupMessage);
+                        }
+                        
+                        // Send message to log, to be sure.
+                        LogUtils.sendLog(completedBackupMessage);
+                 
+                    } else {
+                        
+                        // If there are no permissions, notify all.
+                        server.broadcastMessage(completedBackupMessage);
+                    }
                 }
             }
         };
-        
         server.getScheduler().scheduleSyncDelayedTask(plugin, run);
     }
 }

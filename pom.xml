@@ -2,14 +2,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.tgxn.bukkit</groupId>
     <artifactId>Backup</artifactId>
-    <version>1.8.1</version>
+    <version>1.8.2-dev</version>
     <name>Backup</name>
     <description>A Backup plugin for Bukkit's Server mod API.</description>
     <url>https://github.com/gamerx/Backup</url>
     <repositories>
         <repository>
             <id>tgxn.net-repo</id>
-            <url>http://maven.tgxn.net/artifactory/bukkit-plugins/</url>
+            <url>http://maven.tgxn.net/bukkit-plugins/</url>
         </repository>
     </repositories>
     <issueManagement>

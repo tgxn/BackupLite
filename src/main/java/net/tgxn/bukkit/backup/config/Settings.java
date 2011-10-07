@@ -83,6 +83,7 @@ public class Settings {
             /** @TODO create exception classes **/
             e.printStackTrace(System.out);
         }
+        
         // Make sure everything is closed.
         finally {
             try {
@@ -104,7 +105,7 @@ public class Settings {
      */
     private void loadProperties(Plugin plugin) {
         
-        //Create new configuration file.
+        // Create new configuration file.
         config = new Configuration(configFile);
         
         // Attempt to load the configfile.

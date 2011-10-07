@@ -56,29 +56,33 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
     }
 
     @Override
-    public boolean onCommand (CommandSender sender, Command command, String label, String[] args) {
-        if((sender instanceof Player)) { // In-Game Command
-
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        
+        // For In-Game commands, we need to check permissions.
+        if((sender instanceof Player)) {
+            
             // Get player object
             Player player = (Player) sender;
 
             // Verify Permissions
-            if (BackupMain.Permissions != null) { //permissions loaded
-                 if(!BackupMain.Permissions.has(player, "backup.backup"))
+            if (BackupMain.Permissions != null) {
+                
+                // Check player has the correct permission.
+                 if(!BackupMain.Permissions.has(player, "backup.backup")) {
                     player.sendMessage(strings.getString("norights"));
-                 return true;
+                    return true;
+                 }
             } else if (settings.getBooleanProperty("onlyops") && !player.isOp()) {
                  player.sendMessage(strings.getString("norights"));
                  return true;
             }
         }
         
+        // The "backup" command.
         if (label.equalsIgnoreCase("backup")) {
             backupTask.setAsManualBackup();
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, backupTask);
         }
-        
-       return true;
+        return true;
     }
-    
 }
