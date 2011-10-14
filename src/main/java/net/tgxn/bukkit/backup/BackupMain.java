@@ -45,6 +45,7 @@ public class BackupMain extends JavaPlugin {
     protected static Strings strings;
     protected static Settings settings;
     private PrepareBackupTask preparedBackupTask;
+    public int mainBackupTaskID;
     
     @Override
     public void onLoad() {
@@ -93,7 +94,7 @@ public class BackupMain extends JavaPlugin {
 
         // Setup LoginListener if we require it.
         if (settings.getBooleanProperty("backuponlywithplayer")) {
-            LoginListener loginListener = new LoginListener(this, settings);
+            LoginListener loginListener = new LoginListener(this, settings, strings);
             pm.registerEvent(Type.PLAYER_LOGIN, loginListener, Priority.Normal, this);
             pm.registerEvent(Type.PLAYER_QUIT, loginListener, Priority.Normal, this);
         }
@@ -102,7 +103,7 @@ public class BackupMain extends JavaPlugin {
         int interval = settings.getIntProperty("backupinterval");
         if (interval != -1) {
             interval *= 1200;
-            server.getScheduler().scheduleSyncRepeatingTask(this, preparedBackupTask, interval, interval);
+            mainBackupTaskID = server.getScheduler().scheduleSyncRepeatingTask(this, preparedBackupTask, interval, interval);
         } else
             LogUtils.sendLog(strings.getString("disbaledauto"));
 
@@ -141,4 +142,5 @@ public class BackupMain extends JavaPlugin {
             LogUtils.sendLog(strings.getString("defaultperms"));
         }
     }
+    
 }

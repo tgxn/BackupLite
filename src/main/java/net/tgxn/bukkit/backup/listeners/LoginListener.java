@@ -28,6 +28,7 @@ import net.tgxn.bukkit.backup.threading.LastBackupTask;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -40,6 +41,8 @@ public class LoginListener extends PlayerListener {
     private Settings settings;
     private Plugin plugin;
     private Strings strings;
+
+
     
     /**
      * Main constructor for the login listener.
@@ -47,10 +50,10 @@ public class LoginListener extends PlayerListener {
      * @param plugin The plugin object.
      * @param settings Settings object.
      */
-    public LoginListener(Plugin plugin, Settings settings) {
+    public LoginListener(Plugin plugin, Settings settings, Strings strings) {
         this.settings = settings;
         this.plugin = plugin;
-        this.strings = new Strings(plugin);
+        this.strings = strings;
     }
     
     @Override
@@ -59,13 +62,11 @@ public class LoginListener extends PlayerListener {
         // Get player event and the server object.
         Player player = event.getPlayer();
         Server server = player.getServer();
-
-        // If there is a task, and all players.
-        if (taskID != -2 && server.getOnlinePlayers().length == 0) {
-            server.getScheduler().cancelTask(taskID);
-            LogUtils.sendLog(strings.getString("stoppedlast"));
-            taskID = -2;
-        }
+        
+        
+        
+        unsetSchedule(server, player);
+       
     }
 
     @Override
@@ -75,14 +76,72 @@ public class LoginListener extends PlayerListener {
         Player player = event.getPlayer();
         Server server = player.getServer();
         
+        setSchedule(server, player);
+        
+    }
+    
+    @Override
+    public void onPlayerKick(PlayerKickEvent event) {
+        
+        // Get player event and the server object.
+        Player player = event.getPlayer();
+        Server server = player.getServer();
+        
+        System.out.println("PLAYERS: "+server.getOnlinePlayers().length);
+        
+        setSchedule(server, player);
+      
+        
+        
+    }
+    
+    // taskid is set to the id f the task when the last backup is scheduled
+    
+    
+    
+    // When we should enable scheduled backups, called when a player joins.
+    // Stopped last backup, start with normal backup cycle!
+    private void unsetSchedule(Server server, Player player) {
+        
+        LogUtils.sendLog("PLAYERS: "+server.getOnlinePlayers().length);
+        
+       // If last backup is scheduled.
+        if (taskID != -2 && server.getOnlinePlayers().length == 0 && !player.isBanned()) {
+            server.getScheduler().cancelTask(taskID);
+            LogUtils.sendLog(strings.getString("stoppedlast"));
+            taskID = -2;
+        }
+        
+    }
+    
+    // When we should disable scheduled backups, called when a player leaves.
+    private void setSchedule(Server server, Player player) {
+        
+        // Get interval, for if they should be disabled.                                                                            
+        int interval = settings.getIntProperty("backupinterval");
+        
+        
+                
+                
+        
+        
+        
+        
         // Get all online players, check if the last player just left the server.
         if (server.getOnlinePlayers().length <= 1) {
-            int interval = settings.getIntProperty("backupinterval");
+            
+            // If we should be doing scheduled backups.
             if (interval != -1) {
                 interval *= 1200;
                 taskID = server.getScheduler().scheduleSyncDelayedTask(plugin, new LastBackupTask(server, settings, strings), interval);
                 LogUtils.sendLog(strings.getStringWOPT("lastbackup", Integer.toString(interval / 1200)));
             }
-        }
+         } else {
+            LogUtils.sendLog(" not last player that left PLAYERS: "+server.getOnlinePlayers().length);
+            }
+        
+        
     }
+    
+    
 }

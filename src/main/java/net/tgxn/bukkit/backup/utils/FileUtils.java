@@ -199,7 +199,7 @@ public class FileUtils {
      * @throws IOException if an IO error occurs during copying
      * @since Commons IO 1.4
      */
-    private static void copyDirectory (File srcDir, File destDir,
+    public static void copyDirectory (File srcDir, File destDir,
                                        FileFilter filter, boolean preserveFileDate) throws IOException {
         if (srcDir == null)
             throw new NullPointerException("Source must not be null");

@@ -83,6 +83,8 @@ public class Strings {
         strings.getString("abortedbackup", "Scheduled backup was aborted due to lack of players. Next backup attempt in %%ARG%% minutes.");
         /** Backup is disabled for [worlds] **/
         strings.getString("disabledworlds", "Backup is disabled for the following world(s):");
+        
+        strings.getString("disabledplugins", "Backup is disabled for the following plugin(s):");
         /** Remove old backups message **/
         strings.getString("removeold", "Removing the following backups due to age:");
         /** Date format error **/
@@ -95,6 +97,8 @@ public class Strings {
         strings.getString("newconfigfile",  "Your config file was not found, creating default...");
         strings.getString("configoutdated", "Your config file file is outdated, please delete it and a new one will be created!");
         
+        
+        strings.getString("sqlbackupenabled", "MySQL Backup is enabled, Performing backup.");
         
         /** Requested property not found **/
         strings.getString("stringnotfound", "String not found - ");
