@@ -43,13 +43,8 @@ public class Strings {
         strings = new Configuration(new File(plugin.getDataFolder(), "strings.yml"));
         
         // Attempt to load the strings.
-        try {
-            strings.load();
-        } catch (Exception ex) {
-            /** @TODO create exception classes **/
-            ex.printStackTrace(System.out);
-        }
-
+        strings.load();
+        
         // In-Game Messages
         /** Backup started **/
         strings.getString("backupstarted", "Started Backup...");
@@ -94,7 +89,7 @@ public class Strings {
         /** Backup failure **/
         strings.getString("backupfailed", "An error occured while backing up. Please report to an admin!");
         
-        strings.getString("newconfigfile",  "Your config file was not found, creating default...");
+        strings.getString("newconfigfile",  "Your config file was not found, Loaded defaults.");
         strings.getString("configoutdated", "Your config file file is outdated, please delete it and a new one will be created!");
         
         

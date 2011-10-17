@@ -19,7 +19,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package net.tgxn.bukkit.backup.config;
 
 import net.tgxn.bukkit.backup.utils.LogUtils;
@@ -30,7 +29,7 @@ import java.io.*;
 import java.util.logging.Level;
 
 public class Settings {
-    
+
     private Configuration config;
     private Strings strings;
     private File configFile;
@@ -42,19 +41,24 @@ public class Settings {
      * @param plugin The plugin this is for.
      */
     public Settings(Plugin plugin) {
-        
+
         // Load strings.
         strings = new Strings(plugin);
-        
+
         // Create the file object used in this class.
         configFile = new File(plugin.getDataFolder(), "config.yml");
-        
+
         // Check for the config file, have it created if needed.
-        if (!configFile.exists()) {
-            LogUtils.sendLog(Level.WARNING, strings.getString("newconfigfile"), true);
-            createDefaultSettings();
+        try {
+            if (!configFile.exists()) {
+                LogUtils.sendLog(Level.WARNING, strings.getString("newconfigfile"));
+                createDefaultSettings();
+            }
+        } catch (SecurityException se) {
+            LogUtils.sendLog(Level.SEVERE, "Failed to check config file: Security Exception.");
+            //se.printStackTrace(System.out);
         }
-        
+
         // Load the properties.
         loadProperties(plugin);
     }
@@ -65,35 +69,36 @@ public class Settings {
     private void createDefaultSettings() {
         BufferedReader bReader = null;
         BufferedWriter bWriter = null;
-        
+        String line;
+
         try {
-            
+
             // Open a stream to the properties file in the jar, because we can only access over the class loader.
             bReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/settings/config.yml")));
             bWriter = new BufferedWriter(new FileWriter(configFile));
-            
-            String line;
-            
+
             // Copy the content to the configfile location.
             while ((line = bReader.readLine()) != null) {
                 bWriter.write(line);
                 bWriter.newLine();
             }
-        } catch (Exception e) {
-            /** @TODO create exception classes **/
-            e.printStackTrace(System.out);
+        } catch (IOException ioe) {
+            LogUtils.sendLog(Level.SEVERE, "Could not create default config.yml: IO Exception.");
+            //ioe.printStackTrace(System.out);
         }
         
         // Make sure everything is closed.
         finally {
             try {
-                if (bReader != null)
+                if (bReader != null) {
                     bReader.close();
-                if (bWriter != null)
+                }
+                if (bWriter != null) {
                     bWriter.close();
-            } catch (Exception e) {
-                /** @TODO create exception classes **/
-                e.printStackTrace(System.out);
+                }
+            } catch (IOException ioe) {
+                LogUtils.sendLog(Level.SEVERE, "Failed to close bReader or bWriter: IO Exception.");
+                //ioe.printStackTrace(System.out);
             }
         }
     }
@@ -104,22 +109,18 @@ public class Settings {
      * @param plugin The plugin this is for.
      */
     private void loadProperties(Plugin plugin) {
-        
+
         // Create new configuration file.
         config = new Configuration(configFile);
-        
-        // Attempt to load the configfile.
-        try {
-            config.load();
-        } catch (Exception ex) {
-            /** @TODO create exception classes **/
-            ex.printStackTrace(System.out);
-        }
+
+        // Attempt to load configuration.
+        config.load();
 
         // Get version, and log message if out-of-date.
         String version = config.getString("version", plugin.getDescription().getVersion());
-        if (version == null || !version.equals(plugin.getDescription().getVersion()))
-            LogUtils.sendLog(Level.SEVERE, strings.getString("configoutdated"), true);
+        if (version == null || !version.equals(plugin.getDescription().getVersion())) {
+            LogUtils.sendLog(Level.WARNING, strings.getString("configoutdated"), true);
+        }
 
     }
 

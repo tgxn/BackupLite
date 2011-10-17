@@ -81,6 +81,16 @@ public class LogUtils {
     public static void sendLog(String message, boolean tags) {
         sendLog(Level.INFO, message, tags);
     }
+    
+    /**
+     * Sends log message.
+     * 
+     * @param message
+     * @param tags 
+     */
+    public static void sendLog(Level level, String message) {
+        sendLog(level, message);
+    }
 
     /**
      * Sends log message.

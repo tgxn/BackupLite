@@ -80,23 +80,13 @@ public class BackupTask implements Runnable {
 
     @Override
     public void run() {
-
-        // This will catch any backup errors.
-        try {
-            // Run the backup.
-            backup();
-        } catch (Exception ex) {
-            /** @TODO create exception classes **/
-            ex.printStackTrace(System.out);
-        }
+        backup();
     }
 
     /**
      * Run the backup.
-     * 
-     * @throws Exception 
      */
-    public void backup() throws Exception {
+    public void backup() {
 
         // Settings.
         String backupPath = settings.getStringProperty("backuppath").concat(FILE_SEPARATOR);
@@ -126,7 +116,7 @@ public class BackupTask implements Runnable {
                     if (f.getName().equals(settings.getStringProperty("backuppath"))) {
                         return false;
                     }
-                    
+
                     if (f.getName().equals("server.log")) {
                         return false;
                     }
@@ -141,20 +131,24 @@ public class BackupTask implements Runnable {
 
             // Copy this world into the backup directory, in a folder called the worlds name.
             try {
-                
+
                 // Copy the directory.
                 FileUtils.copyDirectory(srcDIR, destDIR, ff, true);
-                
+
                 // Perform the zipping action. 
                 doZIP(backupDirName);
 
-            } catch (FileNotFoundException ex) {
-                ex.printStackTrace(System.out);
-            } catch (IOException e) {
-                LogUtils.sendLog("Error with full backup");
-                /** @TODO create exception classes **/
-                e.printStackTrace(System.out);
+            } catch (FileNotFoundException fnfe) {
+
+                LogUtils.sendLog("Full backup: Source not found.");
+                //fnfe.printStackTrace(System.out);
+
+            } catch (IOException ioe) {
+
+                LogUtils.sendLog("Error occurred while performing backup: IO Exception.");
                 server.broadcastMessage(strings.getString("backupfailed"));
+
+                //ioe.printStackTrace(System.out);
             }
 
             // If we are just backing up worlds/plugins.
@@ -169,31 +163,45 @@ public class BackupTask implements Runnable {
                     // Remove first world from the array and put it into a var.
                     String worldName = worldsToBackup.removeFirst();
 
-                    
+
                     if (splitbackup) {
                         // Split into world folders.
 
                         // Check this worlds folder exists.
                         File woldBUfolder = new File(backupPath.concat(FILE_SEPARATOR).concat(worldName));
-                        if (!woldBUfolder.exists()) {
-                            //@TODO create try catch exception class on error
-                            woldBUfolder.mkdirs();
+
+                        // Try to create the folder.
+                        try {
+                            if (!woldBUfolder.exists()) {
+                                woldBUfolder.mkdirs();
+                            }
+                        } catch (SecurityException se) {
+
+                            // Advise this failed.
+                            LogUtils.sendLog(Level.SEVERE, "Failed to make the world folder: Security Exception.");
+                            //se.printStackTrace(System.out);
                         }
-                        
+
                         // "backups/world/30092011-142238"
                         String thisbackupfname = backupPath.concat(worldName).concat(FILE_SEPARATOR).concat(getFolderName());
-                        
-                        // Copy the world into its backup folder.
-                        FileUtils.copyDirectory(worldName, thisbackupfname);
 
+                        // Copy the world into its backup folder.
+                        try {
+                            FileUtils.copyDirectory(worldName, thisbackupfname);
+                        } catch (IOException ioe) {
+
+                            // Advise this failed.
+                            LogUtils.sendLog(Level.SEVERE, "Failed to Copy the world's folder: IO Exception.");
+                            //ioe.printStackTrace(System.out);
+                        }
                         // ZIP if required.
                         doZIP(thisbackupfname);
 
                     } else {
                         // Not split backup.
-                        
+
                         try {
-                            
+
                             // Copy this world into the backup directory, in a folder called the worlds name.
                             FileUtils.copyDirectory(worldName, backupDirName.concat(FILE_SEPARATOR).concat(worldName));
 
@@ -241,17 +249,17 @@ public class BackupTask implements Runnable {
 
                 // Setup Source and destination DIR's.
                 File srcDIR = new File("plugins");
-                
+
                 // Touch the folder to update the modified date.
                 srcDIR.setLastModified(System.currentTimeMillis());
                 String destDIR;
-                
+
                 if (splitbackup) {
                     // Splitting backup.
-                    
+
                     // "backups/plugins/30092011-142238"
                     String thisbackupfname = backupPath.concat("plugins").concat(FILE_SEPARATOR).concat(getFolderName());
-                    
+
                     destDIR = thisbackupfname;
                 } else {
                     destDIR = backupDirName.concat(FILE_SEPARATOR).concat("plugins");
@@ -265,7 +273,7 @@ public class BackupTask implements Runnable {
                         LogUtils.sendLog(skippedPlugins.toString());
 
                     }
-                    
+
                     // erform the copy.
                     FileUtils.copyDirectory(srcDIR, new File(destDIR), ffplugins, true);
 
@@ -297,7 +305,8 @@ public class BackupTask implements Runnable {
         }
 
         // Delete old backups.
-        deleteOldBackups();
+        if(!deleteOldBackups())
+            LogUtils.sendLog("Failed to delete old backups.");
 
         // Clean up.
         finish();
@@ -336,7 +345,7 @@ public class BackupTask implements Runnable {
      */
     private void doZIP(String path) {
 
-        // Check we are ZIPing.
+        // Check we are ZIPing the backups.
         if (ShouldZIP) {
             try {
 
@@ -345,8 +354,11 @@ public class BackupTask implements Runnable {
 
                 // Delete the original backup directory.
                 FileUtils.deleteDirectory(new File(path));
-            } catch (Exception e) {
-                //@TODO Exception handler.
+            } catch (IOException ioe) {
+
+                // Advise this failed.
+                LogUtils.sendLog("Failed to ZIP Backup: IO Exception.");
+                //ioe.printStackTrace(System.out);
             }
         }
     }
@@ -355,20 +367,38 @@ public class BackupTask implements Runnable {
      * Check whether there are more backups as allowed to store. 
      * When this case is true, it deletes oldest ones.
      */
-    private void deleteOldBackups() {
-        //@TODO We need to modify this to support split backups.
+    private boolean deleteOldBackups() {
+
+        // Get the backup's directory.
         File backupDir = new File(settings.getStringProperty("backuppath"));
+
+        // Check if split backup or not.
         if (splitbackup) {
+
+            // Loop the folders, and crean for each.
             File[] foldersToClean = backupDir.listFiles();
             for (int l = 0; l < foldersToClean.length; l++) {
-                cleanFolder(foldersToClean[l]);
+                try {
+                    cleanFolder(foldersToClean[l]);
+                } catch (IOException ioe) {
+                    //ioe.printStackTrace(System.out);
+                    return false;
+                }
             }
         } else {
-            cleanFolder(backupDir);
+
+            // Clean entire directory.
+            try {
+                cleanFolder(backupDir);
+            } catch (IOException ioe) {
+                //ioe.printStackTrace(System.out);
+                return false;
+            }
         }
+        return true;
     }
 
-    private void cleanFolder(File backupDir) {
+    private void cleanFolder(File backupDir) throws IOException {
 
         // Get properties.
         try {
@@ -412,12 +442,11 @@ public class BackupTask implements Runnable {
             //@TODO write exception class
             e.printStackTrace(System.out);
         }
-        
+
 
 
     }
-    
-    
+
     public boolean deleteDir(File dir) {
         if (dir.isDirectory()) {
             String[] children = dir.list();
@@ -430,7 +459,7 @@ public class BackupTask implements Runnable {
         }
         return dir.delete();
     }
-    
+
     /**
      * Creates a temporary Runnable that is running on the main thread by the scheduler to prevent thread problems.
      */

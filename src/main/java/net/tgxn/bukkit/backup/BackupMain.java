@@ -1,23 +1,10 @@
 /*
- *  Backup - CraftBukkit server Backup plugin (continued)
- *  Copyright (C) 2011 Domenic Horner <https://github.com/gamerx/Backup>
- *  Copyright (C) 2011 Lycano <https://github.com/gamerx/Backup>
- *
- *  Backup - CraftBukkit server Backup plugin (original author)
- *  Copyright (C) 2011 Kilian Gaertner <https://github.com/Meldanor/Backup>
+ *  Backup - CraftBukkit Server Backup Plugin.
+ *   
+ *  Copyright - Domenic Horner, lycano, Kilian Gaertner.
+ *  URL: https://github.com/gamerx/Backup
  * 
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- * 
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  Please read README and LICENSE for more details.
  */
 
 package net.tgxn.bukkit.backup;
@@ -38,6 +25,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.util.logging.Level;
 
 public class BackupMain extends JavaPlugin {
      
@@ -46,17 +34,25 @@ public class BackupMain extends JavaPlugin {
     protected static Settings settings;
     private PrepareBackupTask preparedBackupTask;
     public int mainBackupTaskID;
-    
+
     @Override
     public void onLoad() {
          
-        // Init LogUtils.
+        // Init LogUtils, for logging purposes.
         LogUtils.initLogUtils(this);
         
-        // Check plugin Data Folder, create if not exist.
+        // Check the plugin's data folder exists.
         if (!this.getDataFolder().exists()) {
-            // @TODO create try catch exception class on error
-            this.getDataFolder().mkdirs();
+            
+            // Try to create the folder.
+            try {
+                this.getDataFolder().mkdirs();
+            } catch(SecurityException se) {
+                
+                // Advise this failed.
+                LogUtils.sendLog(Level.SEVERE, "Failed to create plugin's data folder: Security Exception." );
+                //se.printStackTrace(System.out);
+            }
         }
         
         // Load Properties, create if needed.
@@ -65,12 +61,20 @@ public class BackupMain extends JavaPlugin {
         // Load Strings, create if needed.
         strings = new Strings(this);
 
-        // Check backup folder, create if needed.
+        // Check the specified backup folder exists.
         File backupsFolder = new File(settings.getStringProperty("backuppath"));
         if (!backupsFolder.exists()) {
-            //@TODO create try catch exception class on error
-            backupsFolder.mkdirs();
-            LogUtils.sendLog(strings.getString("createbudir"));
+            
+            // Try to create the folder.
+            try {
+                 if(backupsFolder.mkdirs())
+                    LogUtils.sendLog(strings.getString("createbudir"));
+            } catch(SecurityException se) {
+                
+                // Advise this failed.
+                LogUtils.sendLog(Level.SEVERE, "Failed to create backup folder: Security Exception." );
+                //se.printStackTrace(System.out);
+            }
         }
     }
     
