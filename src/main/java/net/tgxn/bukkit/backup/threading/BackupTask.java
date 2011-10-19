@@ -368,23 +368,25 @@ public class BackupTask implements Runnable {
      * When this case is true, it deletes oldest ones.
      */
     private boolean deleteOldBackups() {
-
+        
         // Get the backup's directory.
         File backupDir = new File(settings.getStringProperty("backuppath"));
-
+        
         // Check if split backup or not.
         if (splitbackup) {
-
-            // Loop the folders, and crean for each.
-            File[] foldersToClean = backupDir.listFiles();
-            for (int l = 0; l < foldersToClean.length; l++) {
-                try {
+            try {
+                // Loop the folders, and clean for each.
+                File[] foldersToClean = backupDir.listFiles();
+                for (int l = 0; l < foldersToClean.length; l++)
                     cleanFolder(foldersToClean[l]);
-                } catch (IOException ioe) {
-                    //ioe.printStackTrace(System.out);
-                    return false;
-                }
+            } catch (IOException ioe) {
+                //ioe.printStackTrace(System.out);
+                return false;
+            } catch (NullPointerException npe) {
+                //npe.printStackTrace(System.out);
+                return false;
             }
+
         } else {
 
             // Clean entire directory.
@@ -393,12 +395,15 @@ public class BackupTask implements Runnable {
             } catch (IOException ioe) {
                 //ioe.printStackTrace(System.out);
                 return false;
+            } catch (NullPointerException npe) {
+                //npe.printStackTrace(System.out);
+                return false;
             }
         }
         return true;
     }
 
-    private void cleanFolder(File backupDir) throws IOException {
+    private void cleanFolder(File backupDir) throws IOException, NullPointerException {
 
         // Get properties.
         try {
