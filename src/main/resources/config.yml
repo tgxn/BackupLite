@@ -36,7 +36,7 @@ skipplugins:
 ## Whether to ZIP Backups or not. (Default: true)
 # If enabled, backups will be compressed and stored in a ZIP archive named with the current timestamp.
 # If disabled, the backup will stored in a folder with the timestamp.
-zipbackup: false
+zipbackup: true
 
 ## Custom date format string that is appended to every backup.
 ## If left empty, the default date format is used.

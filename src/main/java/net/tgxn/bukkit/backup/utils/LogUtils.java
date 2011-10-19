@@ -89,7 +89,7 @@ public class LogUtils {
      * @param tags 
      */
     public static void sendLog(Level level, String message) {
-        sendLog(level, message);
+        sendLog(level, message, true);
     }
 
     /**
