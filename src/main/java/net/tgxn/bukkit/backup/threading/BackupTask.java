@@ -403,7 +403,7 @@ public class BackupTask implements Runnable {
         return true;
     }
 
-    private void cleanFolder(File backupDir) throws IOException, NullPointerException {
+    private void cleanFolder(File backupDir) throws IOException {
 
         // Get properties.
         try {
@@ -411,7 +411,12 @@ public class BackupTask implements Runnable {
 
             // Store all backup files in an array.
             File[] filesList = backupDir.listFiles();
-
+            
+            if(filesList == null) {
+                LogUtils.sendLog(Level.SEVERE, "Failed to list backup directory." );
+                return;
+            }
+            
             // If the amount of files exceeds the max backups to keep.
             if (filesList.length > maxBackups) {
                 ArrayList<File> backupList = new ArrayList<File>(filesList.length);
@@ -443,9 +448,10 @@ public class BackupTask implements Runnable {
                     deleteDir(backupToDelete);
                 }
             }
-        } catch (Exception e) {
-            //@TODO write exception class
-            e.printStackTrace(System.out);
+        } catch (SecurityException  se) {
+            // Advise this failed.
+            LogUtils.sendLog(Level.SEVERE, "Failed to clean old backups: Security Exception.");
+            //se.printStackTrace(System.out);
         }
 
 
