@@ -1,26 +1,6 @@
-/*
- *  Backup - CraftBukkit server Backup plugin (continued)
- *  Copyright (C) 2011 Domenic Horner <https://github.com/gamerx/Backup>
- *  Copyright (C) 2011 Lycano <https://github.com/gamerx/Backup>
- *
- *  Backup - CraftBukkit server Backup plugin (original author)
- *  Copyright (C) 2011 Kilian Gaertner <https://github.com/Meldanor/Backup>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package net.tgxn.bukkit.backup.threading;
 
+import net.tgxn.bukkit.backup.utils.DebugUtils;
 import java.util.List;
 import java.io.FileFilter;
 import org.bukkit.entity.Player;
@@ -80,9 +60,9 @@ public class BackupTask implements Runnable {
 
     @Override
     public void run() {
-        backup();
+            backup();
     }
-
+    
     /**
      * Run the backup.
      */
@@ -139,16 +119,9 @@ public class BackupTask implements Runnable {
                 doZIP(backupDirName);
 
             } catch (FileNotFoundException fnfe) {
-
-                LogUtils.sendLog("Full backup: Source not found.");
-                //fnfe.printStackTrace(System.out);
-
+                DebugUtils.debugLog(fnfe.getStackTrace());
             } catch (IOException ioe) {
-
-                LogUtils.sendLog("Error occurred while performing backup: IO Exception.");
-                server.broadcastMessage(strings.getString("backupfailed"));
-
-                //ioe.printStackTrace(System.out);
+                DebugUtils.debugLog(ioe.getStackTrace());
             }
 
             // If we are just backing up worlds/plugins.
@@ -176,10 +149,7 @@ public class BackupTask implements Runnable {
                                 woldBUfolder.mkdirs();
                             }
                         } catch (SecurityException se) {
-
-                            // Advise this failed.
-                            LogUtils.sendLog(Level.SEVERE, "Failed to make the world folder: Security Exception.");
-                            //se.printStackTrace(System.out);
+                            DebugUtils.debugLog(se.getStackTrace());
                         }
 
                         // "backups/world/30092011-142238"
@@ -189,10 +159,7 @@ public class BackupTask implements Runnable {
                         try {
                             FileUtils.copyDirectory(worldName, thisbackupfname);
                         } catch (IOException ioe) {
-
-                            // Advise this failed.
-                            LogUtils.sendLog(Level.SEVERE, "Failed to Copy the world's folder: IO Exception.");
-                            //ioe.printStackTrace(System.out);
+                            DebugUtils.debugLog(ioe.getStackTrace());
                         }
                         // ZIP if required.
                         doZIP(thisbackupfname);
@@ -206,12 +173,9 @@ public class BackupTask implements Runnable {
                             FileUtils.copyDirectory(worldName, backupDirName.concat(FILE_SEPARATOR).concat(worldName));
 
                         } catch (FileNotFoundException ex) {
-                            ex.printStackTrace(System.out);
-                        } catch (IOException e) {
-                            LogUtils.sendLog(Level.WARNING, strings.getStringWOPT("errorcreatetemp", worldName), true);
-                            /** @TODO create exception classes **/
-                            e.printStackTrace(System.out);
-                            server.broadcastMessage(strings.getString("backupfailed"));
+                            DebugUtils.debugLog(ex.getStackTrace());
+                        } catch (IOException ioe) {
+                            DebugUtils.debugLog(ioe.getStackTrace());
                         }
                     }
                 }
@@ -284,12 +248,9 @@ public class BackupTask implements Runnable {
 
 
                 } catch (FileNotFoundException ex) {
-                    ex.printStackTrace(System.out);
-                } catch (IOException e) {
-                    LogUtils.sendLog("Error backing up plugins.");
-                    /** @TODO create exception classes **/
-                    e.printStackTrace(System.out);
-                    server.broadcastMessage(strings.getString("backupfailed"));
+                    DebugUtils.debugLog(ex.getStackTrace());
+                } catch (IOException ioe) {
+                    DebugUtils.debugLog(ioe.getStackTrace());
                 }
 
 
@@ -305,8 +266,9 @@ public class BackupTask implements Runnable {
         }
 
         // Delete old backups.
-        if(!deleteOldBackups())
+        if (!deleteOldBackups()) {
             LogUtils.sendLog("Failed to delete old backups.");
+        }
 
         // Clean up.
         finish();
@@ -329,11 +291,8 @@ public class BackupTask implements Runnable {
         try {
             formattedDate = String.format(settings.getStringProperty("dateformat"), calendar);
         } catch (Exception e) {
-            LogUtils.sendLog(Level.WARNING, strings.getString("errordateformat"), true);
+            DebugUtils.debugLog(e.getStackTrace(), strings.getString("errordateformat"));
             formattedDate = String.format("%1$td%1$tm%1$tY-%1$tH%1$tM%1$tS", calendar);
-
-            // @TODO write exception class
-            System.out.println(e);
         }
         return formattedDate;
     }
@@ -355,10 +314,7 @@ public class BackupTask implements Runnable {
                 // Delete the original backup directory.
                 FileUtils.deleteDirectory(new File(path));
             } catch (IOException ioe) {
-
-                // Advise this failed.
-                LogUtils.sendLog("Failed to ZIP Backup: IO Exception.");
-                //ioe.printStackTrace(System.out);
+                DebugUtils.debugLog(ioe.getStackTrace(), "Failed to ZIP Backup: IO Exception.");
             }
         }
     }
@@ -368,22 +324,23 @@ public class BackupTask implements Runnable {
      * When this case is true, it deletes oldest ones.
      */
     private boolean deleteOldBackups() {
-        
+
         // Get the backup's directory.
         File backupDir = new File(settings.getStringProperty("backuppath"));
-        
+
         // Check if split backup or not.
         if (splitbackup) {
             try {
                 // Loop the folders, and clean for each.
                 File[] foldersToClean = backupDir.listFiles();
-                for (int l = 0; l < foldersToClean.length; l++)
+                for (int l = 0; l < foldersToClean.length; l++) {
                     cleanFolder(foldersToClean[l]);
+                }
             } catch (IOException ioe) {
-                //ioe.printStackTrace(System.out);
+                DebugUtils.debugLog(ioe.getStackTrace());
                 return false;
             } catch (NullPointerException npe) {
-                //npe.printStackTrace(System.out);
+                DebugUtils.debugLog(npe.getStackTrace());
                 return false;
             }
 
@@ -393,10 +350,10 @@ public class BackupTask implements Runnable {
             try {
                 cleanFolder(backupDir);
             } catch (IOException ioe) {
-                //ioe.printStackTrace(System.out);
+                DebugUtils.debugLog(ioe.getStackTrace());
                 return false;
             } catch (NullPointerException npe) {
-                //npe.printStackTrace(System.out);
+                DebugUtils.debugLog(npe.getStackTrace());
                 return false;
             }
         }
@@ -411,12 +368,12 @@ public class BackupTask implements Runnable {
 
             // Store all backup files in an array.
             File[] filesList = backupDir.listFiles();
-            
-            if(filesList == null) {
-                LogUtils.sendLog(Level.SEVERE, "Failed to list backup directory." );
+
+            if (filesList == null) {
+                LogUtils.sendLog(Level.SEVERE, "Failed to list backup directory.");
                 return;
             }
-            
+
             // If the amount of files exceeds the max backups to keep.
             if (filesList.length > maxBackups) {
                 ArrayList<File> backupList = new ArrayList<File>(filesList.length);
@@ -448,10 +405,8 @@ public class BackupTask implements Runnable {
                     deleteDir(backupToDelete);
                 }
             }
-        } catch (SecurityException  se) {
-            // Advise this failed.
-            LogUtils.sendLog(Level.SEVERE, "Failed to clean old backups: Security Exception.");
-            //se.printStackTrace(System.out);
+        } catch (SecurityException se) {
+            DebugUtils.debugLog(se.getStackTrace(), "Failed to clean old backups: Security Exception.");
         }
 
 

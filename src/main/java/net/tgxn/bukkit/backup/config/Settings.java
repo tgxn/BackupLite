@@ -1,53 +1,43 @@
-/*
- *  Backup - CraftBukkit server Backup plugin (continued)
- *  Copyright (C) 2011 Domenic Horner <https://github.com/gamerx/Backup>
- *  Copyright (C) 2011 Lycano <https://github.com/gamerx/Backup>
- *
- *  Backup - CraftBukkit server Backup plugin (original author)
- *  Copyright (C) 2011 Kilian Gaertner <https://github.com/Meldanor/Backup>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package net.tgxn.bukkit.backup.config;
 
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.config.Configuration;
 
 import java.io.*;
 import java.util.logging.Level;
+import net.tgxn.bukkit.backup.utils.DebugUtils;
+import org.bukkit.util.config.Configuration;
 
 public class Settings {
-
-    private Configuration config;
-    private Strings strings;
+    
     private File configFile;
-
+    private Configuration config = null;
+    private Plugin plugin;
+    private Strings strings;
+    public boolean outOfDate = false;
+    
     /**
      * Main constructor for properties.
      * It detects is the properties file exists, and have it created if need be.
      * 
-     * @param plugin The plugin this is for.
+     * @param plugin The plugin for this class.
+     * @param strings The strings handler.
      */
-    public Settings(Plugin plugin) {
+    public Settings(Plugin plugin, File configFile, Strings strings) {
+        
+        this.plugin = plugin;
+        this.configFile = configFile;
+        this.strings = strings;
 
-        // Load strings.
-        strings = new Strings(plugin);
-
-        // Create the file object used in this class.
-        configFile = new File(plugin.getDataFolder(), "config.yml");
-
+        // Load the properties.
+        loadProperties();
+    }
+    
+    /**
+     * Load the properties from the configFile, create if needed.
+     */
+    private void loadProperties() {
+                
         // Check for the config file, have it created if needed.
         try {
             if (!configFile.exists()) {
@@ -55,14 +45,59 @@ public class Settings {
                 createDefaultSettings();
             }
         } catch (SecurityException se) {
-            LogUtils.sendLog(Level.SEVERE, "Failed to check config file: Security Exception.");
-            //se.printStackTrace(System.out);
+            DebugUtils.debugLog(se.getStackTrace());
+        } catch (NullPointerException npe) {
+            DebugUtils.debugLog(npe.getStackTrace());
         }
-
-        // Load the properties.
-        loadProperties(plugin);
+        
+        config = new Configuration(configFile);
+        
+        // Attempt to load configuration.
+        config.load();
+        
+        // Check version of the config file.
+        checkConfigVersion();
     }
+    
+    /**
+     * Checks the version in the config file, and suggests the user runs the update command.
+     */
+    public void checkConfigVersion() {
 
+        boolean needToUpdate = false;
+
+        // Check config is loaded.
+        if (config != null) {
+
+            // Get the version information.
+            String configVersion = config.getString("version", plugin.getDescription().getVersion());
+            String pluginVersion = plugin.getDescription().getVersion();
+
+            // Check we got a version from the config file.
+            if (configVersion == null) {
+                LogUtils.sendLog(Level.SEVERE, strings.getString("failedtogetpropsver"), true);
+                needToUpdate = true;
+            }
+
+            // Check if the config is outdated.
+            if (!configVersion.equals(pluginVersion))
+                needToUpdate = true;
+
+            // After we have checked the versions, we have determined that we need to update.
+            if (needToUpdate) {
+                LogUtils.sendLog(Level.SEVERE, strings.getString("configoutdated"));
+                outOfDate = true;
+            } else {
+                outOfDate = false;
+            }
+        }
+    }
+    
+    public void doConfUpdate() {
+        createDefaultSettings();
+        loadProperties();
+    }
+    
     /**
      * Load the properties file from the JAR and place it in the backup DIR.
      */
@@ -83,11 +118,9 @@ public class Settings {
                 bWriter.newLine();
             }
         } catch (IOException ioe) {
-            LogUtils.sendLog(Level.SEVERE, "Could not create default config.yml: IO Exception.");
-            //ioe.printStackTrace(System.out);
+            DebugUtils.debugLog(ioe.getStackTrace());
         }
         
-        // Make sure everything is closed.
         finally {
             try {
                 if (bReader != null) {
@@ -96,33 +129,15 @@ public class Settings {
                 if (bWriter != null) {
                     bWriter.close();
                 }
+                
+                
+                
             } catch (IOException ioe) {
-                LogUtils.sendLog(Level.SEVERE, "Failed to close bReader or bWriter: IO Exception.");
-                //ioe.printStackTrace(System.out);
+                DebugUtils.debugLog(ioe.getStackTrace());
             }
         }
     }
 
-    /**
-     * Load the properties from the configFile.
-     * 
-     * @param plugin The plugin this is for.
-     */
-    private void loadProperties(Plugin plugin) {
-
-        // Create new configuration file.
-        config = new Configuration(configFile);
-
-        // Attempt to load configuration.
-        config.load();
-
-        // Get version, and log message if out-of-date.
-        String version = config.getString("version", plugin.getDescription().getVersion());
-        if (version == null || !version.equals(plugin.getDescription().getVersion())) {
-            LogUtils.sendLog(Level.WARNING, strings.getString("configoutdated"), true);
-        }
-
-    }
 
     /**
      * Gets the value of a integer property.

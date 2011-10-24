@@ -1,22 +1,16 @@
-/*
- *  Backup - CraftBukkit Server Backup Plugin.
- *   
- *  Copyright - Domenic Horner, lycano, Kilian Gaertner.
- *  URL: https://github.com/gamerx/Backup
- * 
- *  Please read README and LICENSE for more details.
- */
-
 package net.tgxn.bukkit.backup;
 
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
+
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.listeners.CommandListener;
 import net.tgxn.bukkit.backup.listeners.LoginListener;
 import net.tgxn.bukkit.backup.threading.PrepareBackupTask;
 import net.tgxn.bukkit.backup.utils.LogUtils;
+import net.tgxn.bukkit.backup.utils.DebugUtils;
+
 import org.bukkit.Server;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event.Type;
@@ -25,59 +19,47 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.util.logging.Level;
 
 public class BackupMain extends JavaPlugin {
-     
+    
     public static PermissionHandler Permissions;
+    public int mainBackupTaskID = -2;
+    
     protected static Strings strings;
     protected static Settings settings;
     private PrepareBackupTask preparedBackupTask;
-    public int mainBackupTaskID;
-
+    
+    /**
+     * onLoad method, Called after a plugin is loaded but before it has been enabled..
+     */
     @Override
     public void onLoad() {
          
+        // Init DebugUtils, for all things buggy.
+        DebugUtils.initDebugUtils(this);
+        
         // Init LogUtils, for logging purposes.
         LogUtils.initLogUtils(this);
         
-        // Check the plugin's data folder exists.
-        if (!this.getDataFolder().exists()) {
-            
-            // Try to create the folder.
-            try {
-                this.getDataFolder().mkdirs();
-            } catch(SecurityException se) {
-                
-                // Advise this failed.
-                LogUtils.sendLog(Level.SEVERE, "Failed to create plugin's data folder: Security Exception." );
-                //se.printStackTrace(System.out);
-            }
-        }
-        
-        // Load Properties, create if needed.
-        settings = new Settings(this);
+        // Check the plugin's data folder exists, create if needed.
+        checkFolder(this.getDataFolder());
         
         // Load Strings, create if needed.
         strings = new Strings(this);
-
-        // Check the specified backup folder exists.
-        File backupsFolder = new File(settings.getStringProperty("backuppath"));
-        if (!backupsFolder.exists()) {
-            
-            // Try to create the folder.
-            try {
-                 if(backupsFolder.mkdirs())
-                    LogUtils.sendLog(strings.getString("createbudir"));
-            } catch(SecurityException se) {
-                
-                // Advise this failed.
-                LogUtils.sendLog(Level.SEVERE, "Failed to create backup folder: Security Exception." );
-                //se.printStackTrace(System.out);
-            }
-        }
+        
+        // Load Properties, create if needed.
+        File configFile = new File(this.getDataFolder(), "config.yml");
+        settings = new Settings(this, configFile, strings);
+        
+        // Check for the backup folder.
+        if(checkFolder(new File(settings.getStringProperty("backuppath"))))
+            LogUtils.sendLog(strings.getString("createbudir"));
+        
     }
     
+    /**
+     * onEnable method, Called when this plugin is enabled.
+     */
     @Override
     public void onEnable () {
         
@@ -96,25 +78,27 @@ public class BackupMain extends JavaPlugin {
         // Setup the CommandListener, for commands.
         getCommand("backup").setExecutor(new CommandListener(preparedBackupTask, settings, strings, this));
 
-        // Setup LoginListener if we require it.
-        if (settings.getBooleanProperty("backuponlywithplayer")) {
-            LoginListener loginListener = new LoginListener(this, settings, strings);
-            pm.registerEvent(Type.PLAYER_LOGIN, loginListener, Priority.Normal, this);
-            pm.registerEvent(Type.PLAYER_QUIT, loginListener, Priority.Normal, this);
-        }
+        // Setup loginlistener.
+        LoginListener loginListener = new LoginListener(preparedBackupTask, this);
+        pm.registerEvent(Type.PLAYER_QUIT, loginListener, Priority.Normal, this);
+        pm.registerEvent(Type.PLAYER_KICK, loginListener, Priority.Normal, this);
 
         // Setup the scheduled backuptask, or turn it off if not needed.
         int interval = settings.getIntProperty("backupinterval");
         if (interval != -1) {
             interval *= 1200;
             mainBackupTaskID = server.getScheduler().scheduleSyncRepeatingTask(this, preparedBackupTask, interval, interval);
-        } else
+        } else {
             LogUtils.sendLog(strings.getString("disbaledauto"));
-
+        }
+        
         // Inform Startup Complete.
         LogUtils.sendLog(this.getDescription().getFullName() + " has completed loading!", false);
     }
     
+    /**
+     * onDisable method, Called when this plugin is disabled.
+     */
     @Override
     public void onDisable () {
         
@@ -124,10 +108,9 @@ public class BackupMain extends JavaPlugin {
         // Inform shutdown successfull.
         LogUtils.sendLog(this.getDescription().getFullName() + " has completed un-loading!", false);
     }
-     
     
     /**
-     * Check if the Permissions System is available.
+     * Check if the Permissions System is available, and setup the handler.
      */
     private void setupPermissions () {
 
@@ -147,4 +130,23 @@ public class BackupMain extends JavaPlugin {
         }
     }
     
+    /**
+     * Checks if a folder exists and creates it if it does not.
+     * 
+     * @param toCheck File to check.
+     * @return True if created, false if exists.
+     */
+    private boolean checkFolder(File toCheck) {
+        // If it does not exist.
+        if (!toCheck.exists()) {
+            try {
+                if (toCheck.mkdirs()) {
+                    return true;
+                }
+            } catch (SecurityException se) {
+                DebugUtils.debugLog(se.getStackTrace());
+            }
+        }
+        return false;
+    }
 }

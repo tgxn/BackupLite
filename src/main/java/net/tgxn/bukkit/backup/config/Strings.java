@@ -1,25 +1,3 @@
-/*
- *  Backup - CraftBukkit server Backup plugin (continued)
- *  Copyright (C) 2011 Domenic Horner <https://github.com/gamerx/Backup>
- *  Copyright (C) 2011 Lycano <https://github.com/gamerx/Backup>
- *
- *  Backup - CraftBukkit server Backup plugin (original author)
- *  Copyright (C) 2011 Kilian Gaertner <https://github.com/Meldanor/Backup>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package net.tgxn.bukkit.backup.config;
 
 import org.bukkit.plugin.Plugin;
@@ -30,6 +8,42 @@ import java.io.File;
 public class Strings {
     
     private Configuration strings;
+    private String[][] theStrings = {
+        
+        // In-Game Messages.
+        {"backupstarted",       "[Backup] Started Backup..."},
+        {"backupfinished",      "[Backup] Finished Backup!"},
+        {"norights",            "[Backup] You do not have the rights to run this backup!"},
+        {"reloadedok",          "[Backup] Reloaded %%ARG%% successfully!"},
+        {"updateconf",          "[Backup] Version of file is out of date or missing, Updating..."},
+        {"confuptodate",        "[Backup] Config file is already Up-To-Date!"},
+        
+        
+        // Console Messages.
+        {"defaultperms",        "No permissions plugin detected, defaulting to OP."},
+        {"hookedperms",         "Found and hooked a permissions plugin."},
+        {"disbaledauto",        "You have disabled scheduled backups!"},
+        {"createbudir",         "Created the folder for backups."},
+        {"zipdisabled",         "You have disabled backup compression."},
+        
+        {"skipworlds",          "Skipping worlds backup, for all worlds."},
+        {"disabledworlds",      "Backup is disabled for the following world(s):"},
+        
+        {"skipplugins",         "Skipping plugin backup, for all plugins."},
+        {"disabledplugins",     "Backup is disabled for the following plugin(s):"},
+        
+        {"abortedbackup",       "Aborted backup as no players online. Next attempt in %%ARG%% minutes."},
+        
+        {"removeold",           "Removing the following backup(s) due to age:"},
+        {"errordateformat",     "Date format incorrect Check configuration!"},
+        {"errorcreatetemp",     "Error occurred when trying to backup %%ARG%%.  Backup is possibly incomplete."},
+        {"backupfailed",        "An error occured during backup. Please report to an admin!"},
+        {"newconfigfile",       "No config file exists, creating default."},
+        {"failedtogetpropsver", "Failed to retrieve version from config file, I suggest upgrading!"},
+        {"configoutdated",      "Your config file is outdated, run '/backup updateconf' in-game to upgrade it."},
+        {"lastbackup",          "Last player left, backing up!"}
+    
+    };
     
     /**
      * Loads the strings configuration file.
@@ -45,56 +59,16 @@ public class Strings {
         // Attempt to load the strings.
         strings.load();
         
-        // In-Game Messages
-        /** Backup started **/
-        strings.getString("backupstarted", "Started Backup...");
-        /** Backup complete **/
-        strings.getString("backupfinished", "Finished Backup!");
-        /** Player does not have permission **/
-        strings.getString("norights", "You do not have the rights to run this backup!");
+        for(int i = 0; i < theStrings.length; i++) {
+            String key = theStrings[i][0];
+            String value = theStrings[i][1];
+            
+            if(key.equals("") || value.equals(""))
+                return;
+            else
+                strings.getString(key, value);
+        }
 
-        // Console-Messages
-        /** onLoad permission check **/
-        strings.getString("defaultperms", "Permissions system not detected, defaulting to OP.");
-        /** Permissions-Plugin found **/
-        strings.getString("hookedperms", "Found and hooked permissions plugin.");
-        /** Interval set to -1 in properties **/
-        strings.getString("disbaledauto", "You have disabled the automatic backup function!");
-        /** First load create folder message **/
-        strings.getString("createbudir", "Created folder for backups.");
-        /** ZIP'in is disabled **/
-        strings.getString("zipdisabled", "Backup compression is disabled.");
-        /** Skipping worlds **/
-        strings.getString("skipworlds", "Skipping worlds backup, for all worlds.");
-        /** Skipping plugin's folder backup **/
-        strings.getString("skipplugins", "Skipping plugin backup, for all plugins.");
-        /** Player joins after inactivity **/
-        strings.getString("stoppedlast", "Stopped last backup, start with normal backup cycle!");
-        /** Last Player has left **/
-        strings.getString("lastbackup", "Set last backup. It will start in %%ARG%% minutes of server inactivity.");
-        /** Start last backup **/
-        strings.getString("startlast", "Start last backup. When this is done, the server will not run a backup until a player joins the server.");
-        /** No backup required **/
-        strings.getString("abortedbackup", "Scheduled backup was aborted due to lack of players. Next backup attempt in %%ARG%% minutes.");
-        /** Backup is disabled for [worlds] **/
-        strings.getString("disabledworlds", "Backup is disabled for the following world(s):");
-        
-        strings.getString("disabledplugins", "Backup is disabled for the following plugin(s):");
-        /** Remove old backups message **/
-        strings.getString("removeold", "Removing the following backups due to age:");
-        /** Date format error **/
-        strings.getString("errordateformat", "Error formatting date, bad format string! Formatting date with default format string...");
-        /** Temp file copy error **/
-        strings.getString("errorcreatetemp", "An error occurs while creating a temporary copy of world %%ARG%%.  Maybe the complete world didnt backup, please take a look at it!");
-        /** Backup failure **/
-        strings.getString("backupfailed", "An error occured while backing up. Please report to an admin!");
-        
-        strings.getString("newconfigfile",  "Your config file was not found, Loaded defaults.");
-        strings.getString("configoutdated", "Your config file file is outdated, please delete it and a new one will be created!");
-        
-        
-        strings.getString("sqlbackupenabled", "MySQL Backup is enabled, Performing backup.");
-        
         /** Requested property not found **/
         strings.getString("stringnotfound", "String not found - ");
         
@@ -127,7 +101,7 @@ public class Strings {
      * @param option The variable to replace %%ARG%% with.
      * @return The string from properties, with colors encoded, and text replaced.
      */
-    public String getStringWOPT(String property, String option) {
+    public String getString(String property, String option) {
         
         // Get string for this name.
         String string = strings.getString(property);

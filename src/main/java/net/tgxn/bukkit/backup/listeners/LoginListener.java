@@ -1,147 +1,45 @@
-/*
- *  Backup - CraftBukkit server Backup plugin (continued)
- *  Copyright (C) 2011 Domenic Horner <https://github.com/gamerx/Backup>
- *  Copyright (C) 2011 Lycano <https://github.com/gamerx/Backup>
- *
- *  Backup - CraftBukkit server Backup plugin (original author)
- *  Copyright (C) 2011 Kilian Gaertner <https://github.com/Meldanor/Backup>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package net.tgxn.bukkit.backup.listeners;
 
-import net.tgxn.bukkit.backup.config.Settings;
-import net.tgxn.bukkit.backup.config.Strings;
-import net.tgxn.bukkit.backup.threading.LastBackupTask;
-import net.tgxn.bukkit.backup.utils.LogUtils;
-import org.bukkit.Server;
-import org.bukkit.entity.Player;
+import net.tgxn.bukkit.backup.threading.PrepareBackupTask;
+
+import org.bukkit.plugin.Plugin;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerListener;
-import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.Plugin;
-
 
 public class LoginListener extends PlayerListener {
-
-    private int taskID = -2;
-    private Settings settings;
+    
+    private PrepareBackupTask backupTask = null;
     private Plugin plugin;
-    private Strings strings;
-
-
     
     /**
-     * Main constructor for the login listener.
+     * Constructor for Listening for Logins.
      * 
-     * @param plugin The plugin object.
-     * @param settings Settings object.
+     * @param backupTask The BackupTast to call.
+     * @param plugin Plugin to link this class too.
      */
-    public LoginListener(Plugin plugin, Settings settings, Strings strings) {
-        this.settings = settings;
+    public LoginListener(PrepareBackupTask backupTask, Plugin plugin) {
+        this.backupTask = backupTask;
         this.plugin = plugin;
-        this.strings = strings;
     }
     
     @Override
-    public void onPlayerLogin (PlayerLoginEvent event) {
-        
-        // Get player event and the server object.
-        Player player = event.getPlayer();
-        Server server = player.getServer();
-        
-        
-        
-        unsetSchedule(server, player);
-       
-    }
-
-    @Override
     public void onPlayerQuit(PlayerQuitEvent event) {
-        
-        // Get player event and the server object.
-        Player player = event.getPlayer();
-        Server server = player.getServer();
-        
-        setSchedule(server, player);
-        
+        attemptBackup();
     }
     
     @Override
     public void onPlayerKick(PlayerKickEvent event) {
-        
-        // Get player event and the server object.
-        Player player = event.getPlayer();
-        Server server = player.getServer();
-        
-        System.out.println("PLAYERS: "+server.getOnlinePlayers().length);
-        
-        setSchedule(server, player);
-      
-        
-        
+        attemptBackup();
     }
     
-    // taskid is set to the id f the task when the last backup is scheduled
-    
-    
-    
-    // When we should enable scheduled backups, called when a player joins.
-    // Stopped last backup, start with normal backup cycle!
-    private void unsetSchedule(Server server, Player player) {
-        
-        LogUtils.sendLog("PLAYERS: "+server.getOnlinePlayers().length);
-        
-       // If last backup is scheduled.
-        if (taskID != -2 && server.getOnlinePlayers().length == 0 && !player.isBanned()) {
-            server.getScheduler().cancelTask(taskID);
-            LogUtils.sendLog(strings.getString("stoppedlast"));
-            taskID = -2;
-        }
-        
+    /**
+     * Call a last backup.
+     */
+    private void attemptBackup() {
+        backupTask.setAsLastBackup();
+        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, backupTask);
     }
-    
-    // When we should disable scheduled backups, called when a player leaves.
-    private void setSchedule(Server server, Player player) {
-        
-        // Get interval, for if they should be disabled.                                                                            
-        int interval = settings.getIntProperty("backupinterval");
-        
-        
-                
-                
-        
-        
-        
-        
-        // Get all online players, check if the last player just left the server.
-        if (server.getOnlinePlayers().length <= 1) {
-            
-            // If we should be doing scheduled backups.
-            if (interval != -1) {
-                interval *= 1200;
-                taskID = server.getScheduler().scheduleSyncDelayedTask(plugin, new LastBackupTask(server, settings, strings), interval);
-                LogUtils.sendLog(strings.getStringWOPT("lastbackup", Integer.toString(interval / 1200)));
-            }
-         } else {
-            LogUtils.sendLog(" not last player that left PLAYERS: "+server.getOnlinePlayers().length);
-            }
-        
-        
-    }
-    
-    
+
 }
+

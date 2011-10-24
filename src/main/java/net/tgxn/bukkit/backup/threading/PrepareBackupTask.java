@@ -1,25 +1,3 @@
-/*
- *  Backup - CraftBukkit server Backup plugin (continued)
- *  Copyright (C) 2011 Domenic Horner <https://github.com/gamerx/Backup>
- *  Copyright (C) 2011 Lycano <https://github.com/gamerx/Backup>
- *
- *  Backup - CraftBukkit server Backup plugin (original author)
- *  Copyright (C) 2011 Kilian Gaertner <https://github.com/Meldanor/Backup>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package net.tgxn.bukkit.backup.threading;
 
 import net.tgxn.bukkit.backup.config.Settings;
@@ -53,6 +31,7 @@ public class PrepareBackupTask implements Runnable {
     public Strings strings;
     private boolean isManualBackup;
     private Plugin plugin;
+    private boolean isLastBackup;
 
     /**
      * The only constructor for the BackupTask.
@@ -66,18 +45,67 @@ public class PrepareBackupTask implements Runnable {
         this.strings = strings;
     }
 
+    /**
+     * Run method for reparing the backup.
+     */
     @Override
     public void run () {
-
-        // Check if we should be doing backup.
-        boolean backupOnlyWithPlayer = settings.getBooleanProperty("backuponlywithplayer");
-        if ((backupOnlyWithPlayer && server.getOnlinePlayers().length > 0) || !backupOnlyWithPlayer || isManualBackup) {
-            prepareBackup();
-        } else {
-            LogUtils.sendLog(Level.INFO, strings.getStringWOPT("abortedbackup", Integer.toString(settings.getIntProperty("backupinterval") / 1200)), true);
-        }
+        
+        // Check various parameters.
+        handlePrepareBackup();
     }
 
+    
+    private void handlePrepareBackup() {
+        
+        // Continue if this ia a manual backup.
+        if(isManualBackup) {
+            prepareBackup();
+            
+        } else {
+
+            // Get variables.
+            boolean backupOnlyWithPlayer = settings.getBooleanProperty("backuponlywithplayer");
+            int onlineP = server.getOnlinePlayers().length;
+
+            // If we should backup every cycle.
+            if (!backupOnlyWithPlayer) {
+                prepareBackup();
+                
+            } else {
+                // Backup depending on players.
+                if (onlineP == 0) {
+                    doNoPlayers();
+                } else {
+                    prepareBackup();
+                }
+            }
+        }  
+    }
+    
+    /**
+     * Called when the scheduled backup is called, but no players are online.
+     */
+    public void doNoPlayers() {
+        
+        // Should we stop backups if there are no players?
+        if (settings.getBooleanProperty("backuponlywithplayer")) {
+            
+            // If this should be the last backup.
+            if(isLastBackup) {
+                LogUtils.sendLog(strings.getString("lastbackup"));
+                prepareBackup();
+                isLastBackup = false;
+            } else {
+                LogUtils.sendLog(Level.INFO, strings.getString("abortedbackup", Integer.toString(settings.getIntProperty("backupinterval"))), true);
+            }
+            
+        } else {
+            prepareBackup();
+        }
+    }
+    
+    
     protected void prepareBackup() {
         
         // Inform players backup is about to happen.
@@ -167,5 +195,12 @@ public class PrepareBackupTask implements Runnable {
      */
     public void setAsManualBackup () {
         this.isManualBackup = true;
+    }
+   
+    /**
+     * Set the backup as a last backup.
+     */
+    public void setAsLastBackup () {
+        this.isLastBackup = true;
     }
 }
