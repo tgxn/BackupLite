@@ -63,4 +63,4 @@ debugmode: true
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
-version: 1.8.3-dev
+version: 1.8.3
