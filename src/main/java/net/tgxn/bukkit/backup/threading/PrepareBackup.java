@@ -24,34 +24,33 @@ import org.bukkit.entity.Player;
  * @author Kilian Gaertner
  * @see BackupTask
  */
-public class PrepareBackupTask implements Runnable {
+public class PrepareBackup implements Runnable {
 
     private final Server server;
     private final Settings settings;
     public Strings strings;
     private boolean isManualBackup;
     private Plugin plugin;
-    private boolean isLastBackup;
+    public boolean isLastBackup;
 
     /**
      * The only constructor for the BackupTask.
      * @param server The server where the Task is running on
      * @param settings This must be a loaded PropertiesSystem
      */
-    public PrepareBackupTask (Server server, Settings settings, Strings strings) {
+    public PrepareBackup (Server server, Settings settings, Strings strings) {
         this.server = server;
         this.settings = settings;
         this.plugin = server.getPluginManager().getPlugin("Backup");
         this.strings = strings;
+        isLastBackup = false;
     }
 
     /**
-     * Run method for reparing the backup.
+     * Run method for preparing the backup.
      */
     @Override
     public void run () {
-        
-        // Check various parameters.
         handlePrepareBackup();
     }
 
@@ -61,20 +60,14 @@ public class PrepareBackupTask implements Runnable {
         // Continue if this ia a manual backup.
         if(isManualBackup) {
             prepareBackup();
-            
         } else {
-
-            // Get variables.
             boolean backupOnlyWithPlayer = settings.getBooleanProperty("backuponlywithplayer");
-            int onlineP = server.getOnlinePlayers().length;
-
+            int amntPlayersOnline = server.getOnlinePlayers().length;
             // If we should backup every cycle.
             if (!backupOnlyWithPlayer) {
                 prepareBackup();
-                
             } else {
-                // Backup depending on players.
-                if (onlineP == 0) {
+                if (amntPlayersOnline == 0) {
                     doNoPlayers();
                 } else {
                     prepareBackup();
@@ -99,7 +92,6 @@ public class PrepareBackupTask implements Runnable {
             } else {
                 LogUtils.sendLog(Level.INFO, strings.getString("abortedbackup", Integer.toString(settings.getIntProperty("backupinterval"))), true);
             }
-            
         } else {
             prepareBackup();
         }
@@ -193,14 +185,14 @@ public class PrepareBackupTask implements Runnable {
     /**
      * Set the backup as a manual backup. IE: Not scheduled.
      */
-    public void setAsManualBackup () {
+    public void setAsManualBackup() {
         this.isManualBackup = true;
     }
    
     /**
      * Set the backup as a last backup.
      */
-    public void setAsLastBackup () {
-        this.isLastBackup = true;
+    public void setAsLastBackup(boolean isLast) {
+        this.isLastBackup = isLast;
     }
 }

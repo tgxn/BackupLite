@@ -7,7 +7,7 @@ import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.listeners.CommandListener;
 import net.tgxn.bukkit.backup.listeners.LoginListener;
-import net.tgxn.bukkit.backup.threading.PrepareBackupTask;
+import net.tgxn.bukkit.backup.threading.PrepareBackup;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import net.tgxn.bukkit.backup.utils.DebugUtils;
 
@@ -27,7 +27,7 @@ public class BackupMain extends JavaPlugin {
     
     protected static Strings strings;
     protected static Settings settings;
-    private PrepareBackupTask preparedBackupTask;
+    private PrepareBackup preparedBackupTask;
     
     /**
      * onLoad method, Called after a plugin is loaded but before it has been enabled..
@@ -73,15 +73,16 @@ public class BackupMain extends JavaPlugin {
         PluginManager pm = server.getPluginManager();
 
         // Setup the scheduled BackupTask.
-        preparedBackupTask = new PrepareBackupTask(server, settings, strings);
+        preparedBackupTask = new PrepareBackup(server, settings, strings);
 
         // Setup the CommandListener, for commands.
         getCommand("backup").setExecutor(new CommandListener(preparedBackupTask, settings, strings, this));
 
         // Setup loginlistener.
-        LoginListener loginListener = new LoginListener(preparedBackupTask, this);
+        LoginListener loginListener = new LoginListener(preparedBackupTask, this, settings, strings);
         pm.registerEvent(Type.PLAYER_QUIT, loginListener, Priority.Normal, this);
         pm.registerEvent(Type.PLAYER_KICK, loginListener, Priority.Normal, this);
+        pm.registerEvent(Type.PLAYER_JOIN, loginListener, Priority.Normal, this);
 
         // Setup the scheduled backuptask, or turn it off if not needed.
         int interval = settings.getIntProperty("backupinterval");

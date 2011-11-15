@@ -4,7 +4,7 @@ import java.io.File;
 import net.tgxn.bukkit.backup.BackupMain;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
-import net.tgxn.bukkit.backup.threading.PrepareBackupTask;
+import net.tgxn.bukkit.backup.threading.PrepareBackup;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,7 +14,7 @@ import org.bukkit.plugin.Plugin;
 
 public class CommandListener extends PlayerListener implements CommandExecutor {
 
-    private PrepareBackupTask backupTask = null;
+    private PrepareBackup backupTask = null;
     private Settings settings;
     private final Plugin plugin;
     private Strings strings;
@@ -27,7 +27,7 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
      * @param strings The strings configuration for th plugin.
      * @param plugin The plugin object itself
      */
-    public CommandListener(PrepareBackupTask backupTask, Settings settings, Strings strings, Plugin plugin) {
+    public CommandListener(PrepareBackup backupTask, Settings settings, Strings strings, Plugin plugin) {
         this.backupTask = backupTask;
         this.settings = settings;
         this.plugin = plugin;
