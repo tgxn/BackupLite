@@ -4,7 +4,15 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.config.Configuration;
 
 import java.io.File;
-
+/**
+ * String loader for the plugin, provides strings for each event.
+ *
+ * Updated 16.11.11
+ * = Attempt to change to YamlCOnfiguration
+ * = Failed.
+ *
+ * @author gamerx
+ */
 public class Strings {
     
     private Configuration strings;

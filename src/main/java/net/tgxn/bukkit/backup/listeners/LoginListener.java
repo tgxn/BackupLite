@@ -1,16 +1,23 @@
 package net.tgxn.bukkit.backup.listeners;
 
-import net.tgxn.bukkit.backup.config.Settings;
-import net.tgxn.bukkit.backup.config.Strings;
+import net.tgxn.bukkit.backup.config.*;
+import net.tgxn.bukkit.backup.utils.*;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
 
-import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+/**
+ * Listens for login events, and perform actions based on what happened.
+ *
+ * Updated 16.11.11
+ * = Added Login Listener to cancel scheduled backup.
+ *
+ * @author gamerx
+ */
 public class LoginListener extends PlayerListener {
     
     private PrepareBackup prepareBackup = null;
@@ -20,7 +27,7 @@ public class LoginListener extends PlayerListener {
     private int lastBackupID;
     
     /**
-     * Constructor for Listening for Logins.
+     * Constructor for listening for login events.
      * 
      * @param backupTask The BackupTast to call.
      * @param plugin Plugin to link this class too.
@@ -48,9 +55,9 @@ public class LoginListener extends PlayerListener {
         playerJoin();
     }
 
-    
     /**
-     * Call a last backup.
+     * Called when a player leaves the server.
+     *
      */
     private void playerPart() {
 
@@ -72,6 +79,10 @@ public class LoginListener extends PlayerListener {
         }
     }
 
+    /**
+     * Called when a player joins the server.
+     *
+     */
     private void playerJoin() {
         if(prepareBackup.isLastBackup || lastBackupID != -2) {
             plugin.getServer().getScheduler().cancelTask(lastBackupID);
@@ -80,6 +91,5 @@ public class LoginListener extends PlayerListener {
             LogUtils.sendLog("Stopped last backup, because someone joined.");
         }
     }
-
 }
 

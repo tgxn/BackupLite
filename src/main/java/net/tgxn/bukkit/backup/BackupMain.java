@@ -78,7 +78,7 @@ public class BackupMain extends JavaPlugin {
         prepareBackup = new PrepareBackup(server, settings, strings);
 
         // Setup listeners.
-        getCommand("backup").setExecutor(new CommandListener(prepareBackup, settings, strings, this));
+        getCommand("backup").setExecutor(new CommandListener(prepareBackup, this, settings, strings));
         LoginListener loginListener = new LoginListener(prepareBackup, this, settings, strings);
         pm.registerEvent(Type.PLAYER_QUIT, loginListener, Priority.Normal, this);
         pm.registerEvent(Type.PLAYER_KICK, loginListener, Priority.Normal, this);
