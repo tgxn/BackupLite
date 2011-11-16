@@ -444,7 +444,7 @@ public class BackupTask implements Runnable {
                 if (completedBackupMessage != null && !completedBackupMessage.trim().isEmpty()) {
 
                     // Verify Permissions
-                    if (BackupMain.Permissions != null) {
+                    if (BackupMain.permissionsHandler != null) {
 
                         // Get all players.
                         Player[] players = server.getOnlinePlayers();
@@ -454,7 +454,7 @@ public class BackupTask implements Runnable {
                             Player currentplayer = players[i];
 
                             // If the current player has the right permissions, notify them.
-                            if (BackupMain.Permissions.has(currentplayer, "backup.notify")) {
+                            if (BackupMain.permissionsHandler.has(currentplayer, "backup.notify")) {
                                 currentplayer.sendMessage(completedBackupMessage);
                             }
                         }

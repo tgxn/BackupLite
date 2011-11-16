@@ -3,13 +3,10 @@ package net.tgxn.bukkit.backup;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
-import net.tgxn.bukkit.backup.config.Settings;
-import net.tgxn.bukkit.backup.config.Strings;
-import net.tgxn.bukkit.backup.listeners.CommandListener;
-import net.tgxn.bukkit.backup.listeners.LoginListener;
+import net.tgxn.bukkit.backup.utils.*;
+import net.tgxn.bukkit.backup.config.*;
+import net.tgxn.bukkit.backup.listeners.*;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
-import net.tgxn.bukkit.backup.utils.LogUtils;
-import net.tgxn.bukkit.backup.utils.DebugUtils;
 
 import org.bukkit.Server;
 import org.bukkit.event.Event.Priority;
@@ -20,14 +17,24 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 
+/**
+ * Main Backup Plugin.
+ * - Handles all backing up, and scheduling.
+ *
+ * Updated 16.11.11
+ * = Updated context on variables.
+ * = Fixed some documentation.
+ *
+ * @author gamerx
+ */
 public class BackupMain extends JavaPlugin {
     
-    public static PermissionHandler Permissions;
+    public static PermissionHandler permissionsHandler;
     public int mainBackupTaskID = -2;
     
-    protected static Strings strings;
-    protected static Settings settings;
-    private PrepareBackup preparedBackupTask;
+    private static Strings strings;
+    private static Settings settings;
+    private PrepareBackup prepareBackup;
     
     /**
      * onLoad method, Called after a plugin is loaded but before it has been enabled..
@@ -35,51 +42,44 @@ public class BackupMain extends JavaPlugin {
     @Override
     public void onLoad() {
          
-        // Init DebugUtils, for all things buggy.
+        // Initalize Utilities.
         DebugUtils.initDebugUtils(this);
-        
-        // Init LogUtils, for logging purposes.
         LogUtils.initLogUtils(this);
         
-        // Check the plugin's data folder exists, create if needed.
+        // Perform DataFile check.
         checkFolder(this.getDataFolder());
         
-        // Load Strings, create if needed.
+        // Load Strings.
         strings = new Strings(this);
         
-        // Load Properties, create if needed.
+        // Load Settings.
         File configFile = new File(this.getDataFolder(), "config.yml");
         settings = new Settings(this, configFile, strings);
         
-        // Check for the backup folder.
+        // Perform backup folder check.
         if(checkFolder(new File(settings.getStringProperty("backuppath"))))
             LogUtils.sendLog(strings.getString("createbudir"));
-        
     }
     
     /**
      * onEnable method, Called when this plugin is enabled.
      */
     @Override
-    public void onEnable () {
+    public void onEnable() {
         
-        // Check and load permissions system.
+        // CHeck for Permissions system.
         setupPermissions();
 
-        // Get server object.
+        // Get system objects.
         Server server = getServer();
-
-        // Get PluginManager object.
         PluginManager pm = server.getPluginManager();
 
         // Setup the scheduled BackupTask.
-        preparedBackupTask = new PrepareBackup(server, settings, strings);
+        prepareBackup = new PrepareBackup(server, settings, strings);
 
-        // Setup the CommandListener, for commands.
-        getCommand("backup").setExecutor(new CommandListener(preparedBackupTask, settings, strings, this));
-
-        // Setup loginlistener.
-        LoginListener loginListener = new LoginListener(preparedBackupTask, this, settings, strings);
+        // Setup listeners.
+        getCommand("backup").setExecutor(new CommandListener(prepareBackup, settings, strings, this));
+        LoginListener loginListener = new LoginListener(prepareBackup, this, settings, strings);
         pm.registerEvent(Type.PLAYER_QUIT, loginListener, Priority.Normal, this);
         pm.registerEvent(Type.PLAYER_KICK, loginListener, Priority.Normal, this);
         pm.registerEvent(Type.PLAYER_JOIN, loginListener, Priority.Normal, this);
@@ -88,7 +88,7 @@ public class BackupMain extends JavaPlugin {
         int interval = settings.getIntProperty("backupinterval");
         if (interval != -1) {
             interval *= 1200;
-            mainBackupTaskID = server.getScheduler().scheduleSyncRepeatingTask(this, preparedBackupTask, interval, interval);
+            mainBackupTaskID = server.getScheduler().scheduleSyncRepeatingTask(this, prepareBackup, interval, interval);
         } else {
             LogUtils.sendLog(strings.getString("disbaledauto"));
         }
@@ -113,10 +113,10 @@ public class BackupMain extends JavaPlugin {
     /**
      * Check if the Permissions System is available, and setup the handler.
      */
-    private void setupPermissions () {
+    private void setupPermissions() {
 
         // Make sure that it hasnt already been loaded.
-        if (Permissions != null)
+        if (permissionsHandler != null)
             return;
                 
         // Get permissions plugin.
@@ -124,7 +124,7 @@ public class BackupMain extends JavaPlugin {
         
         // If we were able to get the Permissions plugin.
         if (testPermissions != null) {
-            Permissions = ((Permissions) testPermissions).getHandler();
+            permissionsHandler = ((Permissions) testPermissions).getHandler();
             LogUtils.sendLog(strings.getString("hookedperms"));
         } else {
             LogUtils.sendLog(strings.getString("defaultperms"));

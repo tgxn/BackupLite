@@ -167,8 +167,8 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
     private boolean checkPerms(Player player, String permission) {
 
         // We hooked a perms system.
-        if (BackupMain.Permissions != null) {
-            if (!BackupMain.Permissions.has(player, permission)) {
+        if (BackupMain.permissionsHandler != null) {
+            if (!BackupMain.permissionsHandler.has(player, permission)) {
                 player.sendMessage(strings.getString("norights"));
                 return false;
             } else {

@@ -70,7 +70,29 @@ public class PrepareBackup implements Runnable {
                 if (amntPlayersOnline == 0) {
                     doNoPlayers();
                 } else {
-                    prepareBackup();
+                    boolean doBackup = false;
+                    if (BackupMain.permissionsHandler != null) {
+
+                        // Get all players.
+                        Player[] players = server.getOnlinePlayers();
+                        for (int player = 0; player < players.length; player++) {
+                            Player currentplayer = players[player];
+
+                            // If any players do not have the node, do the backup.
+                            if (!BackupMain.permissionsHandler.has(currentplayer, "backup.bypass")) {
+                                doBackup = true;
+                            }
+                        }
+
+                    } else {
+                        doBackup = true;
+                    }
+                    if (doBackup) {
+                        prepareBackup();
+
+                    } else {
+                        LogUtils.sendLog("Skipping backup because all players have bypass node.");
+                    }
                 }
             }
         }  
@@ -106,7 +128,7 @@ public class PrepareBackup implements Runnable {
         if (startBackupMessage != null && !startBackupMessage.trim().isEmpty()) {
             
             // Verify Permissions
-            if (BackupMain.Permissions != null) {
+            if (BackupMain.permissionsHandler != null) {
                 
                 // Get all players.
                 Player[] players = server.getOnlinePlayers();
@@ -116,7 +138,7 @@ public class PrepareBackup implements Runnable {
                     Player currentplayer = players[i];
                     
                     // If the current player has the right permissions, notify them.
-                    if(BackupMain.Permissions.has(currentplayer, "backup.notify"))
+                    if(BackupMain.permissionsHandler.has(currentplayer, "backup.notify"))
                         currentplayer.sendMessage(startBackupMessage);
                 }
                 
