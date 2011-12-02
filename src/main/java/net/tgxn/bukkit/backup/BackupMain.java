@@ -55,7 +55,10 @@ public class BackupMain extends JavaPlugin {
         // Load Settings.
         File configFile = new File(this.getDataFolder(), "config.yml");
         settings = new Settings(this, configFile, strings);
-        
+
+        // Use settings in log utils.
+        LogUtils.finishInitLogUtils(settings.getStringProperty("backuplogname"), settings.getBooleanProperty("displaylog"));
+
         // Perform backup folder check.
         if(checkFolder(new File(settings.getStringProperty("backuppath"))))
             LogUtils.sendLog(strings.getString("createbudir"));

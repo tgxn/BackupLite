@@ -141,16 +141,17 @@ public class PrepareBackup implements Runnable {
                     if(BackupMain.permissionsHandler.has(currentplayer, "backup.notify"))
                         currentplayer.sendMessage(startBackupMessage);
                 }
-                
-                // Send message to log, to be sure.
-                LogUtils.sendLog(startBackupMessage);
-                 
+
             } else {
                 
                 // If there are no permissions, notify all.
-                server.broadcastMessage(startBackupMessage);
+                if(settings.getBooleanProperty("broardcastmessages"))
+                    server.broadcastMessage(startBackupMessage);
             }
         }
+
+        // Send message to log, to be sure.
+        LogUtils.sendLog(startBackupMessage);
 
         // Save to file, and then turn saving off.
         ConsoleCommandSender consoleCommandSender = server.getConsoleSender();

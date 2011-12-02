@@ -25,6 +25,13 @@
 
 package net.tgxn.bukkit.backup.utils;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Date;
 import org.bukkit.plugin.Plugin;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,7 +42,11 @@ public class LogUtils {
     private static Level logLevel = Level.INFO;
     private static Logger logger;
     private static Plugin plugin;
-    
+    private static File logFile = null;
+    private static boolean logReady = false;
+    private static FileWriter appendFile;
+    private static boolean shouldDisplayLog = true;
+
     /**
      * Main Constructor for LogUtils.
      * Creates logger, sets default log level and variables.
@@ -53,7 +64,39 @@ public class LogUtils {
             LogUtils.plugin = plugin;
         }
     }
-    
+
+    public static void finishInitLogUtils(String logName, boolean shouldDisplay) {
+        shouldDisplayLog = shouldDisplay;
+        logFile = new File(plugin.getDataFolder() + logName);
+        logReady = true;
+        try {
+           appendFile  = new FileWriter(logFile, true);
+        } catch (IOException ioe) {
+
+        }
+    }
+
+    /**
+     * Log messages to file. The message to log.
+     * @param message
+     */
+    public static void logLineToFile(String message) {
+        if(logReady) {
+            
+            Date dateObj = new Date();
+            String timeString = dateObj.toString();
+
+            String line = timeString + ": " + message;
+
+            try {
+                BufferedWriter out =  new BufferedWriter(appendFile);
+                out.write(line);
+                out.close();
+            } catch (IOException ioe) {
+            }
+        }
+    }
+
     /**
      * Sets the default loglevel.
      * 
@@ -99,12 +142,13 @@ public class LogUtils {
      * @param message
      * @param tags 
      */
-    public static void sendLog(final Level logLevel, final String message, boolean tags) {
+    public static void sendLog(final Level logLevel, String message, boolean tags) {
         final String nameTag = ("[" + plugin.getDescription().getName()  + "] ");
         if(tags)
-            logger.log(logLevel, nameTag + message);
-        else
+            message = nameTag + message;
+        if(shouldDisplayLog)
             logger.log(logLevel, message);
+        logLineToFile(message);
     }
     
     /**

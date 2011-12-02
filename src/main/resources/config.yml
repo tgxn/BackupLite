@@ -55,6 +55,18 @@ enableautosave: true
 # Note: Path can be relative, or absolute.
 backuppath: backups
 
+## Should we send messages on backup complete. (Default: true)
+# They will still get put in the server log.
+broardcastmessages: true
+
+## Backup log file name. (Default: backup.log)
+# Filename for log file, it is stored under the plugins data folder.
+backuplogname: backup.log
+
+## Should we display error/log messages in server log (Default: true)
+# If true messages will only be logged to file.
+displaylog: true
+
 ## True to enable debug mode
 # @TODO Implement this.
 debugmode: true

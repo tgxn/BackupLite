@@ -77,8 +77,9 @@ public class Strings {
                 strings.getString(key, value);
         }
 
-        /** Requested property not found **/
+        /** System Variables. **/
         strings.getString("stringnotfound", "String not found - ");
+        strings.getString("version", plugin.getDescription().getVersion());
         
         // Save the strings file.
         strings.save();

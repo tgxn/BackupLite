@@ -465,7 +465,8 @@ public class BackupTask implements Runnable {
                     } else {
 
                         // If there are no permissions, notify all.
-                        server.broadcastMessage(completedBackupMessage);
+                        if(settings.getBooleanProperty("broardcastmessages"))
+                            server.broadcastMessage(completedBackupMessage);
                     }
                 }
             }
