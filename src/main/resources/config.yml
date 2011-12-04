@@ -10,9 +10,9 @@ maxbackups: 25
 # If set to false, all players will be able to perform all commands, unless you use a permissions system.
 onlyops: true
 
-## Should backups only be preformed when there are players on the server? (Default: true)
+## Should backups be performed on an empty server? (Default: false)
 # When the last player leaves the server, a final backup will be made. The automatic backup cycle will resume when a player re-joins.
-backuponlywithplayer: true
+backupemptyserver: false
 
 ## Should we backup the entire folder? (Default: false)
 # Use with caution, as this will be a long, large backup, it automatically ignores the backup folder, so it can still be in the server folder.

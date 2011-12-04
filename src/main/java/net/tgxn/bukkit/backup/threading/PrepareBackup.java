@@ -1,19 +1,20 @@
 package net.tgxn.bukkit.backup.threading;
 
+import net.tgxn.bukkit.backup.BackupMain;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.utils.LogUtils;
+
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
-import net.tgxn.bukkit.backup.BackupMain;
-import org.bukkit.entity.Player;
 
 /**
  * This task is running by a syncronized thread from the sheduler. It prepare
@@ -33,11 +34,6 @@ public class PrepareBackup implements Runnable {
     private Plugin plugin;
     public boolean isLastBackup;
 
-    /**
-     * The only constructor for the BackupTask.
-     * @param server The server where the Task is running on
-     * @param settings This must be a loaded PropertiesSystem
-     */
     public PrepareBackup (Server server, Settings settings, Strings strings) {
         this.server = server;
         this.settings = settings;
@@ -46,32 +42,37 @@ public class PrepareBackup implements Runnable {
         isLastBackup = false;
     }
 
-    /**
-     * Run method for preparing the backup.
-     */
     @Override
     public void run () {
-        handlePrepareBackup();
+        checkShouldDoBackup();
     }
 
-    
-    private void handlePrepareBackup() {
-        
-        // Continue if this ia a manual backup.
+    /**
+     * This method decides whether the backup should be run.
+     *
+     * It checks:
+     * - Online players.
+     * - Bypass node.
+     * - Manual backup.
+     *
+     * It then runs the backup if needed.
+     */
+    private void checkShouldDoBackup() {
+        // If it is a manual backup, start it, otherwise, perform checks.
         if(isManualBackup) {
             prepareBackup();
         } else {
-            boolean backupOnlyWithPlayer = settings.getBooleanProperty("backuponlywithplayer");
-            int amntPlayersOnline = server.getOnlinePlayers().length;
-            // If we should backup every cycle.
-            if (!backupOnlyWithPlayer) {
+            // No player checking.
+            if (!settings.getBooleanProperty("backupemptyserver")) {
                 prepareBackup();
             } else {
-                if (amntPlayersOnline == 0) {
+                // Checking online players.
+                if(server.getOnlinePlayers().length == 0) {
                     doNoPlayers();
                 } else {
+                    // Permission checking for bypass node.
                     boolean doBackup = false;
-                    if (BackupMain.permissionsHandler != null) {
+                    if(BackupMain.permissionsHandler != null) {
 
                         // Get all players.
                         Player[] players = server.getOnlinePlayers();
@@ -83,13 +84,11 @@ public class PrepareBackup implements Runnable {
                                 doBackup = true;
                             }
                         }
-
                     } else {
                         doBackup = true;
                     }
-                    if (doBackup) {
+                    if(doBackup) {
                         prepareBackup();
-
                     } else {
                         LogUtils.sendLog("Skipping backup because all players have bypass node.");
                     }
@@ -97,75 +96,25 @@ public class PrepareBackup implements Runnable {
             }
         }  
     }
-    
+
     /**
-     * Called when the scheduled backup is called, but no players are online.
+     * Prepared for, and starts, a backup.
      */
-    public void doNoPlayers() {
-        
-        // Should we stop backups if there are no players?
-        if (settings.getBooleanProperty("backuponlywithplayer")) {
-            
-            // If this should be the last backup.
-            if(isLastBackup) {
-                LogUtils.sendLog(strings.getString("lastbackup"));
-                prepareBackup();
-                isLastBackup = false;
-            } else {
-                LogUtils.sendLog(Level.INFO, strings.getString("abortedbackup", Integer.toString(settings.getIntProperty("backupinterval"))), true);
-            }
-        } else {
-            prepareBackup();
-        }
-    }
-    
-    
     protected void prepareBackup() {
-        
-        // Inform players backup is about to happen.
-        String startBackupMessage = strings.getString("backupstarted");
-        
-        if (startBackupMessage != null && !startBackupMessage.trim().isEmpty()) {
-            
-            // Verify Permissions
-            if (BackupMain.permissionsHandler != null) {
-                
-                // Get all players.
-                Player[] players = server.getOnlinePlayers();
-                
-                // Loop through all online players.
-                for(int i = 0; i < players.length; i++) {
-                    Player currentplayer = players[i];
-                    
-                    // If the current player has the right permissions, notify them.
-                    if(BackupMain.permissionsHandler.has(currentplayer, "backup.notify"))
-                        currentplayer.sendMessage(startBackupMessage);
-                }
 
-            } else {
-                
-                // If there are no permissions, notify all.
-                if(settings.getBooleanProperty("broardcastmessages"))
-                    server.broadcastMessage(startBackupMessage);
-            }
-        }
+        // Notify backup has started.
+        notifyStarted();
 
-        // Send message to log, to be sure.
-        LogUtils.sendLog(startBackupMessage);
-
-        // Save to file, and then turn saving off.
+        // Perform world saving, and turn it off.
         ConsoleCommandSender consoleCommandSender = server.getConsoleSender();
         server.dispatchCommand(consoleCommandSender, "save-all");
         server.dispatchCommand(consoleCommandSender, "save-off");
 
-        // Save players current values.
+        // Save players.
         server.savePlayers();
 
-        // Determine if backups should be ZIP'd.
-        boolean hasToZIP = settings.getBooleanProperty("zipbackup");
-
-        // Send a message advising that it is disabled.
-        if (!hasToZIP)
+        // Send a message advising that zipping is disabled.
+        if (!settings.getBooleanProperty("zipbackup"))
             LogUtils.sendLog(strings.getString("zipdisabled"));
 
         // Create list of worlds to ignore.
@@ -182,7 +131,26 @@ public class PrepareBackup implements Runnable {
         server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(settings, strings, worldsToBackup, server));
         isManualBackup = false;
     }
-    
+
+    /**
+     * Called when the scheduled backup is called, but no players are online.
+     *
+     * This checks:
+     * - Last backup.
+     *
+     * If it is the last backup, it starts it, else sends a message.
+     */
+    public void doNoPlayers() {
+        // If this should be the last backup.
+        if (isLastBackup) {
+            LogUtils.sendLog(strings.getString("lastbackup"));
+            prepareBackup();
+            isLastBackup = false;
+        } else {
+            LogUtils.sendLog(Level.INFO, strings.getString("abortedbackup", Integer.toString(settings.getIntProperty("backupinterval"))), true);
+        }
+    }
+
     /**
      * Function to get world names to ignore.
      * 
@@ -204,7 +172,52 @@ public class PrepareBackup implements Runnable {
         // Return the world names.
         return worldNames;
     }
-    
+
+    /**
+     * Notify that the backup has started.
+     *
+     */
+    private void notifyStarted() {
+
+        // Inform players backup is about to happen.
+        String startBackupMessage = strings.getString("backupstarted");
+
+        if (startBackupMessage != null && !startBackupMessage.trim().isEmpty()) {
+
+            // Verify Permissions
+            if (BackupMain.permissionsHandler != null) {
+
+                // Get all players.
+                Player[] players = server.getOnlinePlayers();
+                boolean sent = false;
+                // Loop through all online players.
+                for(int i = 0; i < players.length; i++) {
+                    Player currentplayer = players[i];
+
+                    // If the current player has the right permissions, notify them.
+                    if(BackupMain.permissionsHandler.has(currentplayer, "backup.notify")) {
+                        currentplayer.sendMessage(startBackupMessage);
+                        sent = true;
+                    }
+                }
+
+                if(!sent)
+                    if(settings.getBooleanProperty("broardcastmessages"))
+                        server.broadcastMessage(startBackupMessage);
+
+            } else {
+
+                // If there are no permissions, notify all.
+                if(settings.getBooleanProperty("broardcastmessages"))
+                    server.broadcastMessage(startBackupMessage);
+            }
+        }
+
+        // Send message to log, to be sure.
+        LogUtils.sendLog("Started Backup!");
+    }
+
+
     /**
      * Set the backup as a manual backup. IE: Not scheduled.
      */

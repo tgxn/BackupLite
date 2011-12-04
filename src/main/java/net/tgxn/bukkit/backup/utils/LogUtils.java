@@ -67,7 +67,7 @@ public class LogUtils {
 
     public static void finishInitLogUtils(String logName, boolean shouldDisplay) {
         shouldDisplayLog = shouldDisplay;
-        logFile = new File(plugin.getDataFolder() + logName);
+        logFile = new File(plugin.getDataFolder() + "/" + logName);
         logReady = true;
         try {
            appendFile  = new FileWriter(logFile, true);
