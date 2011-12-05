@@ -39,6 +39,9 @@ public class Strings {
         
         {"skipplugins",         "Skipping plugin backup, for all plugins."},
         {"disabledplugins",     "Backup is disabled for the following plugin(s):"},
+        {"enabledplugins",      "Backup is enabled for the following plugin(s):"},
+        {"allpluginsdisabled",  "Plugin backup is on, but no plugins are selected."},
+
         
         {"abortedbackup",       "Aborted backup as no players online. Next attempt in %%ARG%% minutes."},
         

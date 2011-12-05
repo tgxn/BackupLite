@@ -18,10 +18,10 @@ import java.util.logging.Level;
 
 /**
  * This task is running by a syncronized thread from the sheduler. It prepare
- * everything for the BackupTask. It checks, whether it can run a backup now,
+ * everything for the BackupTask. It checks, whether it can run a doBackup now,
  * stop the autosave, make a server wide save of all player, save all world data
  * from the RAM to the disc and collects finnaly all worlds and directories to
- * backup. If this is done, it create an asyncronized thread, the BackupTask.
+ * doBackup. If this is done, it create an asyncronized thread, the BackupTask.
  * @author Kilian Gaertner
  * @see BackupTask
  */
@@ -48,17 +48,17 @@ public class PrepareBackup implements Runnable {
     }
 
     /**
-     * This method decides whether the backup should be run.
+     * This method decides whether the doBackup should be run.
      *
      * It checks:
      * - Online players.
      * - Bypass node.
-     * - Manual backup.
+     * - Manual doBackup.
      *
-     * It then runs the backup if needed.
+     * It then runs the doBackup if needed.
      */
     private void checkShouldDoBackup() {
-        // If it is a manual backup, start it, otherwise, perform checks.
+        // If it is a manual doBackup, start it, otherwise, perform checks.
         if(isManualBackup) {
             prepareBackup();
         } else {
@@ -79,7 +79,7 @@ public class PrepareBackup implements Runnable {
                         for (int player = 0; player < players.length; player++) {
                             Player currentplayer = players[player];
 
-                            // If any players do not have the node, do the backup.
+                            // If any players do not have the node, do the doBackup.
                             if (!BackupMain.permissionsHandler.has(currentplayer, "backup.bypass")) {
                                 doBackup = true;
                             }
@@ -98,11 +98,11 @@ public class PrepareBackup implements Runnable {
     }
 
     /**
-     * Prepared for, and starts, a backup.
+     * Prepared for, and starts, a doBackup.
      */
     protected void prepareBackup() {
 
-        // Notify backup has started.
+        // Notify doBackup has started.
         notifyStarted();
 
         // Perform world saving, and turn it off.
@@ -127,21 +127,21 @@ public class PrepareBackup implements Runnable {
             }
         }
         
-        // Scedule the backup.
-        server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(settings, strings, worldsToBackup, server));
+        // Scedule the doBackup.
+        server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(server, settings, strings, worldsToBackup));
         isManualBackup = false;
     }
 
     /**
-     * Called when the scheduled backup is called, but no players are online.
+     * Called when the scheduled doBackup is called, but no players are online.
      *
      * This checks:
-     * - Last backup.
+     * - Last doBackup.
      *
-     * If it is the last backup, it starts it, else sends a message.
+     * If it is the last doBackup, it starts it, else sends a message.
      */
     public void doNoPlayers() {
-        // If this should be the last backup.
+        // If this should be the last doBackup.
         if (isLastBackup) {
             LogUtils.sendLog(strings.getString("lastbackup"));
             prepareBackup();
@@ -179,7 +179,7 @@ public class PrepareBackup implements Runnable {
      */
     private void notifyStarted() {
 
-        // Inform players backup is about to happen.
+        // Inform players doBackup is about to happen.
         String startBackupMessage = strings.getString("backupstarted");
 
         if (startBackupMessage != null && !startBackupMessage.trim().isEmpty()) {
@@ -219,14 +219,14 @@ public class PrepareBackup implements Runnable {
 
 
     /**
-     * Set the backup as a manual backup. IE: Not scheduled.
+     * Set the doBackup as a manual doBackup. IE: Not scheduled.
      */
     public void setAsManualBackup() {
         this.isManualBackup = true;
     }
    
     /**
-     * Set the backup as a last backup.
+     * Set the doBackup as a last doBackup.
      */
     public void setAsLastBackup(boolean isLast) {
         this.isLastBackup = isLast;

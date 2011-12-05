@@ -28,9 +28,12 @@ splitbackup: false
 backupworlds: true
 backupplugins: true
 
-## Worlds and plugins for the backup to skip. (Default: none, none)
+## Worlds for the backup to skip. (Default: none)
 # Seperate by a semicolon. eg. World1;World2;Nether
 skipworlds:
+
+## List of files to exclude from the plugin backup. (Default: none)
+# Seperate by a semicolon. eg. Plugin1;Plugin2;Plugin3. This takes effect at all directory levels.
 skipplugins:
   
 ## Whether to ZIP Backups or not. (Default: true)
