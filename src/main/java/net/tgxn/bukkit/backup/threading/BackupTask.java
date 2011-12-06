@@ -302,18 +302,19 @@ public class BackupTask implements Runnable {
      * @param path The path to ZIP and delete.
      */
     private void doZIP(String path) {
-
         // Check we are ZIPing the backups.
         if (ShouldZIP) {
             try {
-
                 // Add doBackup folder to a ZIP.
                 FileUtils.zipDir(path, path);
-
+            } catch (IOException ioe) {
+                DebugUtils.debugLog(ioe.getStackTrace(), "Failed to ZIP backup: IO Exception.");
+            }
+            try {
                 // Delete the original doBackup directory.
                 FileUtils.deleteDirectory(new File(path));
             } catch (IOException ioe) {
-                DebugUtils.debugLog(ioe.getStackTrace(), "Failed to ZIP Backup: IO Exception.");
+                DebugUtils.debugLog(ioe.getStackTrace(), "Failed to delete folder: IO Exception.");
             }
         }
     }
