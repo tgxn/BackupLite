@@ -1,45 +1,95 @@
 package net.tgxn.bukkit.backup.listeners;
 
-import net.tgxn.bukkit.backup.threading.PrepareBackupTask;
+import net.tgxn.bukkit.backup.config.*;
+import net.tgxn.bukkit.backup.utils.*;
+import net.tgxn.bukkit.backup.threading.PrepareBackup;
 
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+/**
+ * Listens for login events, and perform actions based on what happened.
+ *
+ * Updated 16.11.11
+ * = Added Login Listener to cancel scheduled backup.
+ *
+ * @author gamerx
+ */
 public class LoginListener extends PlayerListener {
     
-    private PrepareBackupTask backupTask = null;
+    private PrepareBackup prepareBackup = null;
     private Plugin plugin;
+    private Settings settings;
+    private Strings strings;
+    private int lastBackupID;
     
     /**
-     * Constructor for Listening for Logins.
+     * Constructor for listening for login events.
      * 
      * @param backupTask The BackupTast to call.
      * @param plugin Plugin to link this class too.
      */
-    public LoginListener(PrepareBackupTask backupTask, Plugin plugin) {
-        this.backupTask = backupTask;
+    public LoginListener(PrepareBackup backupTask, Plugin plugin, Settings settings, Strings strings) {
+        this.prepareBackup = backupTask;
         this.plugin = plugin;
+        this.settings = settings;
+        this.strings = strings;
+        lastBackupID = -2;
     }
     
     @Override
     public void onPlayerQuit(PlayerQuitEvent event) {
-        attemptBackup();
+        playerPart();
     }
     
     @Override
     public void onPlayerKick(PlayerKickEvent event) {
-        attemptBackup();
-    }
-    
-    /**
-     * Call a last backup.
-     */
-    private void attemptBackup() {
-        backupTask.setAsLastBackup();
-        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, backupTask);
+        playerPart();
     }
 
+    @Override
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        playerJoin();
+    }
+
+    /**
+     * Called when a player leaves the server.
+     *
+     */
+    private void playerPart() {
+
+         int amntPlayersOnline = plugin.getServer().getOnlinePlayers().length;
+         if (amntPlayersOnline != 1) {
+             LogUtils.sendLog("was not last player to leave.");
+             return;
+         }
+
+        prepareBackup.setAsLastBackup(true);
+        //plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, backupTask);
+        int intervalold = settings.getIntProperty("backupinterval");
+        if (intervalold != -1) {
+            int interval =  intervalold * 1200;
+            lastBackupID = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, prepareBackup, interval, interval);
+            LogUtils.sendLog("Scheduled last backup for " + intervalold +" minutes;");
+        } else {
+            LogUtils.sendLog(strings.getString("disbaledauto"));
+        }
+    }
+
+    /**
+     * Called when a player joins the server.
+     *
+     */
+    private void playerJoin() {
+        if(prepareBackup.isLastBackup || lastBackupID != -2) {
+            plugin.getServer().getScheduler().cancelTask(lastBackupID);
+            lastBackupID = -2;
+            prepareBackup.setAsLastBackup(false);
+            LogUtils.sendLog("Stopped last backup, because someone joined.");
+        }
+    }
 }
 

@@ -1,10 +1,10 @@
 package net.tgxn.bukkit.backup.listeners;
 
-import java.io.File;
+
 import net.tgxn.bukkit.backup.BackupMain;
-import net.tgxn.bukkit.backup.config.Settings;
-import net.tgxn.bukkit.backup.config.Strings;
-import net.tgxn.bukkit.backup.threading.PrepareBackupTask;
+import net.tgxn.bukkit.backup.config.*;
+import net.tgxn.bukkit.backup.threading.PrepareBackup;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -12,25 +12,32 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.plugin.Plugin;
 
+import java.io.File;
+
+/**
+ * Command listener and handler.
+ *
+ * @author gamerx
+ */
 public class CommandListener extends PlayerListener implements CommandExecutor {
 
-    private PrepareBackupTask backupTask = null;
-    private Settings settings;
+    private PrepareBackup backupTask = null;
     private final Plugin plugin;
+    private Settings settings;
     private Strings strings;
 
     /**
      * The main constructor to initalize listening for commands.
      * 
-     * @param backupTask The backuptask.
+     * @param prepareBackup The instance of prepareBackup.
+     * @param plugin The plugin object itself
      * @param settings Load settings for the plugin.
      * @param strings The strings configuration for th plugin.
-     * @param plugin The plugin object itself
      */
-    public CommandListener(PrepareBackupTask backupTask, Settings settings, Strings strings, Plugin plugin) {
-        this.backupTask = backupTask;
-        this.settings = settings;
+    public CommandListener(PrepareBackup prepareBackup, Plugin plugin, Settings settings, Strings strings) {
+        this.backupTask = prepareBackup;
         this.plugin = plugin;
+        this.settings = settings;
         this.strings = strings;
     }
 
@@ -167,8 +174,8 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
     private boolean checkPerms(Player player, String permission) {
 
         // We hooked a perms system.
-        if (BackupMain.Permissions != null) {
-            if (!BackupMain.Permissions.has(player, permission)) {
+        if (BackupMain.permissionsHandler != null) {
+            if (!BackupMain.permissionsHandler.has(player, permission)) {
                 player.sendMessage(strings.getString("norights"));
                 return false;
             } else {

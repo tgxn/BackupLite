@@ -4,7 +4,15 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.config.Configuration;
 
 import java.io.File;
-
+/**
+ * String loader for the plugin, provides strings for each event.
+ *
+ * Updated 16.11.11
+ * = Attempt to change to YamlCOnfiguration
+ * = Failed.
+ *
+ * @author gamerx
+ */
 public class Strings {
     
     private Configuration strings;
@@ -31,6 +39,9 @@ public class Strings {
         
         {"skipplugins",         "Skipping plugin backup, for all plugins."},
         {"disabledplugins",     "Backup is disabled for the following plugin(s):"},
+        {"enabledplugins",      "Backup is enabled for the following plugin(s):"},
+        {"allpluginsdisabled",  "Plugin backup is on, but no plugins are selected."},
+
         
         {"abortedbackup",       "Aborted backup as no players online. Next attempt in %%ARG%% minutes."},
         
@@ -69,8 +80,9 @@ public class Strings {
                 strings.getString(key, value);
         }
 
-        /** Requested property not found **/
+        /** System Variables. **/
         strings.getString("stringnotfound", "String not found - ");
+        strings.getString("version", plugin.getDescription().getVersion());
         
         // Save the strings file.
         strings.save();

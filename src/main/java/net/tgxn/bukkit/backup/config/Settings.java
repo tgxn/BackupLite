@@ -1,6 +1,7 @@
 package net.tgxn.bukkit.backup.config;
 
 import net.tgxn.bukkit.backup.utils.LogUtils;
+
 import org.bukkit.plugin.Plugin;
 
 import java.io.*;
@@ -8,6 +9,15 @@ import java.util.logging.Level;
 import net.tgxn.bukkit.backup.utils.DebugUtils;
 import org.bukkit.util.config.Configuration;
 
+/**
+ * Loads all settings for the plugin
+ *
+ * Updated 16.11.11
+ * = Attempted to change to YamlConfiguration
+ * = Failed
+ *
+ * @author gamerx
+ */
 public class Settings {
     
     private File configFile;
