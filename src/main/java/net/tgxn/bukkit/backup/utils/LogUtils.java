@@ -27,8 +27,6 @@ package net.tgxn.bukkit.backup.utils;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
@@ -148,7 +146,8 @@ public class LogUtils {
             message = nameTag + message;
         if(shouldDisplayLog)
             logger.log(logLevel, message);
-        logLineToFile(message);
+        // Quick fix for issue #46, Will fix in next release.
+        //logLineToFile(message);
     }
     
     /**
