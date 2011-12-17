@@ -1,21 +1,16 @@
 package net.tgxn.bukkit.backup.config;
 
-import net.tgxn.bukkit.backup.utils.LogUtils;
+import net.tgxn.bukkit.backup.utils.*;
 
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.config.Configuration;
 
 import java.io.*;
 import java.util.logging.Level;
-import net.tgxn.bukkit.backup.utils.DebugUtils;
-import org.bukkit.util.config.Configuration;
 
 /**
- * Loads all settings for the plugin
- *
- * Updated 16.11.11
- * = Attempted to change to YamlConfiguration
- * = Failed
- *
+ * Loads all settings for the plugin.
+ * 
  * @author gamerx
  */
 public class Settings {
@@ -26,13 +21,6 @@ public class Settings {
     private Strings strings;
     public boolean outOfDate = false;
     
-    /**
-     * Main constructor for properties.
-     * It detects is the properties file exists, and have it created if need be.
-     * 
-     * @param plugin The plugin for this class.
-     * @param strings The strings handler.
-     */
     public Settings(Plugin plugin, File configFile, Strings strings) {
         
         this.plugin = plugin;
