@@ -120,9 +120,9 @@ public class BackupTask implements Runnable {
                 doZIP(thisBackupFolder);
 
             } catch (FileNotFoundException fnfe) {
-                DebugUtils.debugLog(fnfe.getStackTrace());
+                LogUtils.exceptionLog(fnfe.getStackTrace(), "Failed to copy world: File not found.");
             } catch (IOException ioe) {
-                DebugUtils.debugLog(ioe.getStackTrace());
+                LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to copy world: IO Exception.");
             }
         } else {
 
@@ -176,7 +176,7 @@ public class BackupTask implements Runnable {
                 File worldBackupFolder = new File(backupsPath.concat(FILE_SEPARATOR).concat(currentWorldName));
                 
                 // Create if needed.
-                checkFolderAndCreate(worldBackupFolder);
+                SharedUtils.checkFolderAndCreate(worldBackupFolder);
 
                 // This worlds backup folder.
                 String thisWorldBackupFolder = backupsPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(getFolderName());
@@ -185,7 +185,8 @@ public class BackupTask implements Runnable {
                 try {
                     FileUtils.copyDirectory(currentWorldName, thisWorldBackupFolder);
                 } catch (IOException ioe) {
-                    DebugUtils.debugLog(ioe.getStackTrace());
+                    ioe.printStackTrace(System.out);
+                    LogUtils.sendLog("Failed to copy world: IO Exception.");
                 }
 
                 // Check and ZIP folder.
@@ -201,9 +202,9 @@ public class BackupTask implements Runnable {
                     FileUtils.copyDirectory(currentWorldName, thisWorldBackupFolder);
 
                 } catch (FileNotFoundException ex) {
-                    DebugUtils.debugLog(ex.getStackTrace());
+                    LogUtils.exceptionLog(ex.getStackTrace());
                 } catch (IOException ioe) {
-                    DebugUtils.debugLog(ioe.getStackTrace());
+                    LogUtils.exceptionLog(ioe.getStackTrace());
                 }
             }
         }
@@ -253,7 +254,7 @@ public class BackupTask implements Runnable {
         }
 
         // Create if needed.
-        checkFolderAndCreate(new File(pluginsBackupPath));
+        SharedUtils.checkFolderAndCreate(new File(pluginsBackupPath));
 
         // Perform plugin backup.
         try {
@@ -263,9 +264,9 @@ public class BackupTask implements Runnable {
             }
             FileUtils.copyDirectory(pluginsFolder, new File(pluginsBackupPath), pluginsFileFilter, true);
         } catch (FileNotFoundException ex) {
-            DebugUtils.debugLog(ex.getStackTrace());
+            LogUtils.exceptionLog(ex.getStackTrace());
         } catch (IOException ioe) {
-            DebugUtils.debugLog(ioe.getStackTrace());
+            LogUtils.exceptionLog(ioe.getStackTrace());
         }
 
         // Check if ZIP is required.
@@ -290,7 +291,7 @@ public class BackupTask implements Runnable {
         try {
             formattedDate = String.format(settings.getStringProperty("dateformat"), calendar);
         } catch (Exception e) {
-            DebugUtils.debugLog(e.getStackTrace(), strings.getString("errordateformat"));
+            e.printStackTrace(System.out);
             formattedDate = String.format("%1$td%1$tm%1$tY-%1$tH%1$tM%1$tS", calendar);
         }
         return formattedDate;
@@ -308,13 +309,15 @@ public class BackupTask implements Runnable {
                 // Add doBackup folder to a ZIP.
                 FileUtils.zipDir(path, path);
             } catch (IOException ioe) {
-                DebugUtils.debugLog(ioe.getStackTrace(), "Failed to ZIP backup: IO Exception.");
+                ioe.printStackTrace(System.out);
+                LogUtils.sendLog("Failed to ZIP backup: IO Exception.");
             }
             try {
                 // Delete the original doBackup directory.
                 FileUtils.deleteDirectory(new File(path));
             } catch (IOException ioe) {
-                DebugUtils.debugLog(ioe.getStackTrace(), "Failed to delete folder: IO Exception.");
+                ioe.printStackTrace(System.out);
+                LogUtils.sendLog("Failed to delete folder: IO Exception.");
             }
         }
     }
@@ -340,10 +343,10 @@ public class BackupTask implements Runnable {
                         cleanFolder(foldersToClean[l]);
                 }
             } catch (IOException ioe) {
-                DebugUtils.debugLog(ioe.getStackTrace());
+                LogUtils.exceptionLog(ioe.getStackTrace());
                 return false;
             } catch (NullPointerException npe) {
-                DebugUtils.debugLog(npe.getStackTrace());
+                LogUtils.exceptionLog(npe.getStackTrace());
                 return false;
             }
 
@@ -353,10 +356,10 @@ public class BackupTask implements Runnable {
             try {
                 cleanFolder(backupDir);
             } catch (IOException ioe) {
-                DebugUtils.debugLog(ioe.getStackTrace());
+                LogUtils.exceptionLog(ioe.getStackTrace());
                 return false;
             } catch (NullPointerException npe) {
-                DebugUtils.debugLog(npe.getStackTrace());
+                LogUtils.exceptionLog(npe.getStackTrace());
                 return false;
             }
         }
@@ -409,7 +412,7 @@ public class BackupTask implements Runnable {
                 }
             }
         } catch (SecurityException se) {
-            DebugUtils.debugLog(se.getStackTrace(), "Failed to clean old backups: Security Exception.");
+            LogUtils.exceptionLog(se.getStackTrace(), "Failed to clean old backups: Security Exception.");
         }
     }
 
@@ -424,16 +427,6 @@ public class BackupTask implements Runnable {
             }
         }
         return dir.delete();
-    }
-
-    private void checkFolderAndCreate(File folderToCheck) {
-        try {
-            if (!folderToCheck.exists()) {
-                folderToCheck.mkdirs();
-            }
-        } catch (SecurityException se) {
-            DebugUtils.debugLog(se.getStackTrace());
-        }
     }
 
     /**

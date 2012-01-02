@@ -1,6 +1,5 @@
 package net.tgxn.bukkit.backup.listeners;
 
-
 import net.tgxn.bukkit.backup.BackupMain;
 import net.tgxn.bukkit.backup.config.*;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;

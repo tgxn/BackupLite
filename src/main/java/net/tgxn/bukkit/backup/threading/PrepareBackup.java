@@ -63,7 +63,7 @@ public class PrepareBackup implements Runnable {
             prepareBackup();
         } else {
             // No player checking.
-            if (!settings.getBooleanProperty("backupemptyserver")) {
+            if (settings.getBooleanProperty("backupemptyserver")) {
                 prepareBackup();
             } else {
                 // Checking online players.

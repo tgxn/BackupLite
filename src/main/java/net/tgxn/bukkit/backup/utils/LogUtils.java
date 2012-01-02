@@ -62,7 +62,7 @@ public class LogUtils {
             LogUtils.plugin = plugin;
         }
     }
-
+    
     public static void finishInitLogUtils(String logName, boolean shouldDisplay) {
         shouldDisplayLog = shouldDisplay;
         logFile = new File(plugin.getDataFolder() + "/" + logName);
@@ -74,6 +74,26 @@ public class LogUtils {
         }
     }
 
+    
+    public static void exceptionLog(StackTraceElement ste[], String message) {
+        LogUtils.sendLog(Level.SEVERE, message, true);
+        exceptionLog(ste);
+    }
+    
+    public static void exceptionLog(StackTraceElement ste[]) {
+        String toSystemOut = "";
+        String[] error = null;
+        for (int pos = 0; pos < ste.length; pos++) {
+            
+            toSystemOut =  ste[pos].getFileName() + ":" + ste[pos].getLineNumber();
+            
+            error[0] = ste[pos].getFileName() + ":" + ste[pos].getLineNumber() + " ==>" + ste[pos].getMethodName() + "()";
+            error[1] = ste[pos].toString();
+        }
+        String tags = "[" + plugin.getDescription().getName()  + "] ";
+        System.out.println(tags + "Error: "+toSystemOut);
+    }
+    
     /**
      * Log messages to file. The message to log.
      * @param message

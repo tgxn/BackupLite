@@ -16,6 +16,7 @@ import java.util.logging.Level;
 public class Settings {
     
     private File configFile;
+    //@TODO Change to YamlConfig
     private Configuration config = null;
     private Plugin plugin;
     private Strings strings;
@@ -43,9 +44,9 @@ public class Settings {
                 createDefaultSettings();
             }
         } catch (SecurityException se) {
-            DebugUtils.debugLog(se.getStackTrace());
+            LogUtils.exceptionLog(se.getStackTrace());
         } catch (NullPointerException npe) {
-            DebugUtils.debugLog(npe.getStackTrace());
+            LogUtils.exceptionLog(npe.getStackTrace());
         }
         
         config = new Configuration(configFile);
@@ -116,7 +117,7 @@ public class Settings {
                 bWriter.newLine();
             }
         } catch (IOException ioe) {
-            DebugUtils.debugLog(ioe.getStackTrace());
+            LogUtils.exceptionLog(ioe.getStackTrace());
         }
         
         finally {
@@ -131,7 +132,7 @@ public class Settings {
                 
                 
             } catch (IOException ioe) {
-                DebugUtils.debugLog(ioe.getStackTrace());
+                LogUtils.exceptionLog(ioe.getStackTrace());
             }
         }
     }

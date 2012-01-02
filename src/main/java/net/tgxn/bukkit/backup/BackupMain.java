@@ -20,7 +20,7 @@ import java.io.File;
 /**
  * The plugin's main class.
  *
- * @author gamerx
+ * @author Domenic Horner (gamerx)
  */
 public class BackupMain extends JavaPlugin {
     
@@ -35,11 +35,10 @@ public class BackupMain extends JavaPlugin {
     public void onLoad() {
         
         // Initalize utilities.
-        DebugUtils.initDebugUtils(this);
         LogUtils.initLogUtils(this);
         
         // Perform datafile check.
-        checkFolderAndCreate(this.getDataFolder());
+        SharedUtils.checkFolderAndCreate(this.getDataFolder());
         
         // Load plugin's string settings.
         strings = new Strings(this);
@@ -52,7 +51,7 @@ public class BackupMain extends JavaPlugin {
         LogUtils.finishInitLogUtils(settings.getStringProperty("backuplogname"), settings.getBooleanProperty("displaylog"));
 
         // Do folder checking for backups folder.
-        if(checkFolderAndCreate(new File(settings.getStringProperty("backuppath"))))
+        if(SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath"))))
             LogUtils.sendLog(strings.getString("createbudir"));
     }
     
@@ -118,24 +117,5 @@ public class BackupMain extends JavaPlugin {
         } else {
             LogUtils.sendLog(strings.getString("defaultperms"));
         }
-    }
-    
-    /**
-     * Checks if a folder exists and creates it if it does not.
-     * 
-     * @param toCheck File to check.
-     * @return True if created, false if exists.
-     */
-    private boolean checkFolderAndCreate(File toCheck) {
-        if (!toCheck.exists()) {
-            try {
-                if (toCheck.mkdirs()) {
-                    return true;
-                }
-            } catch (SecurityException se) {
-                DebugUtils.debugLog(se.getStackTrace());
-            }
-        }
-        return false;
     }
 }
