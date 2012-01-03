@@ -130,14 +130,14 @@ public class BackupTask implements Runnable {
             if ((worldsToBackup != null) && (settings.getBooleanProperty("backupworlds"))) {
                 backupWorlds();
             } else {
-                LogUtils.sendLog(Level.INFO, strings.getString("skipworlds"), true);
+                LogUtils.sendLog(strings.getString("skipworlds"), Level.INFO, true);
             }
 
             // Plugin backup checking.
             if (settings.getBooleanProperty("backupplugins")) {
                 backupPlugins();
             } else {
-                LogUtils.sendLog(Level.INFO, strings.getString("skipplugins"), true);
+                LogUtils.sendLog(strings.getString("skipplugins"), Level.INFO, true);
             }
 
             // Check if split backup.
@@ -342,11 +342,8 @@ public class BackupTask implements Runnable {
                     if(foldersToClean[l].isDirectory())
                         cleanFolder(foldersToClean[l]);
                 }
-            } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe.getStackTrace());
-                return false;
-            } catch (NullPointerException npe) {
-                LogUtils.exceptionLog(npe.getStackTrace());
+            } catch (IOException | NullPointerException ex) {
+                LogUtils.exceptionLog(ex.getStackTrace());
                 return false;
             }
 
@@ -355,11 +352,8 @@ public class BackupTask implements Runnable {
             // Clean entire directory.
             try {
                 cleanFolder(backupDir);
-            } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe.getStackTrace());
-                return false;
-            } catch (NullPointerException npe) {
-                LogUtils.exceptionLog(npe.getStackTrace());
+            } catch (IOException | NullPointerException ex) {
+                LogUtils.exceptionLog(ex.getStackTrace());
                 return false;
             }
         }
@@ -382,7 +376,7 @@ public class BackupTask implements Runnable {
 
             // If the amount of files exceeds the max backups to keep.
             if (filesList.length > maxBackups) {
-                ArrayList<File> backupList = new ArrayList<File>(filesList.length);
+                ArrayList<File> backupList = new ArrayList<>(filesList.length);
                 backupList.addAll(Arrays.asList(filesList));
 
                 int maxModifiedIndex;

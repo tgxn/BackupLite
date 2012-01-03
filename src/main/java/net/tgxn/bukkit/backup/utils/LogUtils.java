@@ -1,48 +1,15 @@
-/*
- * Backup - CraftBukkit server Backup plugin (continued)
- * Copyright (C) 2011 Domenic Horner <https://github.com/gamerx/Backup>
- * Copyright (C) 2011 Lycano <https://github.com/gamerx/Backup>
- *
- * Wormhole X-Treme Worlds Plugin for Bukkit
- * Copyright (C) 2011 Lycano <https://github.com/lycano/Wormhole-X-Treme/>
- *
- * Wormhole X-Treme Worlds Plugin for Bukkit
- * Copyright (C) 2011 Dean Bailey <https://github.com/alron/Wormhole-X-Treme-Worlds>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package net.tgxn.bukkit.backup.utils;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Date;
 import org.bukkit.plugin.Plugin;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 public class LogUtils {
     
     private static Level logLevel = Level.INFO;
     private static Logger logger;
     private static Plugin plugin;
-    private static File logFile = null;
-    private static boolean logReady = false;
-    private static FileWriter appendFile;
     private static boolean shouldDisplayLog = true;
 
     /**
@@ -63,23 +30,26 @@ public class LogUtils {
         }
     }
     
-    public static void finishInitLogUtils(String logName, boolean shouldDisplay) {
+    public static void finishInitLogUtils(boolean shouldDisplay) {
         shouldDisplayLog = shouldDisplay;
-        logFile = new File(plugin.getDataFolder() + "/" + logName);
-        logReady = true;
-        try {
-           appendFile  = new FileWriter(logFile, true);
-        } catch (IOException ioe) {
-
-        }
     }
 
-    
+    /**
+     * Exception handling, Called instead of sendLog so it can be debugged.
+     * 
+     * @param ste The stack trace.
+     * @param message Message accompanying it.
+     */
     public static void exceptionLog(StackTraceElement ste[], String message) {
-        LogUtils.sendLog(Level.SEVERE, message, true);
+        LogUtils.sendLog(message, Level.SEVERE, true);
         exceptionLog(ste);
     }
     
+    /**
+     * Parse the STE and print the error.
+     * 
+     * @param ste The stack trace element.
+     */
     public static void exceptionLog(StackTraceElement ste[]) {
         String toSystemOut = "";
         String[] error = null;
@@ -93,37 +63,6 @@ public class LogUtils {
         String tags = "[" + plugin.getDescription().getName()  + "] ";
         System.out.println(tags + "Error: "+toSystemOut);
     }
-    
-    /**
-     * Log messages to file. The message to log.
-     * @param message
-     */
-    public static void logLineToFile(String message) {
-        if(logReady) {
-            
-            Date dateObj = new Date();
-            String timeString = dateObj.toString();
-
-            String line = timeString + ": " + message;
-
-            try {
-                BufferedWriter out =  new BufferedWriter(appendFile);
-                out.write(line);
-                out.close();
-            } catch (IOException ioe) {
-            }
-        }
-    }
-
-    /**
-     * Sets the default loglevel.
-     * 
-     * @param logLevel 
-     */
-    public static void setLogLevel(Level logLevel) {
-        LogUtils.logLevel = logLevel;
-        LogUtils.logger.setLevel(logLevel);
-    }
 
     /**
      * Sends log message.
@@ -131,7 +70,7 @@ public class LogUtils {
      * @param message 
      */
     public static void sendLog(String message) {
-        sendLog(Level.INFO, message, true);
+        sendLog(message, Level.INFO, true);
     }
     /**
      * Sends log message.
@@ -140,7 +79,7 @@ public class LogUtils {
      * @param tags 
      */
     public static void sendLog(String message, boolean tags) {
-        sendLog(Level.INFO, message, tags);
+        sendLog(message, Level.INFO, tags);
     }
     
     /**
@@ -150,33 +89,41 @@ public class LogUtils {
      * @param tags 
      */
     public static void sendLog(Level level, String message) {
-        sendLog(level, message, true);
+        sendLog(message, level, true);
     }
 
     /**
      * Sends log message.
      * 
-     * @param logLevel
-     * @param message
-     * @param tags 
+     * @param logLevel Logger level for this item.
+     * @param message The text of the log.
+     * @param addTags Should we add tags to the string.
      */
-    public static void sendLog(final Level logLevel, String message, boolean tags) {
+    public static void sendLog(String message, Level logLevel, boolean addTags) {
         final String nameTag = ("[" + plugin.getDescription().getName()  + "] ");
-        if(tags)
+        if(addTags)
             message = nameTag + message;
         if(shouldDisplayLog)
             logger.log(logLevel, message);
-        // Quick fix for issue #46, Will fix in next release.
-        //logLineToFile(message);
+        //@TODO LogtoFile.
     }
     
     /**
-     * Gets the current loglevel.
+     * Sets the default LoglLevel.
+     * 
+     * @param logLevel The level to set the logger to.
+     */
+    public static void setLogLevel(Level logLevel) {
+        LogUtils.logLevel = logLevel;
+        LogUtils.logger.setLevel(logLevel);
+    }
+    
+    /**
+     * Gets the current LogLevel.
      * 
      * @return The current log level.
      */
     public static Level getLogLevel() {
         return logLevel;
     }
-
 }

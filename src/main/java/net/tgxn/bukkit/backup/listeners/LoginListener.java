@@ -1,5 +1,6 @@
 package net.tgxn.bukkit.backup.listeners;
 
+import net.tgxn.bukkit.backup.BackupMain;
 import net.tgxn.bukkit.backup.config.*;
 import net.tgxn.bukkit.backup.utils.*;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
@@ -60,23 +61,20 @@ public class LoginListener extends PlayerListener {
      *
      */
     private void playerPart() {
-
-         int amntPlayersOnline = plugin.getServer().getOnlinePlayers().length;
-         if (amntPlayersOnline != 1) {
-             LogUtils.sendLog("was not last player to leave.");
-             return;
+         int onlinePlayers = plugin.getServer().getOnlinePlayers().length;
+         // Check if it was the last player.
+         if (onlinePlayers == 1) {
+            prepareBackup.setAsLastBackup(true);
+            //plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, backupTask);
+            int intervalInMinutes = settings.getIntervalInMinutes();
+            if (intervalInMinutes != -1) {
+                int interval =  intervalInMinutes * 1200;
+                lastBackupID = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, prepareBackup, interval, interval);
+                LogUtils.sendLog("Scheduled last backup for " + intervalInMinutes +" minutes;");
+            } else {
+                LogUtils.sendLog(strings.getString("disbaledauto"));
+            }
          }
-
-        prepareBackup.setAsLastBackup(true);
-        //plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, backupTask);
-        int intervalold = settings.getIntProperty("backupinterval");
-        if (intervalold != -1) {
-            int interval =  intervalold * 1200;
-            lastBackupID = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, prepareBackup, interval, interval);
-            LogUtils.sendLog("Scheduled last backup for " + intervalold +" minutes;");
-        } else {
-            LogUtils.sendLog(strings.getString("disbaledauto"));
-        }
     }
 
     /**

@@ -1,11 +1,21 @@
 package net.tgxn.bukkit.backup.config;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import net.tgxn.bukkit.backup.utils.*;
 
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.config.Configuration;
 
-import java.io.*;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.logging.Level;
 
 /**
@@ -16,8 +26,8 @@ import java.util.logging.Level;
 public class Settings {
     
     private File configFile;
-    //@TODO Change to YamlConfig
-    private Configuration config = null;
+    private FileConfiguration fileConfiguration;
+    
     private Plugin plugin;
     private Strings strings;
     public boolean outOfDate = false;
@@ -43,16 +53,18 @@ public class Settings {
                 LogUtils.sendLog(Level.WARNING, strings.getString("newconfigfile"));
                 createDefaultSettings();
             }
-        } catch (SecurityException se) {
+        } catch (SecurityException | NullPointerException se) {
             LogUtils.exceptionLog(se.getStackTrace());
-        } catch (NullPointerException npe) {
-            LogUtils.exceptionLog(npe.getStackTrace());
         }
         
-        config = new Configuration(configFile);
-        
-        // Attempt to load configuration.
-        config.load();
+        fileConfiguration = new YamlConfiguration();
+        try {
+            // Attempt to load configuration.
+            fileConfiguration.load(configFile);
+        } catch (IOException | InvalidConfigurationException ex) {
+            LogUtils.exceptionLog(ex.getStackTrace(), "Failed to load settings.");
+            
+        }
         
         // Check version of the config file.
         checkConfigVersion();
@@ -66,15 +78,15 @@ public class Settings {
         boolean needToUpdate = false;
 
         // Check config is loaded.
-        if (config != null) {
+        if (fileConfiguration != null) {
 
             // Get the version information.
-            String configVersion = config.getString("version", plugin.getDescription().getVersion());
+            String configVersion = fileConfiguration.getString("version", plugin.getDescription().getVersion());
             String pluginVersion = plugin.getDescription().getVersion();
 
             // Check we got a version from the config file.
             if (configVersion == null) {
-                LogUtils.sendLog(Level.SEVERE, strings.getString("failedtogetpropsver"), true);
+                LogUtils.sendLog(strings.getString("failedtogetpropsver"), Level.SEVERE, true);
                 needToUpdate = true;
             }
 
@@ -145,7 +157,7 @@ public class Settings {
      * @return The value of the property, defaults to -1.
      */
     public int getIntProperty(String property) {
-        return config.getInt(property, -1);
+        return fileConfiguration.getInt(property, -1);
     }
 
     /**
@@ -155,7 +167,7 @@ public class Settings {
      * @return The value of the property, defaults to true.
      */
     public boolean getBooleanProperty(String property) {
-        return config.getBoolean(property, true);
+        return fileConfiguration.getBoolean(property, true);
     }
 
     /**
@@ -165,6 +177,33 @@ public class Settings {
      * @return The value of the property.
      */
     public String getStringProperty(String property) {
-        return config.getString(property, "");
+        return fileConfiguration.getString(property, "");
+    }
+    
+    /**
+     * 
+     * @return minutes between backups.
+     */
+    public int getIntervalInMinutes() {
+        String settingBackupInterval = getStringProperty("backupinterval");
+        
+        if(settingBackupInterval.equals("-1")) {
+            return 0;
+        }
+        
+        String lastLetter = settingBackupInterval.substring(settingBackupInterval.length()-1, settingBackupInterval.length());
+        int amountTime =  Integer.parseInt(settingBackupInterval.substring(0, settingBackupInterval.length()-1));
+        switch(lastLetter) {
+            case "H": // Hours
+                amountTime = (amountTime * 60);
+            break;
+            case "D": // Days.
+                amountTime = (amountTime * 1440);
+            break;
+            case "W": // Weeks
+                amountTime = (amountTime * 10080);
+            break;
+        }
+        return amountTime;
     }
 }

@@ -122,7 +122,7 @@ public class PrepareBackup implements Runnable {
         LinkedList<String> worldsToBackup = new LinkedList<String>();
         for (World world : server.getWorlds()) {
             if ((world.getName() != null) && !world.getName().isEmpty() && (!ignoredWorldNames.contains(world.getName()))) {
-                LogUtils.sendLog(Level.FINE, "Adding world '" + world.getName() + "' to backup list", true);
+                LogUtils.sendLog("Adding world '" + world.getName() + "' to backup list", Level.FINE, true);
                 worldsToBackup.add(world.getName());
             }
         }
@@ -147,7 +147,7 @@ public class PrepareBackup implements Runnable {
             prepareBackup();
             isLastBackup = false;
         } else {
-            LogUtils.sendLog(Level.INFO, strings.getString("abortedbackup", Integer.toString(settings.getIntProperty("backupinterval"))), true);
+            LogUtils.sendLog(strings.getString("abortedbackup", Integer.toString(settings.getIntervalInMinutes())), Level.INFO, true);
         }
     }
 

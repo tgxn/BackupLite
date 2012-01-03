@@ -1,21 +1,24 @@
 package net.tgxn.bukkit.backup.config;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.config.Configuration;
 
 import java.io.File;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 /**
  * String loader for the plugin, provides strings for each event.
- *
- * Updated 16.11.11
- * = Attempt to change to YamlCOnfiguration
- * = Failed.
  *
  * @author gamerx
  */
 public class Strings {
     
-    private Configuration strings;
+    private File configFile;
+    private FileConfiguration fileConfiguration;
+    
+    
     private String[][] theStrings = {
         
         // In-Game Messages.
@@ -64,28 +67,33 @@ public class Strings {
      */
     public Strings(Plugin plugin) {
         
+        //fileConfiguration = new File(plugin.getDataFolder(), "strings.yml");
+        configFile = new File(plugin.getDataFolder(), "strings.yml");
+        
         // Create the new strings file.
-        strings = new Configuration(new File(plugin.getDataFolder(), "strings.yml"));
+        fileConfiguration = new YamlConfiguration();
+        //fileConfiguration.load(configFile);
         
         // Attempt to load the strings.
-        strings.load();
+        //strings.load();
         
-        for(int i = 0; i < theStrings.length; i++) {
-            String key = theStrings[i][0];
-            String value = theStrings[i][1];
+        for(int pos = 0; pos < theStrings.length; pos++) {
+            String key = theStrings[pos][0];
+            String value = theStrings[pos][1];
             
             if(key.equals("") || value.equals(""))
                 return;
             else
-                strings.getString(key, value);
+                fileConfiguration.addDefault(key, value);
         }
 
-        /** System Variables. **/
-        strings.getString("stringnotfound", "String not found - ");
-        strings.getString("version", plugin.getDescription().getVersion());
+        /** System Variables **/
+        fileConfiguration.addDefault("stringnotfound", "String not found - ");
+        fileConfiguration.addDefault("version", plugin.getDescription().getVersion());
         
         // Save the strings file.
-        strings.save();
+        //@TODO Fix saving of this file.
+        //fileConfiguration.saveConfiguration();
     }
     
     /**
@@ -97,13 +105,13 @@ public class Strings {
     public String getString(String property) {
         
         // Get string for this name.
-        String string = strings.getString(property);
+        String string = fileConfiguration.getString(property);
         
         // If we cannot find a string for this, return default.
         if (string != null)
             return colorizeString(string);
         else
-            return strings.getString("stringnotfound") + property;
+            return fileConfiguration.getString("stringnotfound") + property;
     }
     
     /**
@@ -116,13 +124,13 @@ public class Strings {
     public String getString(String property, String option) {
         
         // Get string for this name.
-        String string = strings.getString(property);
+        String string = fileConfiguration.getString(property);
         
         // If we cannot find a string for this, return default.
         if (string != null)
             return colorizeString(string.replaceAll("%%ARG%%", option));
         else
-            return strings.getString("stringnotfound") + property;
+            return fileConfiguration.getString("stringnotfound") + property;
     }
     
     /**

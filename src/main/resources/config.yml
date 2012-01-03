@@ -1,14 +1,17 @@
-## How often show the backup run? (Default: 15)
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-#
+#  Configuration file for "Backup"  #
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-#
+
+#======== Backup Settings ==========#
+
+## How often show the backup run? (Default: 15M - 15 Minutes)
 # (Note: -1 Will disable automatic backups.)
-backupinterval: 15
+# Format: [Time][M-Minutes, H-Hours, D-Days, W-Weeks]
+backupinterval: 15M
 
 ## How many backups are retained? (Default: 25)
 # If this limit is hit, the oldest backup(s) will be removed. 
 maxbackups: 25
-
-## If permissions system is not available, should everyone be able to access all commands, or just ops? (Default: true)
-# If set to false, all players will be able to perform all commands, unless you use a permissions system.
-onlyops: true
 
 ## Should backups be performed on an empty server? (Default: false)
 # When the last player leaves the server, a final backup will be made. The automatic backup cycle will resume when a player re-joins.
@@ -19,9 +22,41 @@ backupemptyserver: false
 # Using this will ignore "backupworlds", "backupplugins", "skipworlds", "skipplugins", and "splitbackup"
 backupeverything: false
 
+## If permissions system is not available, should everyone be able to access all commands, or just ops? (Default: true)
+# If set to false, all players will be able to perform all commands, unless you use a permissions system.
+onlyops: true
+
+## Enables the auto-save function after the backup. (Defualt: true)
+# Note: If you set this to false, this plugin will backup your worlds but not save the data from the memory to your hard disc. If the server crashes between
+# backups, all work is lost. Disable if you use another plugin to save the world to disk (EG: autosave).
+enableautosave: true
+
+
+#======== File & Location Settings ==========#
+
 ## Should all the worlds be split into their own files? (Default: false)
-# Compatible with WorldEdit.
+# Makes this compatible with WorldEdit.
 splitbackup: false
+
+## Whether to ZIP Backups or not. (Default: true)
+# If enabled, backups will be compressed and stored in a ZIP archive named with the current timestamp.
+# If disabled, the backup will stored in a folder with the timestamp.
+zipbackup: true
+
+## Directory to store backup in. (Default: backups)
+# Note: Path can be relative, or absolute.
+backuppath: backups
+
+## Custom date format string that is appended to every backup.
+## If left empty, the default date format is used.
+## This has to be a Java String.format string, see
+## http://download.oracle.com/javase/1.5.0/docs/api/java/util/Formatter.html#syntax
+##for reference.
+## Example: -%1$tY%1$tm%1$td-%1$tH%1$tM%1$tS (YYYYMMDD-HHMMSS: 20101201-011323) (conforms to ISO 8601)
+dateformat: '%1$tY%1$tm%1$td-%1$tH%1$tM%1$tS'
+
+
+#======== Content Settings ==========#
 
 ## What to backup. (Default: true, true)
 # Will give warning if either is disabled.
@@ -35,44 +70,27 @@ skipworlds:
 ## List of files to exclude from the plugin backup. (Default: none)
 # Seperate by a semicolon. eg. Plugin1;Plugin2;Plugin3. This takes effect at all directory levels.
 skipplugins:
-  
-## Whether to ZIP Backups or not. (Default: true)
-# If enabled, backups will be compressed and stored in a ZIP archive named with the current timestamp.
-# If disabled, the backup will stored in a folder with the timestamp.
-zipbackup: true
 
-## Custom date format string that is appended to every backup.
-## If left empty, the default date format is used.
-## This has to be a Java String.format string, see
-## http://download.oracle.com/javase/1.5.0/docs/api/java/util/Formatter.html#syntax
-##for reference.
-## Example: -%1$tY%1$tm%1$td-%1$tH%1$tM%1$tS (YYYYMMDD-HHMMSS: 20101201-011323) (conforms to ISO 8601)
-dateformat: '%1$tY%1$tm%1$td-%1$tH%1$tM%1$tS'
 
-## Enables the auto-save function after the backup. (Defualt: true)
-# Note: If you set this to false, this plugin will backup your worlds but not save the data from the memory to your hard disc. If the server crashes between
-# backups, all work is lost. Disable if you use another plugin to save the world to disk (EG: autosave).
-enableautosave: true
-
-## Directory to store backup in. (Default: backups)
-# Note: Path can be relative, or absolute.
-backuppath: backups
+#======== Notification & Logging Settings ==========#
 
 ## Should we send messages on backup complete. (Default: true)
-# They will still get put in the server log.
+# They will still get put in the server log if that is enabled.
 broardcastmessages: true
 
 ## Backup log file name. (Default: backup.log)
 # Filename for log file, it is stored under the plugins data folder.
 backuplogname: backup.log
 
-## Should we display error/log messages in server log (Default: true)
+## Should we display messages in server/console log? (Default: true)
 # If true messages will only be logged to file.
 displaylog: true
 
 ## True to enable debug mode
 # @TODO Implement this.
 debugmode: true
+
+
 
 ###############################################
 ##   Internal Settings (Read: DO NOT EDIT)   ##

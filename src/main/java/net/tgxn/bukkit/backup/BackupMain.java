@@ -3,12 +3,15 @@ package net.tgxn.bukkit.backup;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import net.tgxn.bukkit.backup.utils.*;
 import net.tgxn.bukkit.backup.config.*;
 import net.tgxn.bukkit.backup.listeners.*;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
 
 import org.bukkit.Server;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event.Type;
 import org.bukkit.plugin.Plugin;
@@ -33,23 +36,21 @@ public class BackupMain extends JavaPlugin {
     
     @Override
     public void onLoad() {
-        
-        // Initalize utilities.
+        // Initalize logger.
         LogUtils.initLogUtils(this);
         
         // Perform datafile check.
         SharedUtils.checkFolderAndCreate(this.getDataFolder());
         
-        // Load plugin's string settings.
+        // Load plugin's string settings.  
         strings = new Strings(this);
+
         
         // Load plugin's main configuration.
-        File configFile = new File(this.getDataFolder(), "config.yml");
-        settings = new Settings(this, configFile, strings);
-
-        // Initalize log file.
-        LogUtils.finishInitLogUtils(settings.getStringProperty("backuplogname"), settings.getBooleanProperty("displaylog"));
-
+        settings = new Settings(this, new File(this.getDataFolder(), "config.yml"), strings);
+        
+        LogUtils.finishInitLogUtils(settings.getBooleanProperty("displaylog"));
+        
         // Do folder checking for backups folder.
         if(SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath"))))
             LogUtils.sendLog(strings.getString("createbudir"));
@@ -62,11 +63,11 @@ public class BackupMain extends JavaPlugin {
         initPermissions();
 
         // Get server and player managers.
-        Server server = getServer();
-        PluginManager pluginManager = server.getPluginManager();
+        Server pluginServer = getServer();
+        PluginManager pluginManager = pluginServer.getPluginManager();
 
         // Create new backup instance.
-        prepareBackup = new PrepareBackup(server, settings, strings);
+        prepareBackup = new PrepareBackup(pluginServer, settings, strings);
 
         // Initalize plugin listeners.
         getCommand("backup").setExecutor(new CommandListener(prepareBackup, this, settings, strings));
@@ -76,10 +77,10 @@ public class BackupMain extends JavaPlugin {
         pluginManager.registerEvent(Type.PLAYER_JOIN, loginListener, Priority.Normal, this);
 
         // Schedule timer, checks if there is a timer and enables task.
-        int backupInterval = settings.getIntProperty("backupinterval");
-        if (backupInterval != -1) {
+        int backupInterval = settings.getIntervalInMinutes();
+        if (backupInterval != 0) {
             backupInterval *= 1200;
-            mainBackupTaskID = server.getScheduler().scheduleSyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
+            mainBackupTaskID = pluginServer.getScheduler().scheduleSyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
         } else {
             LogUtils.sendLog(strings.getString("disbaledauto"));
         }

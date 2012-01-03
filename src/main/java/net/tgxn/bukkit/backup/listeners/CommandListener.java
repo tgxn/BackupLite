@@ -250,8 +250,8 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
 
         player.sendMessage("Backup Configuration");
 
-        int interval = settings.getIntProperty("backupinterval");
-        if (interval != -1) {
+        int interval = settings.getIntervalInMinutes();
+        if (interval != 0) {
             player.sendMessage("Scheduled Backups: Enabled, " + interval + " mins between backups.");
         } else {
             player.sendMessage("Scheduled backups: Disabled, Manual backups only.");
