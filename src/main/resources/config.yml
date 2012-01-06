@@ -47,6 +47,12 @@ zipbackup: true
 # Note: Path can be relative, or absolute.
 backuppath: backups
 
+## Should we create a temp folder under the main backups folder. (Default: true)
+# Enables you to exclude it if you use DropBox.
+# Note: Does nothing if you don't ZIP backups.
+# @TODO Implement this. 1.8.6, Perhaps, for now it does NADA!
+usetempfolder: true
+
 ## Custom date format string that is appended to every backup.
 ## If left empty, the default date format is used.
 ## This has to be a Java String.format string, see

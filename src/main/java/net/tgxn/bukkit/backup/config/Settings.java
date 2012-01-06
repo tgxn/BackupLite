@@ -2,7 +2,6 @@ package net.tgxn.bukkit.backup.config;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
 import net.tgxn.bukkit.backup.utils.*;
 
 import org.bukkit.configuration.InvalidConfigurationException;

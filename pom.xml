@@ -40,6 +40,14 @@
                     <include>config.yml</include>
                 </includes>
             </resource>
+            <resource>
+                <targetPath>settings/</targetPath>
+                <filtering>true</filtering>
+                <directory>${basedir}/src/main/resources/</directory>
+                <includes>
+                    <include>strings.yml</include>
+                </includes>
+            </resource>
         </resources>
         <plugins>
             <plugin>

@@ -40,7 +40,7 @@ public class BackupTask implements Runnable {
 
     private List<String> pluginList;
     private boolean splitbackup;
-    private boolean ShouldZIP;
+    private boolean shouldZIP;
     private String backupsPath;
     private String thisBackupFolder;
     private boolean backupEverything;
@@ -68,7 +68,7 @@ public class BackupTask implements Runnable {
         thisBackupFolder = backupsPath.concat(getFolderName());
         backupEverything = settings.getBooleanProperty("backupeverything");
         splitbackup = settings.getBooleanProperty("splitbackup");
-        ShouldZIP = settings.getBooleanProperty("zipbackup");
+        shouldZIP = settings.getBooleanProperty("zipbackup");
         pluginList = Arrays.asList(settings.getStringProperty("skipplugins").split(";"));
 
         // Starts the process.
@@ -115,7 +115,7 @@ public class BackupTask implements Runnable {
 
                 // Copy the directory.
                 FileUtils.copyDirectory(srcDIR, destDIR, ff, true);
-
+                
                 // Perform the zipping action. 
                 doZIP(thisBackupFolder);
 
@@ -298,26 +298,25 @@ public class BackupTask implements Runnable {
     }
 
     /**
-     * ZIP the path specified.
+     * Add the folder specified to a ZIP file.
      * 
-     * @param path The path to ZIP and delete.
+     * @param folderToZIP The folder that needs to be ZIP'ed
      */
-    private void doZIP(String path) {
-        // Check we are ZIPing the backups.
-        if (ShouldZIP) {
+    private void doZIP(String folderToZIP) {
+        if (shouldZIP) {
+            // ZIP the Folder.
             try {
-                // Add doBackup folder to a ZIP.
-                FileUtils.zipDir(path, path);
+                FileUtils.zipDir(folderToZIP, folderToZIP);
             } catch (IOException ioe) {
-                ioe.printStackTrace(System.out);
-                LogUtils.sendLog("Failed to ZIP backup: IO Exception.");
+                LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to ZIP backup: IO Exception.");
             }
+            // Delete the folder.
             try {
                 // Delete the original doBackup directory.
-                FileUtils.deleteDirectory(new File(path));
+                FileUtils.deleteDirectory(new File(folderToZIP));
+                new File(folderToZIP).delete();
             } catch (IOException ioe) {
-                ioe.printStackTrace(System.out);
-                LogUtils.sendLog("Failed to delete folder: IO Exception.");
+                LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to delete temp folder: IO Exception.");
             }
         }
     }

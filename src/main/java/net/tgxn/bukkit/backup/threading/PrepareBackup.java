@@ -119,7 +119,7 @@ public class PrepareBackup implements Runnable {
 
         // Create list of worlds to ignore.
         List<String> ignoredWorldNames = getIgnoredWorldNames();
-        LinkedList<String> worldsToBackup = new LinkedList<String>();
+        LinkedList<String> worldsToBackup = new LinkedList<>();
         for (World world : server.getWorlds()) {
             if ((world.getName() != null) && !world.getName().isEmpty() && (!ignoredWorldNames.contains(world.getName()))) {
                 LogUtils.sendLog("Adding world '" + world.getName() + "' to backup list", Level.FINE, true);

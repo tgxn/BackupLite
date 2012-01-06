@@ -1,0 +1,48 @@
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-#
+#     Strings file for "Backup"     #
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-#
+
+#========= In-Game Strings ==========#
+
+norights             : '[Backup] You do not have the rights to run this backup!'
+confuptodate         : '[Backup] Config file is already Up-To-Date!'
+backupfinished       : '[Backup] Finished Backup!'
+backupstarted        : '[Backup] Started Backup...'
+updateconf           : '[Backup] Version of file is out of date or missing, Updating...'
+reloadedok           : '[Backup] Reloaded %%ARG%% successfully!'
+
+#========= Startup Strings ==========#
+
+failedtogetpropsver  : Failed to retrieve version from config file, I suggest upgrading!
+configoutdated       : Your config file is outdated, run '/backup updateconf' in-game to upgrade it.
+zipdisabled          : You have disabled backup compression.
+createbudir          : Created the folder for backups.
+defaultperms         : No permissions plugin detected, defaulting to OP.
+hookedperms          : Found and hooked a permissions plugin.
+newconfigfile        : No config file exists, creating default.
+disbaledauto         : You have disabled scheduled backups!
+
+#========= Notification Strings ==========#
+
+disabledworlds       : 'Backup is disabled for the following world(s):'
+disabledplugins      : 'Backup is disabled for the following plugin(s):'
+enabledplugins       : 'Backup is enabled for the following plugin(s):'
+allpluginsdisabled   : Plugin backup is on, but no plugins are selected.
+abortedbackup        : Aborted backup as no players online. Next attempt in %%ARG%% minutes.
+skipworlds           : Skipping worlds backup, for all worlds.
+skipplugins          : Skipping plugin backup, for all plugins.
+removeold            : 'Removing the following backup(s) due to age:'
+lastbackup           : Last player left, backing up!
+
+#========= Error Strings ==========#
+
+errordateformat      : Date format incorrect Check configuration!
+errorcreatetemp      : Error occurred when trying to backup %%ARG%%.  Backup is possibly incomplete.
+backupfailed         : An error occured during backup. Please report to an admin!
+
+###############################################
+##   Internal Settings (Read: DO NOT EDIT)   ##
+###############################################
+
+stringnotfound       : 'String not found - '
+version              : 1.8.5-dev
