@@ -35,7 +35,7 @@ enableautosave: true
 #======== File & Location Settings ==========#
 
 ## Should all the worlds be split into their own files? (Default: false)
-# Makes this compatible with WorldEdit.
+# Needs to be true to be compatible with WorldEdit.
 splitbackup: false
 
 ## Whether to ZIP Backups or not. (Default: true)

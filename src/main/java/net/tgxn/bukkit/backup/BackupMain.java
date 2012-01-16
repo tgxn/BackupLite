@@ -3,15 +3,12 @@ package net.tgxn.bukkit.backup;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import net.tgxn.bukkit.backup.utils.*;
 import net.tgxn.bukkit.backup.config.*;
 import net.tgxn.bukkit.backup.listeners.*;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
 
 import org.bukkit.Server;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event.Type;
 import org.bukkit.plugin.Plugin;
@@ -21,7 +18,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 
 /**
- * The plugin's main class.
+ * Main class file for Backup.
  *
  * @author Domenic Horner (gamerx)
  */
@@ -29,6 +26,7 @@ public class BackupMain extends JavaPlugin {
     
     public static PermissionHandler permissionsHandler;
     public int mainBackupTaskID = -2;
+    public File mainDataFolder;
     
     private static Strings strings;
     private static Settings settings;
@@ -36,19 +34,21 @@ public class BackupMain extends JavaPlugin {
     
     @Override
     public void onLoad() {
-        // Initalize logger.
+        
+        // Initalize main data folder.
+        mainDataFolder = this.getDataFolder();
+        
+        // Initalize log utilities.
         LogUtils.initLogUtils(this);
         
         // Perform datafile check.
-        SharedUtils.checkFolderAndCreate(this.getDataFolder());
+        SharedUtils.checkFolderAndCreate(mainDataFolder);
         
-        // Load plugin's string settings.  
-        strings = new Strings(this);
-
+        // Load plugin configuration.
+        strings = new Strings(this, new File(mainDataFolder, "strings.yml"));
+        settings = new Settings(this, new File(mainDataFolder, "config.yml"), strings);
         
-        // Load plugin's main configuration.
-        settings = new Settings(this, new File(this.getDataFolder(), "config.yml"), strings);
-        
+        // Finish init of LogUtils.
         LogUtils.finishInitLogUtils(settings.getBooleanProperty("displaylog"));
         
         // Do folder checking for backups folder.
@@ -59,14 +59,14 @@ public class BackupMain extends JavaPlugin {
     @Override
     public void onEnable() {
         
-        // Set up permissions for plugin.
+        // Initalize permissions handler.
         initPermissions();
 
-        // Get server and player managers.
+        // Get server and plugin manager instances.
         Server pluginServer = getServer();
         PluginManager pluginManager = pluginServer.getPluginManager();
 
-        // Create new backup instance.
+        // Create new "PrepareBackup" instance.
         prepareBackup = new PrepareBackup(pluginServer, settings, strings);
 
         // Initalize plugin listeners.

@@ -270,9 +270,9 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
     }
 
     private void updateConfig(Player player) {
-        if(settings.outOfDate) {
+        if(settings.checkConfigVersion()) {
             player.sendMessage(strings.getString("updatingconf"));
-            settings.doConfUpdate();
+            settings.doConfigurationUpdate();
         } else {
             player.sendMessage(strings.getString("confuptodate"));
         }

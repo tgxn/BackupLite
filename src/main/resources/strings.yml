@@ -14,7 +14,7 @@ reloadedok           : '[Backup] Reloaded %%ARG%% successfully!'
 #========= Startup Strings ==========#
 
 failedtogetpropsver  : Failed to retrieve version from config file, I suggest upgrading!
-configoutdated       : Your config file is outdated, run '/backup updateconf' in-game to upgrade it.
+configupdate         : Your configuration is outdated, upgrading it...
 zipdisabled          : You have disabled backup compression.
 createbudir          : Created the folder for backups.
 defaultperms         : No permissions plugin detected, defaulting to OP.

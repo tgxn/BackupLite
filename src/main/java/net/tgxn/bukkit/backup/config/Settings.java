@@ -1,52 +1,47 @@
 package net.tgxn.bukkit.backup.config;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import net.tgxn.bukkit.backup.utils.*;
 
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.plugin.Plugin;
-
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.logging.Level;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 
 /**
  * Loads all settings for the plugin.
  * 
  * @author gamerx
  */
-public class Settings {
-    
-    private File configFile;
-    private FileConfiguration fileConfiguration;
-    
+public final class Settings {
+
     private Plugin plugin;
     private Strings strings;
-    public boolean outOfDate = false;
+    
+    private File configFile;
+    private FileConfiguration fileSettingConfiguration;
+    
     
     public Settings(Plugin plugin, File configFile, Strings strings) {
-        
         this.plugin = plugin;
         this.configFile = configFile;
         this.strings = strings;
-
-        // Load the properties.
+        
+        checkAndCreate();
+        
         loadProperties();
+        
+        checkConfigVersion();
     }
     
-    /**
-     * Load the properties from the configFile, create if needed.
-     */
-    private void loadProperties() {
-                
-        // Check for the config file, have it created if needed.
+    public void checkAndCreate() {
         try {
             if (!configFile.exists()) {
                 LogUtils.sendLog(Level.WARNING, strings.getString("newconfigfile"));
@@ -55,69 +50,93 @@ public class Settings {
         } catch (SecurityException | NullPointerException se) {
             LogUtils.exceptionLog(se.getStackTrace());
         }
+    }
+    
+    /**
+     * Load the properties from the configFile, create if needed.
+     */
+    private void loadProperties() {
         
-        fileConfiguration = new YamlConfiguration();
+        fileSettingConfiguration = new YamlConfiguration();
         try {
             // Attempt to load configuration.
-            fileConfiguration.load(configFile);
+            fileSettingConfiguration.load(configFile);
         } catch (IOException | InvalidConfigurationException ex) {
             LogUtils.exceptionLog(ex.getStackTrace(), "Failed to load settings.");
             
         }
+    }
+    
+    private void saveProperties() {
         
-        // Check version of the config file.
-        checkConfigVersion();
+        // Check they are loaded.
+        if (fileSettingConfiguration == null) {
+            return;
+        }
+        
+        // Attempt to save configuration to file forcibly.
+        try {
+            fileSettingConfiguration.save(configFile);
+        } catch (IOException ex) {
+            LogUtils.exceptionLog(ex.getStackTrace(), "Error saving config file.");
+        }
     }
     
     /**
-     * Checks the version in the config file, and suggests the user runs the update command.
+     * Checks configuration version and then based on the outcome, either runs the update, or returns false.
+     * 
+     * @return False for no update done, True for update done.
      */
-    public void checkConfigVersion() {
+    public boolean checkConfigVersion() {
+        
+        boolean doUpgrade = false;
+        
+        // Check configuration is loaded.
+        if (fileSettingConfiguration != null) {
 
-        boolean needToUpdate = false;
-
-        // Check config is loaded.
-        if (fileConfiguration != null) {
-
-            // Get the version information.
-            String configVersion = fileConfiguration.getString("version", plugin.getDescription().getVersion());
+            // Get the version information from the file.
+            String configVersion = fileSettingConfiguration.getString("version", plugin.getDescription().getVersion());
             String pluginVersion = plugin.getDescription().getVersion();
 
             // Check we got a version from the config file.
             if (configVersion == null) {
                 LogUtils.sendLog(strings.getString("failedtogetpropsver"), Level.SEVERE, true);
-                needToUpdate = true;
+                doUpgrade = true;
             }
 
             // Check if the config is outdated.
             if (!configVersion.equals(pluginVersion))
-                needToUpdate = true;
+                doUpgrade = true;
 
             // After we have checked the versions, we have determined that we need to update.
-            if (needToUpdate) {
-                LogUtils.sendLog(Level.SEVERE, strings.getString("configoutdated"));
-                outOfDate = true;
-            } else {
-                outOfDate = false;
+            if (doUpgrade) {
+                LogUtils.sendLog(Level.SEVERE, strings.getString("configupdate"));
+                doConfigurationUpdate();
             }
         }
+        return doUpgrade;
     }
     
-    public void doConfUpdate() {
-        createDefaultSettings();
+    public void doConfigurationUpdate() {
         loadProperties();
+        createDefaultSettings();
+        fileSettingConfiguration.set("version", this.plugin.getDescription().getVersion());
+        saveProperties();
     }
     
     /**
      * Load the properties file from the JAR and place it in the backup DIR.
      */
     private void createDefaultSettings() {
+        
+        if (configFile.exists()) {
+            configFile.delete();
+        }
+        
         BufferedReader bReader = null;
         BufferedWriter bWriter = null;
         String line;
-
         try {
-
             // Open a stream to the properties file in the jar, because we can only access over the class loader.
             bReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/settings/config.yml")));
             bWriter = new BufferedWriter(new FileWriter(configFile));
@@ -128,7 +147,7 @@ public class Settings {
                 bWriter.newLine();
             }
         } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe.getStackTrace());
+            LogUtils.exceptionLog(ioe.getStackTrace(), "Error opening stream.");
         }
         
         finally {
@@ -139,11 +158,8 @@ public class Settings {
                 if (bWriter != null) {
                     bWriter.close();
                 }
-                
-                
-                
             } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe.getStackTrace());
+                LogUtils.exceptionLog(ioe.getStackTrace(), "Error closing stream.");
             }
         }
     }
@@ -156,7 +172,7 @@ public class Settings {
      * @return The value of the property, defaults to -1.
      */
     public int getIntProperty(String property) {
-        return fileConfiguration.getInt(property, -1);
+        return fileSettingConfiguration.getInt(property, -1);
     }
 
     /**
@@ -166,7 +182,7 @@ public class Settings {
      * @return The value of the property, defaults to true.
      */
     public boolean getBooleanProperty(String property) {
-        return fileConfiguration.getBoolean(property, true);
+        return fileSettingConfiguration.getBoolean(property, true);
     }
 
     /**
@@ -176,7 +192,7 @@ public class Settings {
      * @return The value of the property.
      */
     public String getStringProperty(String property) {
-        return fileConfiguration.getString(property, "");
+        return fileSettingConfiguration.getString(property, "");
     }
     
     /**

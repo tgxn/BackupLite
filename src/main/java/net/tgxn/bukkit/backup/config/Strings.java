@@ -1,19 +1,19 @@
 package net.tgxn.bukkit.backup.config;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import net.tgxn.bukkit.backup.utils.LogUtils;
+
+import org.bukkit.plugin.Plugin;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import org.bukkit.plugin.Plugin;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 
 /**
@@ -25,7 +25,7 @@ public class Strings {
     
     private Plugin plugin;
     private File stringsFile;
-    private FileConfiguration fileConfiguration;
+    private FileConfiguration fileStringConfiguration;
     
     /**
      * Loads the strings configuration file.
@@ -33,31 +33,53 @@ public class Strings {
      * 
      * @param plugin The plugin this is for.
      */
-    public Strings(Plugin plugin) {
-        
+    public Strings(Plugin plugin, File stringsFile) {
         this.plugin = plugin;
-        stringsFile = new File(plugin.getDataFolder(), "strings.yml");
+        this.stringsFile = stringsFile;
         
-        checkForStringsFile();
-        
+        checkAndCreate();
         loadStrings();
-
     }
-    
-    private void checkForStringsFile() {
-                // Check for the config file, have it created if needed.
+
+    private void checkAndCreate() {
+        // Check for the config file, have it created if needed.
         try {
             if (!stringsFile.exists()) {
-                //LogUtils.sendLog(Level.WARNING, strings.getString("newconfigfile"));
                 createDefaultStrings();
             }
         } catch (SecurityException | NullPointerException se) {
-            LogUtils.exceptionLog(se.getStackTrace());
+            LogUtils.exceptionLog(se.getStackTrace(), "Error checking strings file.");
+        }
+    }
+    
+    
+    
+    private void loadStrings() {
+        fileStringConfiguration = new YamlConfiguration();
+        try {
+            fileStringConfiguration.load(stringsFile);
+        } catch (FileNotFoundException ex) {
+            LogUtils.exceptionLog(ex.getStackTrace(), "Error loading strings file.");
+        } catch (IOException | InvalidConfigurationException ex) {
+            LogUtils.exceptionLog(ex.getStackTrace(), "Error loading strings file.");
+        }
+    }
+    
+    private void saveStrings() {
+        if(fileStringConfiguration == null)
+            return;
+        try {
+            fileStringConfiguration.save(stringsFile);
+        } catch (IOException ex) {
+            LogUtils.exceptionLog(ex.getStackTrace(), "Error saving strings file.");
         }
     }
     
     private void createDefaultStrings() {
     
+        if(stringsFile.exists())
+            stringsFile.delete();
+        
     /**
      * Load the properties file from the JAR and place it in the backup DIR.
      */
@@ -78,7 +100,7 @@ public class Strings {
                 bWriter.newLine();
             }
         } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe.getStackTrace());
+            LogUtils.exceptionLog(ioe.getStackTrace(), "Error opening streams.");
         }
         
         finally {
@@ -89,30 +111,18 @@ public class Strings {
                 if (bWriter != null) {
                     bWriter.close();
                 }
-                
-                
-                
             } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe.getStackTrace());
+                LogUtils.exceptionLog(ioe.getStackTrace(), "Error closing streams.");
             }
         }
     
 
     }
     
-    private void loadStrings() {
-
-        
-        // Create the new strings file.
-        fileConfiguration = new YamlConfiguration();
-        try {
-            fileConfiguration.load(stringsFile);
-        } catch (FileNotFoundException ex) {
-        } catch (IOException | InvalidConfigurationException ex) {
-        }
+    public void doConfigUpdate() {
+        loadStrings();
         
     }
-    
     
     /**
      * Gets a value of the string property.
@@ -123,13 +133,13 @@ public class Strings {
     public String getString(String property) {
         
         // Get string for this name.
-        String string = fileConfiguration.getString(property);
+        String string = fileStringConfiguration.getString(property);
         
         // If we cannot find a string for this, return default.
         if (string != null)
             return colorizeString(string);
         else
-            return fileConfiguration.getString("stringnotfound") + property;
+            return fileStringConfiguration.getString("stringnotfound") + property;
     }
     
     /**
@@ -142,13 +152,13 @@ public class Strings {
     public String getString(String property, String option) {
         
         // Get string for this name.
-        String string = fileConfiguration.getString(property);
+        String string = fileStringConfiguration.getString(property);
         
         // If we cannot find a string for this, return default.
         if (string != null)
             return colorizeString(string.replaceAll("%%ARG%%", option));
         else
-            return fileConfiguration.getString("stringnotfound") + property;
+            return fileStringConfiguration.getString("stringnotfound") + property;
     }
     
     /**
@@ -166,5 +176,4 @@ public class Strings {
         else
             return "";
     }
-
 }
