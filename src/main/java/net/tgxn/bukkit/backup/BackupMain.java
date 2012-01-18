@@ -2,20 +2,20 @@ package net.tgxn.bukkit.backup;
 
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
-
-import net.tgxn.bukkit.backup.utils.*;
-import net.tgxn.bukkit.backup.config.*;
-import net.tgxn.bukkit.backup.listeners.*;
+import java.io.File;
+import net.tgxn.bukkit.backup.config.Settings;
+import net.tgxn.bukkit.backup.config.Strings;
+import net.tgxn.bukkit.backup.listeners.CommandListener;
+import net.tgxn.bukkit.backup.listeners.LoginListener;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
-
+import net.tgxn.bukkit.backup.utils.LogUtils;
+import net.tgxn.bukkit.backup.utils.SharedUtils;
 import org.bukkit.Server;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event.Type;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.File;
 
 /**
  * Main class file for Backup.
@@ -45,11 +45,13 @@ public class BackupMain extends JavaPlugin {
         SharedUtils.checkFolderAndCreate(mainDataFolder);
         
         // Load plugin configuration.
-        strings = new Strings(this, new File(mainDataFolder, "strings.yml"));
+        strings = new Strings(new File(mainDataFolder, "strings.yml"));
         settings = new Settings(this, new File(mainDataFolder, "config.yml"), strings);
         
+        strings.checkStringsVersion(settings.getStringProperty("requiredstrings"));
+        
         // Finish init of LogUtils.
-        LogUtils.finishInitLogUtils(settings.getBooleanProperty("displaylog"));
+        LogUtils.finishInitLogUtils(settings.getBooleanProperty("displaylog"), settings.getBooleanProperty("logtofile"), settings.getStringProperty("backuplogname"));
         
         // Do folder checking for backups folder.
         if(SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath"))))
@@ -85,6 +87,19 @@ public class BackupMain extends JavaPlugin {
             LogUtils.sendLog(strings.getString("disbaledauto"));
         }
         
+        String interval = settings.getStringProperty("backupinterval");
+        String max = Integer.toString(settings.getIntProperty("maxbackups"));
+        String empty = (settings.getBooleanProperty("backupemptyserver")) ? "Yes" : "No";
+        String everything = (settings.getBooleanProperty("backupeverything")) ? "Yes" : "No";
+        String split = (settings.getBooleanProperty("splitbackup")) ? "Yes" : "No";
+        String zip = (settings.getBooleanProperty("zipbackup")) ? "Yes" : "No";
+        String path = settings.getStringProperty("backuppath");
+        
+        if(settings.getBooleanProperty("showconfigonstartup")) {
+            LogUtils.sendLog("Configuration:");
+            LogUtils.sendLog("Interval: "+interval+", Max: "+max+", On Empty: "+empty+", Everything: "+everything+".", false);
+            LogUtils.sendLog("Split: "+split+", ZIP: "+zip+", Path: "+path+".", false);
+        }
         // Loading complete.
         LogUtils.sendLog(this.getDescription().getFullName() + " has completed loading!", false);
     }

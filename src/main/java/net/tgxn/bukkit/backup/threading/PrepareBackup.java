@@ -1,20 +1,18 @@
 package net.tgxn.bukkit.backup.threading;
 
-import net.tgxn.bukkit.backup.BackupMain;
-import net.tgxn.bukkit.backup.config.Settings;
-import net.tgxn.bukkit.backup.config.Strings;
-import net.tgxn.bukkit.backup.utils.LogUtils;
-
-import org.bukkit.Server;
-import org.bukkit.World;
-import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.entity.Player;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
+import net.tgxn.bukkit.backup.BackupMain;
+import net.tgxn.bukkit.backup.config.Settings;
+import net.tgxn.bukkit.backup.config.Strings;
+import net.tgxn.bukkit.backup.utils.LogUtils;
+import org.bukkit.Server;
+import org.bukkit.World;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 /**
  * This task is running by a syncronized thread from the sheduler. It prepare
@@ -22,7 +20,7 @@ import java.util.logging.Level;
  * stop the autosave, make a server wide save of all player, save all world data
  * from the RAM to the disc and collects finnaly all worlds and directories to
  * doBackup. If this is done, it create an asyncronized thread, the BackupTask.
- * @author Kilian Gaertner
+ * @author Kilian Gaertner, Domenic Horner (gamerx)
  * @see BackupTask
  */
 public class PrepareBackup implements Runnable {
@@ -94,7 +92,12 @@ public class PrepareBackup implements Runnable {
                     }
                 }
             }
-        }  
+        }
+        if(settings.getBooleanProperty("alwayssaveall")) {
+            ConsoleCommandSender consoleCommandSender = server.getConsoleSender();
+            server.dispatchCommand(consoleCommandSender, "save-all");
+            LogUtils.sendLog(strings.getString("alwayssaveall"));
+        }
     }
 
     /**
@@ -178,43 +181,29 @@ public class PrepareBackup implements Runnable {
      *
      */
     private void notifyStarted() {
-
-        // Inform players doBackup is about to happen.
         String startBackupMessage = strings.getString("backupstarted");
-
+        
+        // Check the string is set.
         if (startBackupMessage != null && !startBackupMessage.trim().isEmpty()) {
-
-            // Verify Permissions
-            if (BackupMain.permissionsHandler != null) {
+            
+            // Notify all players, regardless of the permission node.
+            if(settings.getBooleanProperty("notifyallplayers")) {
+                server.broadcastMessage(startBackupMessage);
+            } else {
 
                 // Get all players.
                 Player[] players = server.getOnlinePlayers();
-                boolean sent = false;
                 // Loop through all online players.
-                for(int i = 0; i < players.length; i++) {
-                    Player currentplayer = players[i];
+                for(int pos = 0; pos < players.length; pos++) {
+                    Player currentplayer = players[pos];
 
                     // If the current player has the right permissions, notify them.
                     if(BackupMain.permissionsHandler.has(currentplayer, "backup.notify")) {
                         currentplayer.sendMessage(startBackupMessage);
-                        sent = true;
                     }
                 }
-
-                if(!sent)
-                    if(settings.getBooleanProperty("broardcastmessages"))
-                        server.broadcastMessage(startBackupMessage);
-
-            } else {
-
-                // If there are no permissions, notify all.
-                if(settings.getBooleanProperty("broardcastmessages"))
-                    server.broadcastMessage(startBackupMessage);
             }
         }
-
-        // Send message to log, to be sure.
-        LogUtils.sendLog("Started Backup!");
     }
 
 

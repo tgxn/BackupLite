@@ -1,5 +1,6 @@
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-#
-#     Strings file for "Backup"     #
+#    Strings file for "Backup".     #
+#  @author Domenic Horner (gamerx)  #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-#
 
 #========= In-Game Strings ==========#
@@ -8,13 +9,14 @@ norights             : '[Backup] You do not have the rights to run this backup!'
 confuptodate         : '[Backup] Config file is already Up-To-Date!'
 backupfinished       : '[Backup] Finished Backup!'
 backupstarted        : '[Backup] Started Backup...'
-updateconf           : '[Backup] Version of file is out of date or missing, Updating...'
+updateconf           : '[Backup] Config upgrade requested, Upgrading...'
 reloadedok           : '[Backup] Reloaded %%ARG%% successfully!'
 
 #========= Startup Strings ==========#
 
+stringsupdate        : Your strings file is out of date. It may stop working correctly if you do not update it.
 failedtogetpropsver  : Failed to retrieve version from config file, I suggest upgrading!
-configupdate         : Your configuration is outdated, upgrading it...
+configupdate         : Your configuration is outdated, please upgrade it. (backup upgradeconf)
 zipdisabled          : You have disabled backup compression.
 createbudir          : Created the folder for backups.
 defaultperms         : No permissions plugin detected, defaulting to OP.
@@ -33,6 +35,7 @@ skipworlds           : Skipping worlds backup, for all worlds.
 skipplugins          : Skipping plugin backup, for all plugins.
 removeold            : 'Removing the following backup(s) due to age:'
 lastbackup           : Last player left, backing up!
+alwayssaveall        : Forcing /save-all, stand by!
 
 #========= Error Strings ==========#
 
@@ -45,4 +48,5 @@ backupfailed         : An error occured during backup. Please report to an admin
 ###############################################
 
 stringnotfound       : 'String not found - '
-version              : 1.8.5-dev
+packagedwith         : 1.8.5
+version              : str-27

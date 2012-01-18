@@ -1,24 +1,17 @@
 package net.tgxn.bukkit.backup.config;
 
-import net.tgxn.bukkit.backup.utils.*;
-
+import java.io.*;
+import java.util.logging.Level;
+import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.logging.Level;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import org.bukkit.plugin.Plugin;
 
 /**
  * Loads all settings for the plugin.
  * 
- * @author gamerx
+ * @author Domenic Horner (gamerx)
  */
 public final class Settings {
 
@@ -38,58 +31,45 @@ public final class Settings {
         
         loadProperties();
         
-        checkConfigVersion();
+        checkConfigVersion(true);
     }
     
-    public void checkAndCreate() {
+    /**
+     * Check if the config file exists, if it does not, create it from the JAR.
+     * 
+     */
+    private void checkAndCreate() {
         try {
             if (!configFile.exists()) {
                 LogUtils.sendLog(Level.WARNING, strings.getString("newconfigfile"));
                 createDefaultSettings();
             }
         } catch (SecurityException | NullPointerException se) {
-            LogUtils.exceptionLog(se.getStackTrace());
+            LogUtils.exceptionLog(se.getStackTrace(), "Failed to create default configuration file.");
         }
     }
     
     /**
-     * Load the properties from the configFile, create if needed.
+     * Load the properties to memory from the configFile.
      */
     private void loadProperties() {
-        
         fileSettingConfiguration = new YamlConfiguration();
         try {
-            // Attempt to load configuration.
             fileSettingConfiguration.load(configFile);
         } catch (IOException | InvalidConfigurationException ex) {
-            LogUtils.exceptionLog(ex.getStackTrace(), "Failed to load settings.");
+            LogUtils.exceptionLog(ex.getStackTrace(), "Failed to load configuration.");
             
         }
     }
     
-    private void saveProperties() {
-        
-        // Check they are loaded.
-        if (fileSettingConfiguration == null) {
-            return;
-        }
-        
-        // Attempt to save configuration to file forcibly.
-        try {
-            fileSettingConfiguration.save(configFile);
-        } catch (IOException ex) {
-            LogUtils.exceptionLog(ex.getStackTrace(), "Error saving config file.");
-        }
-    }
-    
     /**
-     * Checks configuration version and then based on the outcome, either runs the update, or returns false.
+     * Checks configuration version, and return true if it requires an update.
      * 
      * @return False for no update done, True for update done.
      */
-    public boolean checkConfigVersion() {
+    public boolean checkConfigVersion(boolean notify) {
         
-        boolean doUpgrade = false;
+        boolean needsUpgrade = false;
         
         // Check configuration is loaded.
         if (fileSettingConfiguration != null) {
@@ -101,37 +81,37 @@ public final class Settings {
             // Check we got a version from the config file.
             if (configVersion == null) {
                 LogUtils.sendLog(strings.getString("failedtogetpropsver"), Level.SEVERE, true);
-                doUpgrade = true;
+                needsUpgrade = true;
             }
 
             // Check if the config is outdated.
             if (!configVersion.equals(pluginVersion))
-                doUpgrade = true;
+                needsUpgrade = true;
 
             // After we have checked the versions, we have determined that we need to update.
-            if (doUpgrade) {
+            if (needsUpgrade && notify) {
                 LogUtils.sendLog(Level.SEVERE, strings.getString("configupdate"));
-                doConfigurationUpdate();
             }
         }
-        return doUpgrade;
+        return needsUpgrade;
     }
     
-    public void doConfigurationUpdate() {
-        loadProperties();
+    /**
+     * Used to upgrade the configuration file.
+     */
+    public void doConfigurationUpgrade() {
+        LogUtils.sendLog(strings.getString("updatingconf"), true);
+        if (configFile.exists()) {
+            configFile.delete();
+        }
         createDefaultSettings();
-        fileSettingConfiguration.set("version", this.plugin.getDescription().getVersion());
-        saveProperties();
+        LogUtils.sendLog(strings.getString("updatingconf"), true);
     }
     
     /**
      * Load the properties file from the JAR and place it in the backup DIR.
      */
     private void createDefaultSettings() {
-        
-        if (configFile.exists()) {
-            configFile.delete();
-        }
         
         BufferedReader bReader = null;
         BufferedWriter bWriter = null;
@@ -164,7 +144,6 @@ public final class Settings {
         }
     }
 
-
     /**
      * Gets the value of a integer property.
      * 
@@ -196,6 +175,7 @@ public final class Settings {
     }
     
     /**
+     * Method to get and interpret the interval.
      * 
      * @return minutes between backups.
      */

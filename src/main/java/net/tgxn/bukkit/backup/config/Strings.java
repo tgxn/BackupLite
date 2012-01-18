@@ -1,29 +1,19 @@
 package net.tgxn.bukkit.backup.config;
 
+import java.io.*;
+import java.util.logging.Level;
 import net.tgxn.bukkit.backup.utils.LogUtils;
-
-import org.bukkit.plugin.Plugin;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
-
 /**
  * String loader for the plugin, provides strings for each event.
  *
- * @author gamerx
+ * @author Domenic Horner (gamerx)
  */
 public class Strings {
     
-    private Plugin plugin;
     private File stringsFile;
     private FileConfiguration fileStringConfiguration;
     
@@ -33,14 +23,13 @@ public class Strings {
      * 
      * @param plugin The plugin this is for.
      */
-    public Strings(Plugin plugin, File stringsFile) {
-        this.plugin = plugin;
+    public Strings(File stringsFile) {
         this.stringsFile = stringsFile;
         
         checkAndCreate();
         loadStrings();
     }
-
+    
     private void checkAndCreate() {
         // Check for the config file, have it created if needed.
         try {
@@ -52,7 +41,32 @@ public class Strings {
         }
     }
     
+    public void checkStringsVersion(String requiredVersion) {
     
+        boolean needsUpdate = false;
+        
+        // Check configuration is loaded.
+        if (fileStringConfiguration != null) {
+
+            // Get the version information from the file.
+            String stringVersion = fileStringConfiguration.getString("version", null);
+
+            // Check we got a version from the config file.
+            if (stringVersion == null) {
+                LogUtils.sendLog("Failed to get strings file verison.", Level.SEVERE, true);
+                needsUpdate = true;
+            }
+
+            // Check if the config is outdated.
+            if (!stringVersion.equals(requiredVersion))
+                needsUpdate = true;
+
+            // After we have checked the versions, we have determined that we need to update.
+            if (needsUpdate) {
+                LogUtils.sendLog(Level.SEVERE, this.getString("stringsupdate"));
+            }
+        }
+    }
     
     private void loadStrings() {
         fileStringConfiguration = new YamlConfiguration();
@@ -62,16 +76,6 @@ public class Strings {
             LogUtils.exceptionLog(ex.getStackTrace(), "Error loading strings file.");
         } catch (IOException | InvalidConfigurationException ex) {
             LogUtils.exceptionLog(ex.getStackTrace(), "Error loading strings file.");
-        }
-    }
-    
-    private void saveStrings() {
-        if(fileStringConfiguration == null)
-            return;
-        try {
-            fileStringConfiguration.save(stringsFile);
-        } catch (IOException ex) {
-            LogUtils.exceptionLog(ex.getStackTrace(), "Error saving strings file.");
         }
     }
     
@@ -119,7 +123,7 @@ public class Strings {
 
     }
     
-    public void doConfigUpdate() {
+    public void doStringsUpdate() {
         loadStrings();
         
     }

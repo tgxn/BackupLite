@@ -1,23 +1,19 @@
 package net.tgxn.bukkit.backup.listeners;
 
-import net.tgxn.bukkit.backup.BackupMain;
-import net.tgxn.bukkit.backup.config.*;
-import net.tgxn.bukkit.backup.utils.*;
+import net.tgxn.bukkit.backup.config.Settings;
+import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
-
+import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.Plugin;
 
 /**
  * Listens for login events, and perform actions based on what happened.
  *
- * Updated 16.11.11
- * = Added Login Listener to cancel scheduled backup.
- *
- * @author gamerx
+ * @author Domenic Horner (gamerx)
  */
 public class LoginListener extends PlayerListener {
     

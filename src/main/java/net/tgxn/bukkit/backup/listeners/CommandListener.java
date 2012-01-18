@@ -1,9 +1,11 @@
 package net.tgxn.bukkit.backup.listeners;
 
+import java.io.File;
 import net.tgxn.bukkit.backup.BackupMain;
-import net.tgxn.bukkit.backup.config.*;
+import net.tgxn.bukkit.backup.config.Settings;
+import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
-
+import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,12 +13,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.plugin.Plugin;
 
-import java.io.File;
-
 /**
  * Command listener and handler.
  *
- * @author gamerx
+ * @author Domenic Horner (gamerx)
  */
 public class CommandListener extends PlayerListener implements CommandExecutor {
 
@@ -68,9 +68,20 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
     public boolean processCommand(String command, String[] args, Player player) {
 
         if (player == null) {
-            // Only console command will be "backup"
             if (command.equalsIgnoreCase("backup")) {
-                doManualBackup();
+                
+                if (args.length > 0) {
+                    switch (args[0]) {
+                        case "updateconf":
+                            updateConfig(null);
+                            break;
+                        case "reload":
+                            reloadPlugin(plugin, player);
+                            break;
+                    }
+                } else {
+                    doManualBackup();
+                }
             }
         } else {
             // For all playercommands.
@@ -83,40 +94,37 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
 
                 // Contains auguments.
                 if (args.length > 0) {
-                    if (args[0].equals("help")) {
-                        if (checkPerms(player, "backup.help")) {
-                            sendHelp(player);
-                        }
-                    }
-
-                    if (args[0].equals("reload")) {
-                        if (checkPerms(player, "backup.reload")) {
-                            reloadPlugin(plugin, player);
-                        }
-                    }
-
-                    if (args[0].equals("list")) {
-                        if (checkPerms(player, "backup.list")) {
-                            listBackups(player);
-                        }
-                    }
-
-                    if (args[0].equals("config")) {
-                        if (checkPerms(player, "backup.config")) {
-                            showConfig(player);
-                        }
-                    }
-
-                    if (args[0].equals("log")) {
-                        if (checkPerms(player, "backup.log")) {
-                            showLog(player);
-                        }
-                    }
-
-                    if (args[0].equals("updateconf")) {
-                        if (checkPerms(player, "backup.updateconf")) {
-                            updateConfig(player);
-                        }
+                    switch (args[0]) {
+                        case "help":
+                            if (checkPerms(player, "backup.help")) {
+                                sendHelp(player);
+                            }
+                            break;
+                        case "reload":
+                            if (checkPerms(player, "backup.reload")) {
+                                reloadPlugin(plugin, player);
+                            }
+                            break;
+                        case "list":
+                            if (checkPerms(player, "backup.list")) {
+                                listBackups(player);
+                            }
+                            break;
+                        case "config":
+                            if (checkPerms(player, "backup.config")) {
+                                showConfig(player);
+                            }
+                            break;
+                        case "log":
+                            if (checkPerms(player, "backup.log")) {
+                                showLog(player);
+                            }
+                            break;
+                        case "updateconf":
+                            if (checkPerms(player, "backup.upgradeconf")) {
+                                updateConfig(player);
+                            }
+                            break;
                     }
                 } else {
                     if (checkPerms(player, "backup.backup")) {
@@ -154,7 +162,7 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
         player.sendMessage("Commands:");
         player.sendMessage("/backup");
         player.sendMessage("- Performs a backup.");
-        player.sendMessage("/backup updateconf");
+        player.sendMessage("/backup upgradeconf");
         player.sendMessage("- Re-Installs config file.");
         player.sendMessage(".");
         player.sendMessage(".");
@@ -270,11 +278,15 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
     }
 
     private void updateConfig(Player player) {
-        if(settings.checkConfigVersion()) {
-            player.sendMessage(strings.getString("updatingconf"));
-            settings.doConfigurationUpdate();
+        if(settings.checkConfigVersion(false)) {
+            if(player != null)
+                player.sendMessage(strings.getString("updatingconf"));
+            settings.doConfigurationUpgrade();
         } else {
-            player.sendMessage(strings.getString("confuptodate"));
+            if(player != null)
+                player.sendMessage(strings.getString("confuptodate"));
+            else
+                LogUtils.sendLog(strings.getString("confuptodate"), false);
         }
     }
 }

@@ -1,16 +1,22 @@
 package net.tgxn.bukkit.backup.utils;
 
-import org.bukkit.plugin.Plugin;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bukkit.plugin.Plugin;
 
+/**
+ * Logging utilities, also handles try-catch exceptions.
+ * 
+ * @author Domenic Horner (gamerx)
+ */
 public class LogUtils {
     
     private static Level logLevel = Level.INFO;
     private static Logger logger;
     private static Plugin plugin;
-    private static boolean shouldDisplayLog = true;
+    private static boolean logToConsole;
+    private static boolean logToFile;
+    private static String logFileName;
 
     /**
      * Main Constructor for LogUtils.
@@ -30,8 +36,10 @@ public class LogUtils {
         }
     }
     
-    public static void finishInitLogUtils(boolean shouldDisplay) {
-        shouldDisplayLog = shouldDisplay;
+    public static void finishInitLogUtils(boolean logToConsole, boolean logtofile, String logFileName) {
+        LogUtils.logToConsole = logToConsole;
+        LogUtils.logToFile = logtofile;
+        LogUtils.logFileName = logFileName;
     }
 
     /**
@@ -41,7 +49,7 @@ public class LogUtils {
      * @param message Message accompanying it.
      */
     public static void exceptionLog(StackTraceElement ste[], String message) {
-        LogUtils.sendLog(message, Level.SEVERE, true);
+        sendLog(message, Level.SEVERE, true);
         exceptionLog(ste);
     }
     
@@ -103,9 +111,10 @@ public class LogUtils {
         final String nameTag = ("[" + plugin.getDescription().getName()  + "] ");
         if(addTags)
             message = nameTag + message;
-        if(shouldDisplayLog)
+        if(logToConsole)
             logger.log(logLevel, message);
-        //@TODO LogtoFile.
+        if(logToFile) {}
+            //@TODO Log to file code. using
     }
     
     /**

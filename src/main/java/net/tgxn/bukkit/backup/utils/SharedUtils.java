@@ -5,7 +5,7 @@ import java.io.File;
 /**
  * I don't like repeating myself.
  * 
- * @author Domenic Horner
+ * @author Domenic Horner (gamerx)
  */
 public class SharedUtils {
     

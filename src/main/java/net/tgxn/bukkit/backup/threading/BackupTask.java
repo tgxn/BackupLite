@@ -1,26 +1,21 @@
 package net.tgxn.bukkit.backup.threading;
 
-import net.tgxn.bukkit.backup.BackupMain;
-import net.tgxn.bukkit.backup.config.*;
-import net.tgxn.bukkit.backup.utils.*;
-
-import org.bukkit.entity.Player;
-import org.bukkit.Server;
-import org.bukkit.plugin.Plugin;
-
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.FileFilter;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.logging.Level;
-import java.util.List;
-
+import net.tgxn.bukkit.backup.BackupMain;
+import net.tgxn.bukkit.backup.config.Settings;
+import net.tgxn.bukkit.backup.config.Strings;
+import net.tgxn.bukkit.backup.utils.FileUtils;
 import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
+import net.tgxn.bukkit.backup.utils.LogUtils;
+import net.tgxn.bukkit.backup.utils.SharedUtils;
+import org.bukkit.Server;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 /**
  * The Task copies and backups the worlds and delete older backups. This task
@@ -28,7 +23,7 @@ import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
  * The PrepareBackupTask and BackupTask are two threads to find a compromise between
  * security and performance.
  *
- * @author Kilian Gaertner
+ * @author Kilian Gaertner, Domenic Horner (gamerx)
  */
 public class BackupTask implements Runnable {
 
@@ -37,7 +32,6 @@ public class BackupTask implements Runnable {
     private Settings settings;
     private Strings strings;
     private LinkedList<String> worldsToBackup;
-
     private List<String> pluginList;
     private boolean splitbackup;
     private boolean shouldZIP;
@@ -115,7 +109,7 @@ public class BackupTask implements Runnable {
 
                 // Copy the directory.
                 FileUtils.copyDirectory(srcDIR, destDIR, ff, true);
-                
+
                 // Perform the zipping action. 
                 doZIP(thisBackupFolder);
 
@@ -174,7 +168,7 @@ public class BackupTask implements Runnable {
 
                 // Check this worlds folder exists.
                 File worldBackupFolder = new File(backupsPath.concat(FILE_SEPARATOR).concat(currentWorldName));
-                
+
                 // Create if needed.
                 SharedUtils.checkFolderAndCreate(worldBackupFolder);
 
@@ -193,7 +187,7 @@ public class BackupTask implements Runnable {
                 doZIP(thisWorldBackupFolder);
 
             } else {
-                
+
                 // This worlds backup folder.
                 String thisWorldBackupFolder = thisBackupFolder.concat(FILE_SEPARATOR).concat(currentWorldName);
 
@@ -220,6 +214,7 @@ public class BackupTask implements Runnable {
 
         // The FileFilter instance for skipped/enabled plugins.
         FileFilter pluginsFileFilter = new FileFilter() {
+
             @Override
             public boolean accept(File name) {
 
@@ -338,8 +333,9 @@ public class BackupTask implements Runnable {
                 for (int l = 0; l < foldersToClean.length; l++) {
 
                     // Make sure we are cleaning a directory.
-                    if(foldersToClean[l].isDirectory())
+                    if (foldersToClean[l].isDirectory()) {
                         cleanFolder(foldersToClean[l]);
+                    }
                 }
             } catch (IOException | NullPointerException ex) {
                 LogUtils.exceptionLog(ex.getStackTrace());
@@ -434,55 +430,40 @@ public class BackupTask implements Runnable {
             public void run() {
 
                 // Should we enable auto-save again?
-                if (settings.getBooleanProperty("enableautosave"))
+                if (settings.getBooleanProperty("enableautosave")) {
                     server.dispatchCommand(server.getConsoleSender(), "save-on");
+                }
 
                 // Notify that it has completed.
                 notifyCompleted();
             }
 
-
             private void notifyCompleted() {
-
-                // Set the message.
                 String completedBackupMessage = strings.getString("backupfinished");
 
                 // Check there is a message.
                 if (completedBackupMessage != null && !completedBackupMessage.trim().isEmpty()) {
 
-                    // Verify Permissions
-                    if (BackupMain.permissionsHandler != null) {
-
-                        // Get all players.
-                        Player[] players = server.getOnlinePlayers();
-                        boolean sent = false;
-                        // Loop through all online players.
-                        for (int i = 0; i < players.length; i++) {
-                            Player currentplayer = players[i];
-
-                            // If the current player has the right permissions, notify them.
-                            if (BackupMain.permissionsHandler.has(currentplayer, "backup.notify")) {
-                                currentplayer.sendMessage(completedBackupMessage);
-                                sent = true;
-                            }
-                        }
-                        if (!sent) {
-                            if (settings.getBooleanProperty("broardcastmessages")) {
-                                server.broadcastMessage(completedBackupMessage);
-                            }
-                        }
-
-
-
+                    if (settings.getBooleanProperty("notifyallplayers")) {
+                        server.broadcastMessage(completedBackupMessage);
                     } else {
+                        // Verify Permissions
+                        if (BackupMain.permissionsHandler != null) {
 
-                        // Check we should be notifying all players.
-                        if (settings.getBooleanProperty("broardcastmessages"))
-                            server.broadcastMessage(completedBackupMessage);
+                            // Get all players.
+                            Player[] players = server.getOnlinePlayers();
+                            // Loop through all online players.
+                            for (int pos = 0; pos < players.length; pos++) {
+                                Player currentplayer = players[pos];
+
+                                // If the current player has the right permissions, notify them.
+                                if (BackupMain.permissionsHandler.has(currentplayer, "backup.notify")) {
+                                    currentplayer.sendMessage(completedBackupMessage);
+                                }
+                            }
+                        }
                     }
                 }
-                // Send message to log, to be sure.
-                LogUtils.sendLog("Backup completed!");
             }
         };
         server.getScheduler().scheduleSyncDelayedTask(plugin, run);
