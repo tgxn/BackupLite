@@ -1,9 +1,42 @@
 name: Backup
-version: 1.8.4
-description: CraftBukkit server Backup plugin.
+version: 1.8.5
+description: A full and simple backup plugin.
 authors: [Meldanor, gamerx, lycano]
+website: http://dev.bukkit.org/server-mods/backup/
 main: net.tgxn.bukkit.backup.BackupMain
 commands:
   backup:
     description: Starts a backup of the server
     usage: "Usage: /<command> [Args]"
+permissions:
+  backup.*:
+    description: Gives access to all permissins.
+    default: op
+  backup.backup:
+    description: Ability to perform backups
+    default: false
+  backup.reload:
+    description: Reload backup's configuration
+    default: false
+  backup.notify:
+    description: Players with this permissions get notified of backups.
+    default: false
+  backup.bypass:
+    description: Players with this permission are not counted as online players.
+    default: false
+  backup.help:
+    description: Able to view plugin's help menu.
+    default: false
+  backup.list:
+    description: Able to list backups.
+    default: false
+  backup.config:
+    description: Able to view configuration.
+    default: false
+  backup.log:
+    description: Able to view log file.
+    default: false
+  backup.updateconf:
+    description: Able to update the backups configuration file.
+    default: false
+  

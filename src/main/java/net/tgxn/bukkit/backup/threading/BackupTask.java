@@ -1,26 +1,21 @@
 package net.tgxn.bukkit.backup.threading;
 
-import net.tgxn.bukkit.backup.BackupMain;
-import net.tgxn.bukkit.backup.config.*;
-import net.tgxn.bukkit.backup.utils.*;
-
-import org.bukkit.entity.Player;
-import org.bukkit.Server;
-import org.bukkit.plugin.Plugin;
-
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.FileFilter;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.logging.Level;
-import java.util.List;
-
+import net.tgxn.bukkit.backup.BackupMain;
+import net.tgxn.bukkit.backup.config.Settings;
+import net.tgxn.bukkit.backup.config.Strings;
+import net.tgxn.bukkit.backup.utils.FileUtils;
 import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
+import net.tgxn.bukkit.backup.utils.LogUtils;
+import net.tgxn.bukkit.backup.utils.SharedUtils;
+import org.bukkit.Server;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 /**
  * The Task copies and backups the worlds and delete older backups. This task
@@ -28,7 +23,7 @@ import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
  * The PrepareBackupTask and BackupTask are two threads to find a compromise between
  * security and performance.
  *
- * @author Kilian Gaertner
+ * @author Kilian Gaertner, Domenic Horner (gamerx)
  */
 public class BackupTask implements Runnable {
 
@@ -37,10 +32,9 @@ public class BackupTask implements Runnable {
     private Settings settings;
     private Strings strings;
     private LinkedList<String> worldsToBackup;
-
     private List<String> pluginList;
     private boolean splitbackup;
-    private boolean ShouldZIP;
+    private boolean shouldZIP;
     private String backupsPath;
     private String thisBackupFolder;
     private boolean backupEverything;
@@ -68,7 +62,7 @@ public class BackupTask implements Runnable {
         thisBackupFolder = backupsPath.concat(getFolderName());
         backupEverything = settings.getBooleanProperty("backupeverything");
         splitbackup = settings.getBooleanProperty("splitbackup");
-        ShouldZIP = settings.getBooleanProperty("zipbackup");
+        shouldZIP = settings.getBooleanProperty("zipbackup");
         pluginList = Arrays.asList(settings.getStringProperty("skipplugins").split(";"));
 
         // Starts the process.
@@ -120,9 +114,9 @@ public class BackupTask implements Runnable {
                 doZIP(thisBackupFolder);
 
             } catch (FileNotFoundException fnfe) {
-                DebugUtils.debugLog(fnfe.getStackTrace());
+                LogUtils.exceptionLog(fnfe.getStackTrace(), "Failed to copy world: File not found.");
             } catch (IOException ioe) {
-                DebugUtils.debugLog(ioe.getStackTrace());
+                LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to copy world: IO Exception.");
             }
         } else {
 
@@ -130,14 +124,14 @@ public class BackupTask implements Runnable {
             if ((worldsToBackup != null) && (settings.getBooleanProperty("backupworlds"))) {
                 backupWorlds();
             } else {
-                LogUtils.sendLog(Level.INFO, strings.getString("skipworlds"), true);
+                LogUtils.sendLog(strings.getString("skipworlds"), Level.INFO, true);
             }
 
             // Plugin backup checking.
             if (settings.getBooleanProperty("backupplugins")) {
                 backupPlugins();
             } else {
-                LogUtils.sendLog(Level.INFO, strings.getString("skipplugins"), true);
+                LogUtils.sendLog(strings.getString("skipplugins"), Level.INFO, true);
             }
 
             // Check if split backup.
@@ -174,9 +168,9 @@ public class BackupTask implements Runnable {
 
                 // Check this worlds folder exists.
                 File worldBackupFolder = new File(backupsPath.concat(FILE_SEPARATOR).concat(currentWorldName));
-                
+
                 // Create if needed.
-                checkFolderAndCreate(worldBackupFolder);
+                SharedUtils.checkFolderAndCreate(worldBackupFolder);
 
                 // This worlds backup folder.
                 String thisWorldBackupFolder = backupsPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(getFolderName());
@@ -185,14 +179,15 @@ public class BackupTask implements Runnable {
                 try {
                     FileUtils.copyDirectory(currentWorldName, thisWorldBackupFolder);
                 } catch (IOException ioe) {
-                    DebugUtils.debugLog(ioe.getStackTrace());
+                    ioe.printStackTrace(System.out);
+                    LogUtils.sendLog("Failed to copy world: IO Exception.");
                 }
 
                 // Check and ZIP folder.
                 doZIP(thisWorldBackupFolder);
 
             } else {
-                
+
                 // This worlds backup folder.
                 String thisWorldBackupFolder = thisBackupFolder.concat(FILE_SEPARATOR).concat(currentWorldName);
 
@@ -201,9 +196,9 @@ public class BackupTask implements Runnable {
                     FileUtils.copyDirectory(currentWorldName, thisWorldBackupFolder);
 
                 } catch (FileNotFoundException ex) {
-                    DebugUtils.debugLog(ex.getStackTrace());
+                    LogUtils.exceptionLog(ex.getStackTrace());
                 } catch (IOException ioe) {
-                    DebugUtils.debugLog(ioe.getStackTrace());
+                    LogUtils.exceptionLog(ioe.getStackTrace());
                 }
             }
         }
@@ -219,6 +214,7 @@ public class BackupTask implements Runnable {
 
         // The FileFilter instance for skipped/enabled plugins.
         FileFilter pluginsFileFilter = new FileFilter() {
+
             @Override
             public boolean accept(File name) {
 
@@ -253,7 +249,7 @@ public class BackupTask implements Runnable {
         }
 
         // Create if needed.
-        checkFolderAndCreate(new File(pluginsBackupPath));
+        SharedUtils.checkFolderAndCreate(new File(pluginsBackupPath));
 
         // Perform plugin backup.
         try {
@@ -263,9 +259,9 @@ public class BackupTask implements Runnable {
             }
             FileUtils.copyDirectory(pluginsFolder, new File(pluginsBackupPath), pluginsFileFilter, true);
         } catch (FileNotFoundException ex) {
-            DebugUtils.debugLog(ex.getStackTrace());
+            LogUtils.exceptionLog(ex.getStackTrace());
         } catch (IOException ioe) {
-            DebugUtils.debugLog(ioe.getStackTrace());
+            LogUtils.exceptionLog(ioe.getStackTrace());
         }
 
         // Check if ZIP is required.
@@ -290,31 +286,32 @@ public class BackupTask implements Runnable {
         try {
             formattedDate = String.format(settings.getStringProperty("dateformat"), calendar);
         } catch (Exception e) {
-            DebugUtils.debugLog(e.getStackTrace(), strings.getString("errordateformat"));
+            e.printStackTrace(System.out);
             formattedDate = String.format("%1$td%1$tm%1$tY-%1$tH%1$tM%1$tS", calendar);
         }
         return formattedDate;
     }
 
     /**
-     * ZIP the path specified.
+     * Add the folder specified to a ZIP file.
      * 
-     * @param path The path to ZIP and delete.
+     * @param folderToZIP The folder that needs to be ZIP'ed
      */
-    private void doZIP(String path) {
-        // Check we are ZIPing the backups.
-        if (ShouldZIP) {
+    private void doZIP(String folderToZIP) {
+        if (shouldZIP) {
+            // ZIP the Folder.
             try {
-                // Add doBackup folder to a ZIP.
-                FileUtils.zipDir(path, path);
+                FileUtils.zipDir(folderToZIP, folderToZIP);
             } catch (IOException ioe) {
-                DebugUtils.debugLog(ioe.getStackTrace(), "Failed to ZIP backup: IO Exception.");
+                LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to ZIP backup: IO Exception.");
             }
+            // Delete the folder.
             try {
                 // Delete the original doBackup directory.
-                FileUtils.deleteDirectory(new File(path));
+                FileUtils.deleteDirectory(new File(folderToZIP));
+                new File(folderToZIP).delete();
             } catch (IOException ioe) {
-                DebugUtils.debugLog(ioe.getStackTrace(), "Failed to delete folder: IO Exception.");
+                LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to delete temp folder: IO Exception.");
             }
         }
     }
@@ -336,14 +333,12 @@ public class BackupTask implements Runnable {
                 for (int l = 0; l < foldersToClean.length; l++) {
 
                     // Make sure we are cleaning a directory.
-                    if(foldersToClean[l].isDirectory())
+                    if (foldersToClean[l].isDirectory()) {
                         cleanFolder(foldersToClean[l]);
+                    }
                 }
-            } catch (IOException ioe) {
-                DebugUtils.debugLog(ioe.getStackTrace());
-                return false;
-            } catch (NullPointerException npe) {
-                DebugUtils.debugLog(npe.getStackTrace());
+            } catch (IOException | NullPointerException ex) {
+                LogUtils.exceptionLog(ex.getStackTrace());
                 return false;
             }
 
@@ -352,11 +347,8 @@ public class BackupTask implements Runnable {
             // Clean entire directory.
             try {
                 cleanFolder(backupDir);
-            } catch (IOException ioe) {
-                DebugUtils.debugLog(ioe.getStackTrace());
-                return false;
-            } catch (NullPointerException npe) {
-                DebugUtils.debugLog(npe.getStackTrace());
+            } catch (IOException | NullPointerException ex) {
+                LogUtils.exceptionLog(ex.getStackTrace());
                 return false;
             }
         }
@@ -379,7 +371,7 @@ public class BackupTask implements Runnable {
 
             // If the amount of files exceeds the max backups to keep.
             if (filesList.length > maxBackups) {
-                ArrayList<File> backupList = new ArrayList<File>(filesList.length);
+                ArrayList<File> backupList = new ArrayList<>(filesList.length);
                 backupList.addAll(Arrays.asList(filesList));
 
                 int maxModifiedIndex;
@@ -409,7 +401,7 @@ public class BackupTask implements Runnable {
                 }
             }
         } catch (SecurityException se) {
-            DebugUtils.debugLog(se.getStackTrace(), "Failed to clean old backups: Security Exception.");
+            LogUtils.exceptionLog(se.getStackTrace(), "Failed to clean old backups: Security Exception.");
         }
     }
 
@@ -426,16 +418,6 @@ public class BackupTask implements Runnable {
         return dir.delete();
     }
 
-    private void checkFolderAndCreate(File folderToCheck) {
-        try {
-            if (!folderToCheck.exists()) {
-                folderToCheck.mkdirs();
-            }
-        } catch (SecurityException se) {
-            DebugUtils.debugLog(se.getStackTrace());
-        }
-    }
-
     /**
      * Creates a temporary Runnable that is running on the main thread by the scheduler to prevent thread problems.
      */
@@ -448,55 +430,40 @@ public class BackupTask implements Runnable {
             public void run() {
 
                 // Should we enable auto-save again?
-                if (settings.getBooleanProperty("enableautosave"))
+                if (settings.getBooleanProperty("enableautosave")) {
                     server.dispatchCommand(server.getConsoleSender(), "save-on");
+                }
 
                 // Notify that it has completed.
                 notifyCompleted();
             }
 
-
             private void notifyCompleted() {
-
-                // Set the message.
                 String completedBackupMessage = strings.getString("backupfinished");
 
                 // Check there is a message.
                 if (completedBackupMessage != null && !completedBackupMessage.trim().isEmpty()) {
 
-                    // Verify Permissions
-                    if (BackupMain.permissionsHandler != null) {
-
-                        // Get all players.
-                        Player[] players = server.getOnlinePlayers();
-                        boolean sent = false;
-                        // Loop through all online players.
-                        for (int i = 0; i < players.length; i++) {
-                            Player currentplayer = players[i];
-
-                            // If the current player has the right permissions, notify them.
-                            if (BackupMain.permissionsHandler.has(currentplayer, "backup.notify")) {
-                                currentplayer.sendMessage(completedBackupMessage);
-                                sent = true;
-                            }
-                        }
-                        if (!sent) {
-                            if (settings.getBooleanProperty("broardcastmessages")) {
-                                server.broadcastMessage(completedBackupMessage);
-                            }
-                        }
-
-
-
+                    if (settings.getBooleanProperty("notifyallplayers")) {
+                        server.broadcastMessage(completedBackupMessage);
                     } else {
+                        // Verify Permissions
+                        if (BackupMain.permissionsHandler != null) {
 
-                        // Check we should be notifying all players.
-                        if (settings.getBooleanProperty("broardcastmessages"))
-                            server.broadcastMessage(completedBackupMessage);
+                            // Get all players.
+                            Player[] players = server.getOnlinePlayers();
+                            // Loop through all online players.
+                            for (int pos = 0; pos < players.length; pos++) {
+                                Player currentplayer = players[pos];
+
+                                // If the current player has the right permissions, notify them.
+                                if (BackupMain.permissionsHandler.has(currentplayer, "backup.notify")) {
+                                    currentplayer.sendMessage(completedBackupMessage);
+                                }
+                            }
+                        }
                     }
                 }
-                // Send message to log, to be sure.
-                LogUtils.sendLog("Backup completed!");
             }
         };
         server.getScheduler().scheduleSyncDelayedTask(plugin, run);

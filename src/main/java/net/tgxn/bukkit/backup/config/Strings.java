@@ -1,60 +1,21 @@
 package net.tgxn.bukkit.backup.config;
 
-import org.bukkit.plugin.Plugin;
-import org.bukkit.util.config.Configuration;
+import java.io.*;
+import java.util.logging.Level;
+import net.tgxn.bukkit.backup.utils.LogUtils;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
 /**
  * String loader for the plugin, provides strings for each event.
  *
- * Updated 16.11.11
- * = Attempt to change to YamlCOnfiguration
- * = Failed.
- *
- * @author gamerx
+ * @author Domenic Horner (gamerx)
  */
 public class Strings {
     
-    private Configuration strings;
-    private String[][] theStrings = {
-        
-        // In-Game Messages.
-        {"backupstarted",       "[Backup] Started Backup..."},
-        {"backupfinished",      "[Backup] Finished Backup!"},
-        {"norights",            "[Backup] You do not have the rights to run this backup!"},
-        {"reloadedok",          "[Backup] Reloaded %%ARG%% successfully!"},
-        {"updateconf",          "[Backup] Version of file is out of date or missing, Updating..."},
-        {"confuptodate",        "[Backup] Config file is already Up-To-Date!"},
-        
-        
-        // Console Messages.
-        {"defaultperms",        "No permissions plugin detected, defaulting to OP."},
-        {"hookedperms",         "Found and hooked a permissions plugin."},
-        {"disbaledauto",        "You have disabled scheduled backups!"},
-        {"createbudir",         "Created the folder for backups."},
-        {"zipdisabled",         "You have disabled backup compression."},
-        
-        {"skipworlds",          "Skipping worlds backup, for all worlds."},
-        {"disabledworlds",      "Backup is disabled for the following world(s):"},
-        
-        {"skipplugins",         "Skipping plugin backup, for all plugins."},
-        {"disabledplugins",     "Backup is disabled for the following plugin(s):"},
-        {"enabledplugins",      "Backup is enabled for the following plugin(s):"},
-        {"allpluginsdisabled",  "Plugin backup is on, but no plugins are selected."},
-
-        
-        {"abortedbackup",       "Aborted backup as no players online. Next attempt in %%ARG%% minutes."},
-        
-        {"removeold",           "Removing the following backup(s) due to age:"},
-        {"errordateformat",     "Date format incorrect Check configuration!"},
-        {"errorcreatetemp",     "Error occurred when trying to backup %%ARG%%.  Backup is possibly incomplete."},
-        {"backupfailed",        "An error occured during backup. Please report to an admin!"},
-        {"newconfigfile",       "No config file exists, creating default."},
-        {"failedtogetpropsver", "Failed to retrieve version from config file, I suggest upgrading!"},
-        {"configoutdated",      "Your config file is outdated, run '/backup updateconf' in-game to upgrade it."},
-        {"lastbackup",          "Last player left, backing up!"}
-    
-    };
+    private File stringsFile;
+    private FileConfiguration fileStringConfiguration;
     
     /**
      * Loads the strings configuration file.
@@ -62,30 +23,109 @@ public class Strings {
      * 
      * @param plugin The plugin this is for.
      */
-    public Strings(Plugin plugin) {
+    public Strings(File stringsFile) {
+        this.stringsFile = stringsFile;
         
-        // Create the new strings file.
-        strings = new Configuration(new File(plugin.getDataFolder(), "strings.yml"));
-        
-        // Attempt to load the strings.
-        strings.load();
-        
-        for(int i = 0; i < theStrings.length; i++) {
-            String key = theStrings[i][0];
-            String value = theStrings[i][1];
-            
-            if(key.equals("") || value.equals(""))
-                return;
-            else
-                strings.getString(key, value);
+        checkAndCreate();
+        loadStrings();
+    }
+    
+    private void checkAndCreate() {
+        // Check for the config file, have it created if needed.
+        try {
+            if (!stringsFile.exists()) {
+                createDefaultStrings();
+            }
+        } catch (SecurityException | NullPointerException se) {
+            LogUtils.exceptionLog(se.getStackTrace(), "Error checking strings file.");
         }
-
-        /** System Variables. **/
-        strings.getString("stringnotfound", "String not found - ");
-        strings.getString("version", plugin.getDescription().getVersion());
+    }
+    
+    public void checkStringsVersion(String requiredVersion) {
+    
+        boolean needsUpdate = false;
         
-        // Save the strings file.
-        strings.save();
+        // Check configuration is loaded.
+        if (fileStringConfiguration != null) {
+
+            // Get the version information from the file.
+            String stringVersion = fileStringConfiguration.getString("version", null);
+
+            // Check we got a version from the config file.
+            if (stringVersion == null) {
+                LogUtils.sendLog("Failed to get strings file verison.", Level.SEVERE, true);
+                needsUpdate = true;
+            }
+
+            // Check if the config is outdated.
+            if (!stringVersion.equals(requiredVersion))
+                needsUpdate = true;
+
+            // After we have checked the versions, we have determined that we need to update.
+            if (needsUpdate) {
+                LogUtils.sendLog(Level.SEVERE, this.getString("stringsupdate"));
+            }
+        }
+    }
+    
+    private void loadStrings() {
+        fileStringConfiguration = new YamlConfiguration();
+        try {
+            fileStringConfiguration.load(stringsFile);
+        } catch (FileNotFoundException ex) {
+            LogUtils.exceptionLog(ex.getStackTrace(), "Error loading strings file.");
+        } catch (IOException | InvalidConfigurationException ex) {
+            LogUtils.exceptionLog(ex.getStackTrace(), "Error loading strings file.");
+        }
+    }
+    
+    private void createDefaultStrings() {
+    
+        if(stringsFile.exists())
+            stringsFile.delete();
+        
+    /**
+     * Load the properties file from the JAR and place it in the backup DIR.
+     */
+    
+        BufferedReader bReader = null;
+        BufferedWriter bWriter = null;
+        String line;
+
+        try {
+
+            // Open a stream to the properties file in the jar, because we can only access over the class loader.
+            bReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/settings/strings.yml")));
+            bWriter = new BufferedWriter(new FileWriter(stringsFile));
+
+            // Copy the content to the configfile location.
+            while ((line = bReader.readLine()) != null) {
+                bWriter.write(line);
+                bWriter.newLine();
+            }
+        } catch (IOException ioe) {
+            LogUtils.exceptionLog(ioe.getStackTrace(), "Error opening streams.");
+        }
+        
+        finally {
+            try {
+                if (bReader != null) {
+                    bReader.close();
+                }
+                if (bWriter != null) {
+                    bWriter.close();
+                }
+            } catch (IOException ioe) {
+                LogUtils.exceptionLog(ioe.getStackTrace(), "Error closing streams.");
+            }
+        }
+    
+
+    }
+    
+    public void doStringsUpdate() {
+        loadStrings();
+        
     }
     
     /**
@@ -97,13 +137,13 @@ public class Strings {
     public String getString(String property) {
         
         // Get string for this name.
-        String string = strings.getString(property);
+        String string = fileStringConfiguration.getString(property);
         
         // If we cannot find a string for this, return default.
         if (string != null)
             return colorizeString(string);
         else
-            return strings.getString("stringnotfound") + property;
+            return fileStringConfiguration.getString("stringnotfound") + property;
     }
     
     /**
@@ -116,13 +156,13 @@ public class Strings {
     public String getString(String property, String option) {
         
         // Get string for this name.
-        String string = strings.getString(property);
+        String string = fileStringConfiguration.getString(property);
         
         // If we cannot find a string for this, return default.
         if (string != null)
             return colorizeString(string.replaceAll("%%ARG%%", option));
         else
-            return strings.getString("stringnotfound") + property;
+            return fileStringConfiguration.getString("stringnotfound") + property;
     }
     
     /**
@@ -140,5 +180,4 @@ public class Strings {
         else
             return "";
     }
-
 }
