@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.logging.Level;
 import net.tgxn.bukkit.backup.BackupMain;
@@ -337,8 +338,11 @@ public class BackupTask implements Runnable {
                         cleanFolder(foldersToClean[l]);
                     }
                 }
-            } catch (IOException | NullPointerException ex) {
-                LogUtils.exceptionLog(ex.getStackTrace());
+            } catch (NullPointerException npe) {
+                LogUtils.exceptionLog(npe.getStackTrace());
+                return false;
+            } catch (IOException ioe) {
+                LogUtils.exceptionLog(ioe.getStackTrace());
                 return false;
             }
 
@@ -347,8 +351,11 @@ public class BackupTask implements Runnable {
             // Clean entire directory.
             try {
                 cleanFolder(backupDir);
-            } catch (IOException | NullPointerException ex) {
-                LogUtils.exceptionLog(ex.getStackTrace());
+            } catch (NullPointerException npe) {
+                LogUtils.exceptionLog(npe.getStackTrace());
+                return false;
+            } catch (IOException ioe) {
+                LogUtils.exceptionLog(ioe.getStackTrace());
                 return false;
             }
         }
@@ -371,7 +378,7 @@ public class BackupTask implements Runnable {
 
             // If the amount of files exceeds the max backups to keep.
             if (filesList.length > maxBackups) {
-                ArrayList<File> backupList = new ArrayList<>(filesList.length);
+                ArrayList<File> backupList = new ArrayList<File>(filesList.length);
                 backupList.addAll(Arrays.asList(filesList));
 
                 int maxModifiedIndex;

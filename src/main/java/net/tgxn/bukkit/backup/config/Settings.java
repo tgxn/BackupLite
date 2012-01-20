@@ -44,7 +44,9 @@ public final class Settings {
                 LogUtils.sendLog(Level.WARNING, strings.getString("newconfigfile"));
                 createDefaultSettings();
             }
-        } catch (SecurityException | NullPointerException se) {
+        } catch (NullPointerException npe) {
+            LogUtils.exceptionLog(npe.getStackTrace(), "Failed to create default configuration file.");
+        } catch (SecurityException se) {
             LogUtils.exceptionLog(se.getStackTrace(), "Failed to create default configuration file.");
         }
     }
@@ -56,9 +58,10 @@ public final class Settings {
         fileSettingConfiguration = new YamlConfiguration();
         try {
             fileSettingConfiguration.load(configFile);
-        } catch (IOException | InvalidConfigurationException ex) {
-            LogUtils.exceptionLog(ex.getStackTrace(), "Failed to load configuration.");
-            
+        } catch (InvalidConfigurationException ice) {
+            LogUtils.exceptionLog(ice.getStackTrace(), "Failed to load configuration.");
+        } catch (IOException ioe) {
+            LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to load configuration.");
         }
     }
     
@@ -188,17 +191,12 @@ public final class Settings {
         
         String lastLetter = settingBackupInterval.substring(settingBackupInterval.length()-1, settingBackupInterval.length());
         int amountTime =  Integer.parseInt(settingBackupInterval.substring(0, settingBackupInterval.length()-1));
-        switch(lastLetter) {
-            case "H": // Hours
-                amountTime = (amountTime * 60);
-            break;
-            case "D": // Days.
-                amountTime = (amountTime * 1440);
-            break;
-            case "W": // Weeks
-                amountTime = (amountTime * 10080);
-            break;
-        }
+        if(lastLetter.equals("H"))
+            amountTime = (amountTime * 60);
+        else if(lastLetter.equals("D"))
+            amountTime = (amountTime * 1440);
+        else if(lastLetter.equals("W"))
+            amountTime = (amountTime * 10080);
         return amountTime;
     }
 }

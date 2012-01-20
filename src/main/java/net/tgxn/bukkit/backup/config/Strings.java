@@ -36,7 +36,9 @@ public class Strings {
             if (!stringsFile.exists()) {
                 createDefaultStrings();
             }
-        } catch (SecurityException | NullPointerException se) {
+        } catch (NullPointerException npe) {
+            LogUtils.exceptionLog(npe.getStackTrace(), "Error checking strings file.");
+        } catch (SecurityException se) {
             LogUtils.exceptionLog(se.getStackTrace(), "Error checking strings file.");
         }
     }
@@ -74,8 +76,10 @@ public class Strings {
             fileStringConfiguration.load(stringsFile);
         } catch (FileNotFoundException ex) {
             LogUtils.exceptionLog(ex.getStackTrace(), "Error loading strings file.");
-        } catch (IOException | InvalidConfigurationException ex) {
-            LogUtils.exceptionLog(ex.getStackTrace(), "Error loading strings file.");
+        } catch (InvalidConfigurationException ice) {
+            LogUtils.exceptionLog(ice.getStackTrace(), "Error loading strings file.");
+        } catch (IOException ioe) {
+            LogUtils.exceptionLog(ioe.getStackTrace(), "Error loading strings file.");
         }
     }
     

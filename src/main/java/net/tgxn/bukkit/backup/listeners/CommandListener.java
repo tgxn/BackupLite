@@ -27,7 +27,7 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
 
     /**
      * The main constructor to initalize listening for commands.
-     * 
+     *
      * @param prepareBackup The instance of prepareBackup.
      * @param plugin The plugin object itself
      * @param settings Load settings for the plugin.
@@ -59,7 +59,7 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
 
     /**
      * Method to process every command.
-     * 
+     *
      * @param command The command (Usually "backup")
      * @param args Arguments passed along with the command.
      * @param player The player that requested the command.
@@ -69,16 +69,15 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
 
         if (player == null) {
             if (command.equalsIgnoreCase("backup")) {
-                
+
                 if (args.length > 0) {
-                    switch (args[0]) {
-                        case "updateconf":
-                            updateConfig(null);
-                            break;
-                        case "reload":
-                            reloadPlugin(plugin, player);
-                            break;
+                    if (args[0].equals("updateconf")) {
+                        updateConfig(null);
+                    } else if (args[0].equals("reload")) {
+                        reloadPlugin(plugin, player);
                     }
+
+
                 } else {
                     doManualBackup();
                 }
@@ -94,38 +93,35 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
 
                 // Contains auguments.
                 if (args.length > 0) {
-                    switch (args[0]) {
-                        case "help":
-                            if (checkPerms(player, "backup.help")) {
-                                sendHelp(player);
-                            }
-                            break;
-                        case "reload":
-                            if (checkPerms(player, "backup.reload")) {
-                                reloadPlugin(plugin, player);
-                            }
-                            break;
-                        case "list":
-                            if (checkPerms(player, "backup.list")) {
-                                listBackups(player);
-                            }
-                            break;
-                        case "config":
-                            if (checkPerms(player, "backup.config")) {
-                                showConfig(player);
-                            }
-                            break;
-                        case "log":
-                            if (checkPerms(player, "backup.log")) {
-                                showLog(player);
-                            }
-                            break;
-                        case "updateconf":
-                            if (checkPerms(player, "backup.upgradeconf")) {
-                                updateConfig(player);
-                            }
-                            break;
+                    String argument = args[0];
+                    if (argument.equals("help")) {
+                        if (checkPerms(player, "backup.help")) {
+                            sendHelp(player);
+                        }
+                    } else if (argument.equals("reload")) {
+                        if (checkPerms(player, "backup.reload")) {
+                            reloadPlugin(plugin, player);
+                        }
+                    } else if (argument.equals("list")) {
+                        if (checkPerms(player, "backup.list")) {
+                            listBackups(player);
+                        }
+                    } else if (argument.equals("config")) {
+                        if (checkPerms(player, "backup.config")) {
+                            showConfig(player);
+                        }
+                    } else if (argument.equals("log")) {
+                        if (checkPerms(player, "backup.log")) {
+                            showLog(player);
+                        }
+                    } else if (argument.equals("upgradeconf")) {
+                        if (checkPerms(player, "backup.upgradeconf")) {
+                            updateConfig(player);
+                        }
+                    } else if (argument.equals("")) {
+                    } else if (argument.equals("")) {
                     }
+
                 } else {
                     if (checkPerms(player, "backup.backup")) {
                         doManualBackup();
@@ -154,7 +150,7 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
 
     /**
      * Send the plugin help to the player.
-     * 
+     *
      * @param player The player who requested the help.
      */
     private void sendHelp(Player player) {
@@ -171,9 +167,9 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
     }
 
     /**
-     * Checks if the player has permissions.
-     * Also sends a message if the player does not have permissions.
-     * 
+     * Checks if the player has permissions. Also sends a message if the player
+     * does not have permissions.
+     *
      * @param player The player's object.
      * @param permission The name of the permission
      * @return True if they have permission, false if no permission
@@ -202,9 +198,9 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
     }
 
     /**
-     * For listing all the backups for a user.
-     * Lists to a maximum of 8 so that it doesn't flow off screen.
-     * 
+     * For listing all the backups for a user. Lists to a maximum of 8 so that
+     * it doesn't flow off screen.
+     *
      * @param player The player that requested the list.
      */
     private void listBackups(Player player) {
@@ -251,7 +247,7 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
 
     /**
      * To show the plugins configuration.
-     * 
+     *
      * @param player The player that requested the configuration.
      */
     private void showConfig(Player player) {
@@ -278,15 +274,17 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
     }
 
     private void updateConfig(Player player) {
-        if(settings.checkConfigVersion(false)) {
-            if(player != null)
+        if (settings.checkConfigVersion(false)) {
+            if (player != null) {
                 player.sendMessage(strings.getString("updatingconf"));
+            }
             settings.doConfigurationUpgrade();
         } else {
-            if(player != null)
+            if (player != null) {
                 player.sendMessage(strings.getString("confuptodate"));
-            else
+            } else {
                 LogUtils.sendLog(strings.getString("confuptodate"), false);
+            }
         }
     }
 }

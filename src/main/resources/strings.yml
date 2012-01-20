@@ -48,5 +48,5 @@ backupfailed         : An error occured during backup. Please report to an admin
 ###############################################
 
 stringnotfound       : 'String not found - '
-packagedwith         : 1.8.5
+packagedwith         : 1.8.5E
 version              : str-27
