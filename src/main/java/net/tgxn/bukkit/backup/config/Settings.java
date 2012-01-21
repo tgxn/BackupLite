@@ -185,7 +185,7 @@ public final class Settings {
     public int getIntervalInMinutes() {
         String settingBackupInterval = getStringProperty("backupinterval");
         
-        if(settingBackupInterval.equals("-1")) {
+        if(settingBackupInterval.trim().equals("-1") || settingBackupInterval == null) {
             return 0;
         }
         

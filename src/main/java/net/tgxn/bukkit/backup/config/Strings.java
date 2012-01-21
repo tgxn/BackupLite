@@ -57,12 +57,9 @@ public class Strings {
             if (stringVersion == null) {
                 LogUtils.sendLog("Failed to get strings file verison.", Level.SEVERE, true);
                 needsUpdate = true;
-            }
-
-            // Check if the config is outdated.
-            if (!stringVersion.equals(requiredVersion))
+            } else if (!stringVersion.equals(requiredVersion)) {
                 needsUpdate = true;
-
+            }
             // After we have checked the versions, we have determined that we need to update.
             if (needsUpdate) {
                 LogUtils.sendLog(Level.SEVERE, this.getString("stringsupdate"));
