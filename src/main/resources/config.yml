@@ -110,4 +110,4 @@ showconfigonstartup: true
 ###############################################
 
 requiredstrings: str-28
-version: 1.8.5E
+version: 1.8.6-dev
