@@ -36,7 +36,9 @@ public class Strings {
             if (!stringsFile.exists()) {
                 createDefaultStrings();
             }
-        } catch (SecurityException | NullPointerException se) {
+        } catch (NullPointerException npe) {
+            LogUtils.exceptionLog(npe.getStackTrace(), "Error checking strings file.");
+        } catch (SecurityException se) {
             LogUtils.exceptionLog(se.getStackTrace(), "Error checking strings file.");
         }
     }
@@ -55,12 +57,9 @@ public class Strings {
             if (stringVersion == null) {
                 LogUtils.sendLog("Failed to get strings file verison.", Level.SEVERE, true);
                 needsUpdate = true;
-            }
-
-            // Check if the config is outdated.
-            if (!stringVersion.equals(requiredVersion))
+            } else if (!stringVersion.equals(requiredVersion)) {
                 needsUpdate = true;
-
+            }
             // After we have checked the versions, we have determined that we need to update.
             if (needsUpdate) {
                 LogUtils.sendLog(Level.SEVERE, this.getString("stringsupdate"));
@@ -74,8 +73,10 @@ public class Strings {
             fileStringConfiguration.load(stringsFile);
         } catch (FileNotFoundException ex) {
             LogUtils.exceptionLog(ex.getStackTrace(), "Error loading strings file.");
-        } catch (IOException | InvalidConfigurationException ex) {
-            LogUtils.exceptionLog(ex.getStackTrace(), "Error loading strings file.");
+        } catch (InvalidConfigurationException ice) {
+            LogUtils.exceptionLog(ice.getStackTrace(), "Error loading strings file.");
+        } catch (IOException ioe) {
+            LogUtils.exceptionLog(ioe.getStackTrace(), "Error loading strings file.");
         }
     }
     

@@ -42,11 +42,12 @@ alwayssaveall        : Forcing /save-all, stand by!
 errordateformat      : Date format incorrect Check configuration!
 errorcreatetemp      : Error occurred when trying to backup %%ARG%%.  Backup is possibly incomplete.
 backupfailed         : An error occured during backup. Please report to an admin!
+checkbackupinterval  : Please check your backupinterval setting is formatted correctly.
 
 ###############################################
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
 stringnotfound       : 'String not found - '
-packagedwith         : 1.8.5
-version              : str-27
+packagedwith         : 1.8.5E
+version              : str-28
