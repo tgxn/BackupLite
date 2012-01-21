@@ -197,6 +197,10 @@ public final class Settings {
             amountTime = (amountTime * 1440);
         else if(lastLetter.equals("W"))
             amountTime = (amountTime * 10080);
+        else {
+            amountTime = 0;
+            LogUtils.sendLog(strings.getString("checkbackupinterval"));
+        }
         return amountTime;
     }
 }
