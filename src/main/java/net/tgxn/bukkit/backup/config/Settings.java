@@ -2,6 +2,8 @@ package net.tgxn.bukkit.backup.config;
 
 import java.io.*;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -121,7 +123,7 @@ public final class Settings {
         String line;
         try {
             // Open a stream to the properties file in the jar, because we can only access over the class loader.
-            bReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/settings/config.yml")));
+            bReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/resources/config.yml")));
             bWriter = new BufferedWriter(new FileWriter(configFile));
 
             // Copy the content to the configfile location.
@@ -178,29 +180,50 @@ public final class Settings {
     }
     
     /**
-     * Method to get and interpret the interval.
+     * Method that gets the amount of time between backups.
+     * - Checks string for no automatic backup.
+     * - Checks for if only number (as minutes).
+     * - Checks for properly formatted string.
+     * - If unknown amount of time, sets as minutes.
      * 
-     * @return minutes between backups.
+     * @return Amount of time between backups. (In minutes)
      */
     public int getIntervalInMinutes() {
-        String settingBackupInterval = getStringProperty("backupinterval");
-        
-        if(settingBackupInterval.trim().equals("-1") || settingBackupInterval == null) {
+        String settingBackupInterval = getStringProperty("backupinterval").trim();
+        // If it is null or set to disable.
+        if(settingBackupInterval.equals("-1") || settingBackupInterval == null) {
             return 0;
         }
-        
-        String lastLetter = settingBackupInterval.substring(settingBackupInterval.length()-1, settingBackupInterval.length());
-        int amountTime =  Integer.parseInt(settingBackupInterval.substring(0, settingBackupInterval.length()-1));
-        if(lastLetter.equals("H"))
-            amountTime = (amountTime * 60);
-        else if(lastLetter.equals("D"))
-            amountTime = (amountTime * 1440);
-        else if(lastLetter.equals("W"))
-            amountTime = (amountTime * 10080);
-        else {
-            amountTime = 0;
+        // If it is just a number, return minutes.
+        if (settingBackupInterval.matches("^[0-9]+$")) {
+            return Integer.parseInt(settingBackupInterval);
+        } else if(settingBackupInterval.matches("[0-9]+[a-zA-Z]")) {
+            Pattern timePattern = Pattern.compile("^([0-9]+)[A-Za-z]$");
+            Matcher amountTime = timePattern.matcher(settingBackupInterval);
+            Pattern letterPattern = Pattern.compile("^[0-9]+([A-Za-z])$");
+            Matcher letterTime = letterPattern.matcher(settingBackupInterval);
+            if(letterTime.matches() && amountTime.matches()) {
+                String letter = letterTime.group(1);
+                int time = Integer.parseInt(amountTime.group(1));
+                if (letter.equals("M")) {
+                    return time;
+                } else if (letter.equals("H")) {
+                    return time * 60;
+                } else if (letter.equals("D")) {
+                    return time * 1440;
+                } else if (letter.equals("W")) {
+                    return time * 10080;
+                } else {
+                    LogUtils.sendLog(strings.getString("unknowntimeident"));
+                    return time;
+                }
+            } else {
+                LogUtils.sendLog(strings.getString("checkbackupinterval"));
+                return 0;
+            }
+        } else {
             LogUtils.sendLog(strings.getString("checkbackupinterval"));
+            return 0;
         }
-        return amountTime;
     }
 }
