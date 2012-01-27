@@ -96,7 +96,7 @@ public class Strings {
         try {
 
             // Open a stream to the properties file in the jar, because we can only access over the class loader.
-            bReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/settings/strings.yml")));
+            bReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/resources/strings.yml")));
             bWriter = new BufferedWriter(new FileWriter(stringsFile));
 
             // Copy the content to the configfile location.

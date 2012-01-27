@@ -109,5 +109,5 @@ showconfigonstartup: true
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
-requiredstrings: str-28
-version: 1.8.5E
+requiredstrings: str-29
+version: 1.8.6
