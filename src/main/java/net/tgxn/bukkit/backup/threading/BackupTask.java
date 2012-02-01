@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.logging.Level;
 import net.tgxn.bukkit.backup.BackupMain;
@@ -455,18 +454,14 @@ public class BackupTask implements Runnable {
                         server.broadcastMessage(completedBackupMessage);
                     } else {
                         // Verify Permissions
-                        if (BackupMain.permissionsHandler != null) {
+                        Player[] players = server.getOnlinePlayers();
+                        // Loop through all online players.
+                        for (int pos = 0; pos < players.length; pos++) {
+                            Player currentplayer = players[pos];
 
-                            // Get all players.
-                            Player[] players = server.getOnlinePlayers();
-                            // Loop through all online players.
-                            for (int pos = 0; pos < players.length; pos++) {
-                                Player currentplayer = players[pos];
-
-                                // If the current player has the right permissions, notify them.
-                                if (BackupMain.permissionsHandler.has(currentplayer, "backup.notify")) {
-                                    currentplayer.sendMessage(completedBackupMessage);
-                                }
+                            // If the current player has the right permissions, notify them.
+                            if (currentplayer.hasPermission("backup.notify")) {
+                                currentplayer.sendMessage(completedBackupMessage);
                             }
                         }
                     }

@@ -61,12 +61,11 @@ public class LoginListener extends PlayerListener {
          // Check if it was the last player.
          if (onlinePlayers == 1) {
             prepareBackup.setAsLastBackup(true);
-            //plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, backupTask);
             int intervalInMinutes = settings.getIntervalInMinutes();
             if (intervalInMinutes != -1) {
                 int interval =  intervalInMinutes * 1200;
-                lastBackupID = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, prepareBackup, interval, interval);
-                LogUtils.sendLog("Scheduled last backup for " + intervalInMinutes +" minutes;");
+                lastBackupID = plugin.getServer().getScheduler().scheduleAsyncDelayedTask(plugin, prepareBackup, interval);
+                LogUtils.sendLog("Scheduled last backup for " + intervalInMinutes +" minutes.");
             } else {
                 LogUtils.sendLog(strings.getString("disbaledauto"));
             }
@@ -78,7 +77,7 @@ public class LoginListener extends PlayerListener {
      *
      */
     private void playerJoin() {
-        if(prepareBackup.isLastBackup || lastBackupID != -2) {
+        if(lastBackupID != -2) {
             plugin.getServer().getScheduler().cancelTask(lastBackupID);
             lastBackupID = -2;
             prepareBackup.setAsLastBackup(false);

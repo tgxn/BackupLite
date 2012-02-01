@@ -1,7 +1,5 @@
 package net.tgxn.bukkit.backup;
 
-import com.nijiko.permissions.PermissionHandler;
-import com.nijikokun.bukkit.Permissions.Permissions;
 import java.io.File;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
@@ -13,7 +11,6 @@ import net.tgxn.bukkit.backup.utils.SharedUtils;
 import org.bukkit.Server;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event.Type;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -24,7 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class BackupMain extends JavaPlugin {
     
-    public static PermissionHandler permissionsHandler;
+    //public static PermissionHandler permissionsHandler;
     public int mainBackupTaskID = -2;
     public File mainDataFolder;
     
@@ -62,7 +59,7 @@ public class BackupMain extends JavaPlugin {
     public void onEnable() {
         
         // Initalize permissions handler.
-        initPermissions();
+        //initPermissions();
 
         // Get server and plugin manager instances.
         Server pluginServer = getServer();
@@ -82,7 +79,7 @@ public class BackupMain extends JavaPlugin {
         int backupInterval = settings.getIntervalInMinutes();
         if (backupInterval != 0) {
             backupInterval *= 1200;
-            mainBackupTaskID = pluginServer.getScheduler().scheduleSyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
+            mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
         } else {
             LogUtils.sendLog(strings.getString("disbaledauto"));
         }
@@ -107,6 +104,8 @@ public class BackupMain extends JavaPlugin {
     @Override
     public void onDisable () {
         
+        //this.getServer().getScheduler().getPendingTasks().
+        
         // Stop and scheduled tasks.
         this.getServer().getScheduler().cancelTasks(this);
         
@@ -117,21 +116,21 @@ public class BackupMain extends JavaPlugin {
     /**
      * Check if the Permissions System is available, and setup the handler.
      */
-    private void initPermissions() {
-
-        // Check if not already initalized.
-        if (permissionsHandler != null)
-            return;
-                
-        // Get permissions plugin.
-        Plugin testPermissions = this.getServer().getPluginManager().getPlugin("Permissions");
-        
-        // If we were able to get the permissions plugin.
-        if (testPermissions != null) {
-            permissionsHandler = ((Permissions) testPermissions).getHandler();
-            LogUtils.sendLog(strings.getString("hookedperms"));
-        } else {
-            LogUtils.sendLog(strings.getString("defaultperms"));
-        }
-    }
+//    private void initPermissions() {
+//
+//        // Check if not already initalized.
+//        if (permissionsHandler != null)
+//            return;
+//                
+//        // Get permissions plugin.
+//        Plugin testPermissions = this.getServer().getPluginManager().getPlugin("Permissions");
+//        
+//        // If we were able to get the permissions plugin.
+//        if (testPermissions != null) {
+//            permissionsHandler = ((Permissions) testPermissions).getHandler();
+//            LogUtils.sendLog(strings.getString("hookedperms"));
+//        } else {
+//            LogUtils.sendLog(strings.getString("defaultperms"));
+//        }
+//    }
 }
