@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
-import net.tgxn.bukkit.backup.BackupMain;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.utils.LogUtils;
@@ -111,11 +110,7 @@ public class PrepareBackup implements Runnable {
 
         // Save players.
         server.savePlayers();
-
-        // Send a message advising that zipping is disabled.
-        if (!settings.getBooleanProperty("zipbackup"))
-            LogUtils.sendLog(strings.getString("zipdisabled"));
-
+        
         // Create list of worlds to ignore.
         List<String> ignoredWorldNames = getIgnoredWorldNames();
         LinkedList<String> worldsToBackup = new LinkedList<String>();
