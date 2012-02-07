@@ -1,7 +1,6 @@
 package net.tgxn.bukkit.backup.listeners;
 
 import java.io.File;
-import net.tgxn.bukkit.backup.BackupMain;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
@@ -10,7 +9,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerListener;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
 /**
@@ -18,7 +17,7 @@ import org.bukkit.plugin.Plugin;
  *
  * @author Domenic Horner (gamerx)
  */
-public class CommandListener extends PlayerListener implements CommandExecutor {
+public class CommandListener implements Listener, CommandExecutor {
 
     private PrepareBackup backupTask = null;
     private final Plugin plugin;

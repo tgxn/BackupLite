@@ -8,12 +8,13 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 /**
- * String loader for the plugin, provides strings for each event.
+ * Loads all strings required from file into memory.
  *
  * @author Domenic Horner (gamerx)
  */
 public class Strings {
     
+    // Variables needed to load the strings.
     private File stringsFile;
     private FileConfiguration fileStringConfiguration;
     
@@ -21,15 +22,21 @@ public class Strings {
      * Loads the strings configuration file.
      * If it does not exist, it creates it from defaults.
      * 
-     * @param plugin The plugin this is for.
+     * @param stringsFile The file that strings should be loaded from.
      */
     public Strings(File stringsFile) {
         this.stringsFile = stringsFile;
         
+        // Check strings file exists, and create is needed.
         checkAndCreate();
+        
+        // Lod strings from configuration file.
         loadStrings();
     }
     
+    /**
+     * Checks that the file exists and if not, creates defaults.
+     */
     private void checkAndCreate() {
         // Check for the config file, have it created if needed.
         try {
@@ -43,11 +50,17 @@ public class Strings {
         }
     }
     
+    /**
+     * Checks the version of the strings file.
+     * Notifies user if it requires an update.
+     * 
+     * @param requiredVersion The required version from the settings file.
+     */
     public void checkStringsVersion(String requiredVersion) {
     
         boolean needsUpdate = false;
         
-        // Check configuration is loaded.
+        // Check strings are loaded.
         if (fileStringConfiguration != null) {
 
             // Get the version information from the file.
@@ -67,6 +80,9 @@ public class Strings {
         }
     }
     
+    /**
+     * Load strings configuration into memory from file.
+     */
     private void loadStrings() {
         fileStringConfiguration = new YamlConfiguration();
         try {
@@ -80,26 +96,27 @@ public class Strings {
         }
     }
     
+    /**
+     * Method to create (or re-create) the strings configuration file.
+     */
     private void createDefaultStrings() {
-    
+        
+        // Check if it exists, if it does, delete it.
         if(stringsFile.exists())
             stringsFile.delete();
         
-    /**
-     * Load the properties file from the JAR and place it in the backup DIR.
-     */
-    
+        // Initalize buffers and reader.
         BufferedReader bReader = null;
         BufferedWriter bWriter = null;
         String line;
-
+        
         try {
-
+            
             // Open a stream to the properties file in the jar, because we can only access over the class loader.
             bReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/resources/strings.yml")));
             bWriter = new BufferedWriter(new FileWriter(stringsFile));
 
-            // Copy the content to the configfile location.
+            // Read the default configuration into the config file.
             while ((line = bReader.readLine()) != null) {
                 bWriter.write(line);
                 bWriter.newLine();
@@ -108,6 +125,7 @@ public class Strings {
             LogUtils.exceptionLog(ioe.getStackTrace(), "Error opening streams.");
         }
         
+        // Close the open buffers.
         finally {
             try {
                 if (bReader != null) {
@@ -120,10 +138,11 @@ public class Strings {
                 LogUtils.exceptionLog(ioe.getStackTrace(), "Error closing streams.");
             }
         }
-    
-
     }
     
+    /**
+     * Method used when doing string file updates.
+     */
     public void doStringsUpdate() {
         loadStrings();
         

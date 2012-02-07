@@ -4,7 +4,7 @@ import java.io.File;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.listeners.CommandListener;
-import net.tgxn.bukkit.backup.listeners.LoginListener;
+import net.tgxn.bukkit.backup.listeners.EventListener;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
 import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
 import net.tgxn.bukkit.backup.utils.LogUtils;
@@ -72,15 +72,14 @@ public class BackupMain extends JavaPlugin {
         // Create new "PrepareBackup" instance.
         prepareBackup = new PrepareBackup(pluginServer, settings, strings);
 
-        // Initalize plugin listeners.
+        // Initalize Command Listener.
         getCommand("backup").setExecutor(new CommandListener(prepareBackup, this, settings, strings));
-        LoginListener loginListener = new LoginListener(prepareBackup, this, settings, strings);
-        pluginManager.registerEvents(loginListener, this);
-//        pluginManager.registerEvent(Type.PLAYER_QUIT, loginListener, Priority.Normal, this);
-//        pluginManager.registerEvent(Type.PLAYER_KICK, loginListener, Priority.Normal, this);
-//        pluginManager.registerEvent(Type.PLAYER_JOIN, loginListener, Priority.Normal, this);
-
-        // Schedule timer, checks if there is a timer and enables task.
+        
+        // Initalize Event Listener.
+        EventListener eventListener = new EventListener(prepareBackup, this, settings, strings);
+        pluginManager.registerEvents(eventListener, this);
+        
+        // COnfigure main backup task schedule.
         int backupInterval = settings.getIntervalInMinutes();
         if (backupInterval != 0) {
             backupInterval *= 1200;
@@ -88,28 +87,27 @@ public class BackupMain extends JavaPlugin {
         } else {
             LogUtils.sendLog(strings.getString("disbaledauto"));
         }
-        
-        String interval = settings.getStringProperty("backupinterval");
-        String max = Integer.toString(settings.getIntProperty("maxbackups"));
-        String empty = (settings.getBooleanProperty("backupemptyserver")) ? "Yes" : "No";
-        String everything = (settings.getBooleanProperty("backupeverything")) ? "Yes" : "No";
-        String split = (settings.getBooleanProperty("splitbackup")) ? "Yes" : "No";
-        String zip = (settings.getBooleanProperty("zipbackup")) ? "Yes" : "No";
-        String path = settings.getStringProperty("backuppath");
-        
-        if(settings.getBooleanProperty("showconfigonstartup")) {
+
+        // Startup configuration output.
+        if (settings.getBooleanProperty("showconfigonstartup")) {
+            String interval = settings.getStringProperty("backupinterval");
+            String max = Integer.toString(settings.getIntProperty("maxbackups"));
+            String empty = (settings.getBooleanProperty("backupemptyserver")) ? "Yes" : "No";
+            String everything = (settings.getBooleanProperty("backupeverything")) ? "Yes" : "No";
+            String split = (settings.getBooleanProperty("splitbackup")) ? "Yes" : "No";
+            String zip = (settings.getBooleanProperty("zipbackup")) ? "Yes" : "No";
+            String path = settings.getStringProperty("backuppath");
             LogUtils.sendLog("Configuration:");
-            LogUtils.sendLog("Interval: "+interval+", Max: "+max+", On Empty: "+empty+", Everything: "+everything+".", false);
-            LogUtils.sendLog("Split: "+split+", ZIP: "+zip+", Path: "+path+".", false);
+            LogUtils.sendLog("Interval: " + interval + ", Max: " + max + ", On Empty: " + empty + ", Everything: " + everything + ".", false);
+            LogUtils.sendLog("Split: " + split + ", ZIP: " + zip + ", Path: " + path + ".", false);
         }
-        // Loading complete.
+        
+        // Notify loading complete.
         LogUtils.sendLog(this.getDescription().getFullName() + " has completed loading!", false);
     }
     
     @Override
     public void onDisable () {
-        
-        //this.getServer().getScheduler().getPendingTasks().
         
         // Stop and scheduled tasks.
         this.getServer().getScheduler().cancelTasks(this);

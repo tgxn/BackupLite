@@ -11,34 +11,37 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 /**
- * Loads all settings for the plugin.
+ * Loads all configuration from file into memory.
  * 
  * @author Domenic Horner (gamerx)
  */
 public final class Settings {
-
+    
+    // The plugin and strings instances.
     private Plugin plugin;
     private Strings strings;
     
+    // Variables used to load configuration.
     private File configFile;
     private FileConfiguration fileSettingConfiguration;
-    
     
     public Settings(Plugin plugin, File configFile, Strings strings) {
         this.plugin = plugin;
         this.configFile = configFile;
         this.strings = strings;
         
+        // Checks if config exists, creates if not.
         checkAndCreate();
         
+        // Load the properties into memory.
         loadProperties();
         
+        // Checks configuration version, notifys the user/log.
         checkConfigVersion(true);
     }
     
     /**
-     * Check if the config file exists, if it does not, create it from the JAR.
-     * 
+     * Check that the configuration file exists, and creates it if necessary.
      */
     private void checkAndCreate() {
         try {
@@ -54,7 +57,7 @@ public final class Settings {
     }
     
     /**
-     * Load the properties to memory from the configFile.
+     * Load the configuration to memory from the configFile.
      */
     private void loadProperties() {
         fileSettingConfiguration = new YamlConfiguration();
