@@ -44,6 +44,7 @@ public class BackupTask implements Runnable {
     private String tempFolder;
     private String tempInstFolder;
     private String backupName;
+    private boolean useTempFolder;
 
     /**
      * The main BackupTask constructor.
@@ -71,14 +72,26 @@ public class BackupTask implements Runnable {
         splitBackup = settings.getBooleanProperty("splitbackup");
         shouldZIP = settings.getBooleanProperty("zipbackup");
         pluginList = Arrays.asList(settings.getStringProperty("skipplugins").split(";"));
+        useTempFolder = settings.getBooleanProperty("usetemp");
 
         // While backing up, use a temp folder, then move to backups folder.
 
         // Set up temp folder.
         tempFolder = backupsPath.concat(settings.getStringProperty("tempfoldername")).concat(FILE_SEPARATOR);
-        SharedUtils.checkFolderAndCreate(new File(tempFolder));
-        tempInstFolder = tempFolder.concat(backupName);
-        if (!splitBackup) {
+        if (useTempFolder)
+            SharedUtils.checkFolderAndCreate(new File(tempFolder));
+
+        // ZIP on.
+        if (shouldZIP) {
+            tempInstFolder = tempFolder.concat(backupName);
+        } else {
+            if (useTempFolder) {
+                tempInstFolder = tempFolder.concat(backupName);
+            } else {
+                tempInstFolder = backupsPath.concat(backupName);
+            }
+        }
+        if (!splitBackup && useTempFolder) {
             SharedUtils.checkFolderAndCreate(new File(tempInstFolder));
         }
 
@@ -115,7 +128,13 @@ public class BackupTask implements Runnable {
 
             // If this is a non-split backup, we need to ZIP the whole thing.
             if (!splitBackup) {
-                doCopyAndZIP(tempInstFolder, theFinalDestination);
+                if (useTempFolder) {
+                    doCopyAndZIP(tempInstFolder, theFinalDestination);
+                } else {
+                    doCopyAndZIP(tempInstFolder, theFinalDestination);
+                }
+
+
             }
         }
 
@@ -334,8 +353,8 @@ public class BackupTask implements Runnable {
      *
      */
     /**
-     * Copies items from the temp DIR to the main DIR after ZIP if needed.
-     * After it has done the required action, it deletes the source folder.
+     * Copies items from the temp DIR to the main DIR after ZIP if needed. After
+     * it has done the required action, it deletes the source folder.
      *
      * @param sourceDIR The source directory. (ex: "backups/temp/xxxxxxxx")
      * @param finalDIR The final destination. (ex: "backups/xxxxxxxx")
@@ -350,20 +369,30 @@ public class BackupTask implements Runnable {
             } catch (IOException ioe) {
                 LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to ZIP backup: IO Exception.");
             }
-        } else {
+            // Delete the folder.
             try {
-                FileUtils.copyDirectory(sourceDIR, finalDIR);
-            } catch (IOException ex) {
-                Logger.getLogger(BackupTask.class.getName()).log(Level.SEVERE, null, ex);
+                // Delete the original doBackup directory.
+                FileUtils.deleteDirectory(new File(sourceDIR));
+                new File(sourceDIR).delete();
+            } catch (IOException ioe) {
+                LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to delete temp folder: IO Exception.");
             }
-        }
-        // Delete the folder.
-        try {
-            // Delete the original doBackup directory.
-            FileUtils.deleteDirectory(new File(sourceDIR));
-            new File(sourceDIR).delete();
-        } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to delete temp folder: IO Exception.");
+        } else {
+            if (useTempFolder) {
+                try {
+                    FileUtils.copyDirectory(sourceDIR, finalDIR);
+                } catch (IOException ex) {
+                    Logger.getLogger(BackupTask.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                // Delete the folder.
+                try {
+                    // Delete the original doBackup directory.
+                    FileUtils.deleteDirectory(new File(sourceDIR));
+                    new File(sourceDIR).delete();
+                } catch (IOException ioe) {
+                    LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to delete temp folder: IO Exception.");
+                }
+            }
         }
 
     }

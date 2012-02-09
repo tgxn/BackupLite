@@ -55,7 +55,8 @@ public class BackupMain extends JavaPlugin {
         if(SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath")))) {
             
             // Create the tempoary folder.
-            SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath").concat(FILE_SEPARATOR).concat(settings.getStringProperty("tempfoldername"))));
+            if(settings.getBooleanProperty("usetemp"))
+                SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath").concat(FILE_SEPARATOR).concat(settings.getStringProperty("tempfoldername"))));
             
             // Notify users of this.
             LogUtils.sendLog(strings.getString("createbudir"));

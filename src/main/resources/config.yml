@@ -43,6 +43,10 @@ alwayssaveall: false
 # Note: Path can be relative, or absolute.
 backuppath: backups
 
+## Do we use the temp folder when doing backup? (Default: true)
+# It is required for Ziped backups.
+usetemp: true
+
 ## Name for the temp folder. (Default: temp)
 # This stores tempoary files while backup is in progress.
 tempfoldername: temp
