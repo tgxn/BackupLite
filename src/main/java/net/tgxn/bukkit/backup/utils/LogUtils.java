@@ -59,18 +59,23 @@ public class LogUtils {
      * @param ste The stack trace element.
      */
     public static void exceptionLog(StackTraceElement ste[]) {
-        String toSystemOut = "";
-        String[] error = null;
-        for (int pos = 0; pos < ste.length; pos++) {
-            
-            toSystemOut =  ste[pos].getFileName() + ":" + ste[pos].getLineNumber();
-            
-            error[0] = ste[pos].getFileName() + ":" + ste[pos].getLineNumber() + " ==>" + ste[pos].getMethodName() + "()";
-            error[1] = ste[pos].toString();
-        }
         String tags = "[" + plugin.getDescription().getName()  + "] ";
-        System.out.println(tags + "Error: "+toSystemOut);
+        try {
+            String toSystemOut = "";
+            String[] error = null;
+            for (int pos = 0; pos < ste.length; pos++) {
+
+                toSystemOut =  ste[pos].getFileName() + ":" + ste[pos].getLineNumber();
+
+                error[0] = ste[pos].getFileName() + ":" + ste[pos].getLineNumber() + " ==>" + ste[pos].getMethodName() + "()";
+                error[1] = ste[pos].toString();
+            }
+            System.out.println(tags + "Error: "+toSystemOut);
+        } catch(NullPointerException npe) {
+            System.out.println(tags + "Error: Null Pointer in exception class!");
+        }
     }
+    
 
     /**
      * Sends log message.
