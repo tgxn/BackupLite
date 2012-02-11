@@ -253,7 +253,7 @@ public class CommandListener implements Listener, CommandExecutor {
 
         player.sendMessage("Backup Configuration");
 
-        int interval = settings.getIntervalInMinutes();
+        int interval = settings.getIntervalInMinutes("backupinterval");
         if (interval != 0) {
             player.sendMessage("Scheduled Backups: Enabled, " + interval + " mins between backups.");
         } else {

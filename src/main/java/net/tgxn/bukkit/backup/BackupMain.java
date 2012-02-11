@@ -6,6 +6,8 @@ import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.listeners.CommandListener;
 import net.tgxn.bukkit.backup.listeners.EventListener;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
+import net.tgxn.bukkit.backup.threading.SaveAllTask;
+import net.tgxn.bukkit.backup.utils.CheckInUtil;
 import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import net.tgxn.bukkit.backup.utils.SharedUtils;
@@ -22,12 +24,14 @@ public class BackupMain extends JavaPlugin {
     
     // Task ID for main recurring BackupTask. and Main plugin data folder.
     public int mainBackupTaskID = -2;
+    public int saveAllTaskID = -2;
     public File mainDataFolder;
     
     // Strings, Settings, and the PrepareBackup task.
     private static Strings strings;
     private static Settings settings;
     private PrepareBackup prepareBackup;
+    private SaveAllTask saveAllTask;
     
     @Override
     public void onLoad() {
@@ -80,8 +84,8 @@ public class BackupMain extends JavaPlugin {
         EventListener eventListener = new EventListener(prepareBackup, this, settings, strings);
         pluginManager.registerEvents(eventListener, this);
         
-        // COnfigure main backup task schedule.
-        int backupInterval = settings.getIntervalInMinutes();
+        // Configure main backup task schedule.
+        int backupInterval = settings.getIntervalInMinutes("backupinterval");
         if (backupInterval != 0) {
             backupInterval *= 1200;
             mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
@@ -89,9 +93,17 @@ public class BackupMain extends JavaPlugin {
             LogUtils.sendLog(strings.getString("disbaledauto"));
         }
 
+        // Configure save-all schedule.
+        int saveAllInterval = settings.getIntervalInMinutes("saveallinterval");
+        if(saveAllInterval != 0) {
+            saveAllTask = new SaveAllTask(pluginServer);
+            saveAllTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, saveAllTask, saveAllInterval, saveAllInterval);
+        }
+
         // Startup configuration output.
         if (settings.getBooleanProperty("showconfigonstartup")) {
-            String interval = settings.getStringProperty("backupinterval");
+            String buInterval = settings.getStringProperty("backupinterval");
+            String saInterval = settings.getStringProperty("saveallinterval");
             String max = Integer.toString(settings.getIntProperty("maxbackups"));
             String empty = (settings.getBooleanProperty("backupemptyserver")) ? "Yes" : "No";
             String everything = (settings.getBooleanProperty("backupeverything")) ? "Yes" : "No";
@@ -99,9 +111,14 @@ public class BackupMain extends JavaPlugin {
             String zip = (settings.getBooleanProperty("zipbackup")) ? "Yes" : "No";
             String path = settings.getStringProperty("backuppath");
             LogUtils.sendLog("Configuration:");
-            LogUtils.sendLog("Interval: " + interval + ", Max: " + max + ", On Empty: " + empty + ", Everything: " + everything + ".", false);
-            LogUtils.sendLog("Split: " + split + ", ZIP: " + zip + ", Path: " + path + ".", false);
+            LogUtils.sendLog("Interval: " + buInterval + ", Max: " + max + ", On Empty: " + empty + ", Everything: " + everything + ".", false);
+            LogUtils.sendLog("Save-All Int: " + saInterval + ", Split: " + split + ", ZIP: " + zip + ", Path: " + path + ".", false);
         }
+
+        CheckInUtil checkIn = null;
+        if(settings.getBooleanProperty("enableversioncheck"))
+            checkIn = new CheckInUtil(this.getDescription().getVersion(), strings);
+            pluginServer.getScheduler().scheduleAsyncDelayedTask(this, checkIn);
         
         // Notify loading complete.
         LogUtils.sendLog(this.getDescription().getFullName() + " has completed loading!", false);

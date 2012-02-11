@@ -5,10 +5,15 @@
 
 #======== Backup Settings ==========#
 
-## How often show the backup run? (Default: 15M - 15 Minutes)
+## How often show the backup run? (Default: "15M" / 15 Minutes)
 # (Note: -1 Will disable automatic backups.)
 # Format: [Time][M-Minutes, H-Hours, D-Days, W-Weeks]
 backupinterval: 15M
+
+## Enable scheduled save-all? (Default: "-1" / Off)
+# (Note: -1 disables this feature.)
+# Format: [Time][M-Minutes, H-Hours, D-Days, W-Weeks]
+saveallinterval: -1
 
 ## How many backups are retained? (Default: 25)
 # If this limit is hit, the oldest backup(s) will be removed. 
@@ -106,6 +111,10 @@ notifyallplayers: true
 ## Prints a list of configuration on plugin enable. (Default: true)
 # This is usefull for debugging configuration.
 showconfigonstartup: true
+
+## Enable online version checking? (Default: true)
+# Requires internet connectivity.
+enableversioncheck: true
 
 ###############################################
 ##   Internal Settings (Read: DO NOT EDIT)   ##

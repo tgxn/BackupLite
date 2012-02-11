@@ -63,7 +63,7 @@ public class EventListener implements Listener {
          // Check if it was the last player.
          if (onlinePlayers == 1) {
             prepareBackup.setAsLastBackup(true);
-            int intervalInMinutes = settings.getIntervalInMinutes();
+            int intervalInMinutes = settings.getIntervalInMinutes("backupinterval");
             if (intervalInMinutes != 0) {
                 int interval =  intervalInMinutes * 1200;
                 lastBackupID = plugin.getServer().getScheduler().scheduleAsyncDelayedTask(plugin, prepareBackup, interval);

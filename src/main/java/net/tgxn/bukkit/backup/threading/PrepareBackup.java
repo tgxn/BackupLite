@@ -141,7 +141,7 @@ public class PrepareBackup implements Runnable {
             prepareBackup();
             isLastBackup = false;
         } else {
-            LogUtils.sendLog(strings.getString("abortedbackup", Integer.toString(settings.getIntervalInMinutes())), Level.INFO, true);
+            LogUtils.sendLog(strings.getString("abortedbackup", Integer.toString(settings.getIntervalInMinutes("backupinterval"))), Level.INFO, true);
         }
     }
 

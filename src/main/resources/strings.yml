@@ -37,6 +37,8 @@ removeold            : 'Removing the following backup(s) due to age:'
 lastbackup           : Last player left, backing up!
 alwayssaveall        : Forcing /save-all, stand by!
 unknowntimeident     : Failed to detect interval amount. (Please use M, H, D, or W).
+pluginoutdate        : Plugin is out of date, %%ARG%%.
+pluginupdate         : Plugin is up to date, %%ARG%%.
 
 #========= Error Strings ==========#
 
@@ -51,4 +53,4 @@ checkbackupinterval  : Please check your backupinterval setting is formatted cor
 
 stringnotfound       : 'String not found - '
 packagedwith         : 1.8.7-dev
-version              : str-29
+version              : str-30
