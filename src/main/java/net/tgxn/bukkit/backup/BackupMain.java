@@ -1,68 +1,74 @@
 package net.tgxn.bukkit.backup;
 
-import com.nijiko.permissions.PermissionHandler;
-import com.nijikokun.bukkit.Permissions.Permissions;
 import java.io.File;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.listeners.CommandListener;
-import net.tgxn.bukkit.backup.listeners.LoginListener;
+import net.tgxn.bukkit.backup.listeners.EventListener;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
+import net.tgxn.bukkit.backup.threading.SaveAllTask;
+import net.tgxn.bukkit.backup.utils.CheckInUtil;
+import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import net.tgxn.bukkit.backup.utils.SharedUtils;
 import org.bukkit.Server;
-import org.bukkit.event.Event.Priority;
-import org.bukkit.event.Event.Type;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * Main class file for Backup.
+ * Main class file for Backup plugin.
  *
  * @author Domenic Horner (gamerx)
  */
 public class BackupMain extends JavaPlugin {
     
-    public static PermissionHandler permissionsHandler;
+    // Task ID for main recurring BackupTask. and Main plugin data folder.
     public int mainBackupTaskID = -2;
+    public int saveAllTaskID = -2;
     public File mainDataFolder;
     
+    // Strings, Settings, and the PrepareBackup task.
     private static Strings strings;
     private static Settings settings;
     private PrepareBackup prepareBackup;
+    private SaveAllTask saveAllTask;
     
     @Override
     public void onLoad() {
         
-        // Initalize main data folder.
+        // Initalize main data folder variable.
         mainDataFolder = this.getDataFolder();
         
-        // Initalize log utilities.
+        // Initalize logging utilities.
         LogUtils.initLogUtils(this);
         
-        // Perform datafile check.
+        // check and create main datafile.
         SharedUtils.checkFolderAndCreate(mainDataFolder);
         
-        // Load plugin configuration.
+        // Load configuration files.
         strings = new Strings(new File(mainDataFolder, "strings.yml"));
         settings = new Settings(this, new File(mainDataFolder, "config.yml"), strings);
         
+        // Run version checking on strings file.
         strings.checkStringsVersion(settings.getStringProperty("requiredstrings"));
         
-        // Finish init of LogUtils.
+        // Complee initalization of LogUtils.
         LogUtils.finishInitLogUtils(settings.getBooleanProperty("displaylog"), settings.getBooleanProperty("logtofile"), settings.getStringProperty("backuplogname"));
         
-        // Do folder checking for backups folder.
-        if(SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath"))))
+        // Check backup path and the temp folder.
+        if(SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath")))) {
+            
+            // Create the tempoary folder.
+            if(settings.getBooleanProperty("usetemp"))
+                SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath").concat(FILE_SEPARATOR).concat(settings.getStringProperty("tempfoldername"))));
+            
+            // Notify users of this.
             LogUtils.sendLog(strings.getString("createbudir"));
+        }
     }
     
     @Override
     public void onEnable() {
-        
-        // Initalize permissions handler.
-        initPermissions();
 
         // Get server and plugin manager instances.
         Server pluginServer = getServer();
@@ -71,36 +77,50 @@ public class BackupMain extends JavaPlugin {
         // Create new "PrepareBackup" instance.
         prepareBackup = new PrepareBackup(pluginServer, settings, strings);
 
-        // Initalize plugin listeners.
+        // Initalize Command Listener.
         getCommand("backup").setExecutor(new CommandListener(prepareBackup, this, settings, strings));
-        LoginListener loginListener = new LoginListener(prepareBackup, this, settings, strings);
-        pluginManager.registerEvent(Type.PLAYER_QUIT, loginListener, Priority.Normal, this);
-        pluginManager.registerEvent(Type.PLAYER_KICK, loginListener, Priority.Normal, this);
-        pluginManager.registerEvent(Type.PLAYER_JOIN, loginListener, Priority.Normal, this);
-
-        // Schedule timer, checks if there is a timer and enables task.
-        int backupInterval = settings.getIntervalInMinutes();
+        
+        // Initalize Event Listener.
+        EventListener eventListener = new EventListener(prepareBackup, this, settings, strings);
+        pluginManager.registerEvents(eventListener, this);
+        
+        // Configure main backup task schedule.
+        int backupInterval = settings.getIntervalInMinutes("backupinterval");
         if (backupInterval != 0) {
             backupInterval *= 1200;
-            mainBackupTaskID = pluginServer.getScheduler().scheduleSyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
+            mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
         } else {
             LogUtils.sendLog(strings.getString("disbaledauto"));
         }
-        
-        String interval = settings.getStringProperty("backupinterval");
-        String max = Integer.toString(settings.getIntProperty("maxbackups"));
-        String empty = (settings.getBooleanProperty("backupemptyserver")) ? "Yes" : "No";
-        String everything = (settings.getBooleanProperty("backupeverything")) ? "Yes" : "No";
-        String split = (settings.getBooleanProperty("splitbackup")) ? "Yes" : "No";
-        String zip = (settings.getBooleanProperty("zipbackup")) ? "Yes" : "No";
-        String path = settings.getStringProperty("backuppath");
-        
-        if(settings.getBooleanProperty("showconfigonstartup")) {
-            LogUtils.sendLog("Configuration:");
-            LogUtils.sendLog("Interval: "+interval+", Max: "+max+", On Empty: "+empty+", Everything: "+everything+".", false);
-            LogUtils.sendLog("Split: "+split+", ZIP: "+zip+", Path: "+path+".", false);
+
+        // Configure save-all schedule.
+        int saveAllInterval = settings.getIntervalInMinutes("saveallinterval");
+        if(saveAllInterval != 0) {
+            saveAllTask = new SaveAllTask(pluginServer);
+            saveAllTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, saveAllTask, saveAllInterval, saveAllInterval);
         }
-        // Loading complete.
+
+        // Startup configuration output.
+        if (settings.getBooleanProperty("showconfigonstartup")) {
+            String buInterval = settings.getStringProperty("backupinterval");
+            String saInterval = settings.getStringProperty("saveallinterval");
+            String max = Integer.toString(settings.getIntProperty("maxbackups"));
+            String empty = (settings.getBooleanProperty("backupemptyserver")) ? "Yes" : "No";
+            String everything = (settings.getBooleanProperty("backupeverything")) ? "Yes" : "No";
+            String split = (settings.getBooleanProperty("splitbackup")) ? "Yes" : "No";
+            String zip = (settings.getBooleanProperty("zipbackup")) ? "Yes" : "No";
+            String path = settings.getStringProperty("backuppath");
+            LogUtils.sendLog("Configuration:");
+            LogUtils.sendLog("Interval: " + buInterval + ", Max: " + max + ", On Empty: " + empty + ", Everything: " + everything + ".", false);
+            LogUtils.sendLog("Save-All Int: " + saInterval + ", Split: " + split + ", ZIP: " + zip + ", Path: " + path + ".", false);
+        }
+
+        CheckInUtil checkIn = null;
+        if(settings.getBooleanProperty("enableversioncheck"))
+            checkIn = new CheckInUtil(this.getDescription().getVersion(), strings);
+            pluginServer.getScheduler().scheduleAsyncDelayedTask(this, checkIn);
+        
+        // Notify loading complete.
         LogUtils.sendLog(this.getDescription().getFullName() + " has completed loading!", false);
     }
     
@@ -112,26 +132,5 @@ public class BackupMain extends JavaPlugin {
         
         // Shutdown complete.
         LogUtils.sendLog(this.getDescription().getFullName() + " has completed un-loading!", false);
-    }
-    
-    /**
-     * Check if the Permissions System is available, and setup the handler.
-     */
-    private void initPermissions() {
-
-        // Check if not already initalized.
-        if (permissionsHandler != null)
-            return;
-                
-        // Get permissions plugin.
-        Plugin testPermissions = this.getServer().getPluginManager().getPlugin("Permissions");
-        
-        // If we were able to get the permissions plugin.
-        if (testPermissions != null) {
-            permissionsHandler = ((Permissions) testPermissions).getHandler();
-            LogUtils.sendLog(strings.getString("hookedperms"));
-        } else {
-            LogUtils.sendLog(strings.getString("defaultperms"));
-        }
     }
 }

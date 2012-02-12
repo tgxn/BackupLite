@@ -11,34 +11,37 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 /**
- * Loads all settings for the plugin.
+ * Loads all configuration from file into memory.
  * 
  * @author Domenic Horner (gamerx)
  */
 public final class Settings {
-
+    
+    // The plugin and strings instances.
     private Plugin plugin;
     private Strings strings;
     
+    // Variables used to load configuration.
     private File configFile;
     private FileConfiguration fileSettingConfiguration;
-    
     
     public Settings(Plugin plugin, File configFile, Strings strings) {
         this.plugin = plugin;
         this.configFile = configFile;
         this.strings = strings;
         
+        // Checks if config exists, creates if not.
         checkAndCreate();
         
+        // Load the properties into memory.
         loadProperties();
         
+        // Checks configuration version, notifys the user/log.
         checkConfigVersion(true);
     }
     
     /**
-     * Check if the config file exists, if it does not, create it from the JAR.
-     * 
+     * Check that the configuration file exists, and creates it if necessary.
      */
     private void checkAndCreate() {
         try {
@@ -54,7 +57,7 @@ public final class Settings {
     }
     
     /**
-     * Load the properties to memory from the configFile.
+     * Load the configuration to memory from the configFile.
      */
     private void loadProperties() {
         fileSettingConfiguration = new YamlConfiguration();
@@ -188,20 +191,20 @@ public final class Settings {
      * 
      * @return Amount of time between backups. (In minutes)
      */
-    public int getIntervalInMinutes() {
-        String settingBackupInterval = getStringProperty("backupinterval").trim();
+    public int getIntervalInMinutes(String forSetting) {
+        String settingInterval = getStringProperty(forSetting).trim();
         // If it is null or set to disable.
-        if(settingBackupInterval.equals("-1") || settingBackupInterval == null) {
+        if(settingInterval.equals("-1") || settingInterval == null) {
             return 0;
         }
         // If it is just a number, return minutes.
-        if (settingBackupInterval.matches("^[0-9]+$")) {
-            return Integer.parseInt(settingBackupInterval);
-        } else if(settingBackupInterval.matches("[0-9]+[a-zA-Z]")) {
+        if (settingInterval.matches("^[0-9]+$")) {
+            return Integer.parseInt(settingInterval);
+        } else if(settingInterval.matches("[0-9]+[a-zA-Z]")) {
             Pattern timePattern = Pattern.compile("^([0-9]+)[A-Za-z]$");
-            Matcher amountTime = timePattern.matcher(settingBackupInterval);
+            Matcher amountTime = timePattern.matcher(settingInterval);
             Pattern letterPattern = Pattern.compile("^[0-9]+([A-Za-z])$");
-            Matcher letterTime = letterPattern.matcher(settingBackupInterval);
+            Matcher letterTime = letterPattern.matcher(settingInterval);
             if(letterTime.matches() && amountTime.matches()) {
                 String letter = letterTime.group(1);
                 int time = Integer.parseInt(amountTime.group(1));

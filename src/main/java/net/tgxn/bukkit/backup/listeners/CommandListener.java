@@ -1,7 +1,6 @@
 package net.tgxn.bukkit.backup.listeners;
 
 import java.io.File;
-import net.tgxn.bukkit.backup.BackupMain;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
@@ -10,7 +9,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerListener;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
 /**
@@ -18,7 +17,7 @@ import org.bukkit.plugin.Plugin;
  *
  * @author Domenic Horner (gamerx)
  */
-public class CommandListener extends PlayerListener implements CommandExecutor {
+public class CommandListener implements Listener, CommandExecutor {
 
     private PrepareBackup backupTask = null;
     private final Plugin plugin;
@@ -177,8 +176,8 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
     private boolean checkPerms(Player player, String permission) {
 
         // We hooked a perms system.
-        if (BackupMain.permissionsHandler != null) {
-            if (!BackupMain.permissionsHandler.has(player, permission)) {
+        if (player.isPermissionSet(permission)) {
+            if (player.hasPermission(permission)) {
                 player.sendMessage(strings.getString("norights"));
                 return false;
             } else {
@@ -254,7 +253,7 @@ public class CommandListener extends PlayerListener implements CommandExecutor {
 
         player.sendMessage("Backup Configuration");
 
-        int interval = settings.getIntervalInMinutes();
+        int interval = settings.getIntervalInMinutes("backupinterval");
         if (interval != 0) {
             player.sendMessage("Scheduled Backups: Enabled, " + interval + " mins between backups.");
         } else {

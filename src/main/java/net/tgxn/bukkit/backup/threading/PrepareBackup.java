@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
-import net.tgxn.bukkit.backup.BackupMain;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.utils.LogUtils;
@@ -14,24 +13,15 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-/**
- * This task is running by a syncronized thread from the sheduler. It prepare
- * everything for the BackupTask. It checks, whether it can run a doBackup now,
- * stop the autosave, make a server wide save of all player, save all world data
- * from the RAM to the disc and collects finnaly all worlds and directories to
- * doBackup. If this is done, it create an asyncronized thread, the BackupTask.
- * @author Kilian Gaertner, Domenic Horner (gamerx)
- * @see BackupTask
- */
 public class PrepareBackup implements Runnable {
-
+    
     private final Server server;
     private final Settings settings;
     public Strings strings;
     private boolean isManualBackup;
     private Plugin plugin;
     public boolean isLastBackup;
-
+    
     public PrepareBackup (Server server, Settings settings, Strings strings) {
         this.server = server;
         this.settings = settings;
@@ -70,21 +60,26 @@ public class PrepareBackup implements Runnable {
                 } else {
                     // Permission checking for bypass node.
                     boolean doBackup = false;
-                    if(BackupMain.permissionsHandler != null) {
-
-                        // Get all players.
+                    
+                    // If every player on the server has the bypass permission, skip backup
+                    //
+                    // Check Every player
+                    // If any do not have permission, do backup.
+                    
+                    
+                    // Get all players.
                         Player[] players = server.getOnlinePlayers();
+                        
+                        // loop all online players
                         for (int player = 0; player < players.length; player++) {
                             Player currentplayer = players[player];
 
                             // If any players do not have the node, do the doBackup.
-                            if (!BackupMain.permissionsHandler.has(currentplayer, "backup.bypass")) {
+                            if (!currentplayer.hasPermission("backup.bypass")) {
                                 doBackup = true;
                             }
                         }
-                    } else {
-                        doBackup = true;
-                    }
+                        
                     if(doBackup) {
                         prepareBackup();
                     } else {
@@ -115,11 +110,7 @@ public class PrepareBackup implements Runnable {
 
         // Save players.
         server.savePlayers();
-
-        // Send a message advising that zipping is disabled.
-        if (!settings.getBooleanProperty("zipbackup"))
-            LogUtils.sendLog(strings.getString("zipdisabled"));
-
+        
         // Create list of worlds to ignore.
         List<String> ignoredWorldNames = getIgnoredWorldNames();
         LinkedList<String> worldsToBackup = new LinkedList<String>();
@@ -150,7 +141,7 @@ public class PrepareBackup implements Runnable {
             prepareBackup();
             isLastBackup = false;
         } else {
-            LogUtils.sendLog(strings.getString("abortedbackup", Integer.toString(settings.getIntervalInMinutes())), Level.INFO, true);
+            LogUtils.sendLog(strings.getString("abortedbackup", Integer.toString(settings.getIntervalInMinutes("backupinterval"))), Level.INFO, true);
         }
     }
 
@@ -198,22 +189,21 @@ public class PrepareBackup implements Runnable {
                     Player currentplayer = players[pos];
 
                     // If the current player has the right permissions, notify them.
-                    if(BackupMain.permissionsHandler.has(currentplayer, "backup.notify")) {
+                    if(currentplayer.hasPermission("backup.notify")) {
                         currentplayer.sendMessage(startBackupMessage);
                     }
                 }
             }
         }
     }
-
-
+    
     /**
      * Set the doBackup as a manual doBackup. IE: Not scheduled.
      */
     public void setAsManualBackup() {
         this.isManualBackup = true;
     }
-   
+    
     /**
      * Set the doBackup as a last doBackup.
      */

@@ -5,10 +5,15 @@
 
 #======== Backup Settings ==========#
 
-## How often show the backup run? (Default: 15M - 15 Minutes)
+## How often show the backup run? (Default: "15M" / 15 Minutes)
 # (Note: -1 Will disable automatic backups.)
 # Format: [Time][M-Minutes, H-Hours, D-Days, W-Weeks]
 backupinterval: 15M
+
+## Enable scheduled save-all? (Default: "-1" / Off)
+# (Note: -1 disables this feature.)
+# Format: [Time][M-Minutes, H-Hours, D-Days, W-Weeks]
+saveallinterval: -1
 
 ## How many backups are retained? (Default: 25)
 # If this limit is hit, the oldest backup(s) will be removed. 
@@ -39,24 +44,26 @@ alwayssaveall: false
 
 #======== File & Location Settings ==========#
 
-## Should all the worlds be split into their own files? (Default: false)
-# Needs to be true to be compatible with WorldEdit.
-splitbackup: false
+## Directory to store backup in. (Default: backups)
+# Note: Path can be relative, or absolute.
+backuppath: backups
+
+## Do we use the temp folder when doing backup? (Default: true)
+# It is required for Ziped backups.
+usetemp: true
+
+## Name for the temp folder. (Default: temp)
+# This stores tempoary files while backup is in progress.
+tempfoldername: temp
 
 ## Whether to ZIP Backups or not. (Default: true)
 # If enabled, backups will be compressed and stored in a ZIP archive named with the current timestamp.
 # If disabled, the backup will stored in a folder with the timestamp.
 zipbackup: true
 
-## Directory to store backup in. (Default: backups)
-# Note: Path can be relative, or absolute.
-backuppath: backups
-
-## Should we create a temp folder under the main backups folder. (Default: true)
-# Enables you to exclude it if you use DropBox.
-# Note: Does nothing if you don't ZIP backups.
-# @TODO Implement this. 1.8.6, Perhaps, for now it does NADA!
-usetempfolder: true
+## Should all the worlds be split into their own files? (Default: false)
+# Needs to be true to be compatible with WorldEdit.
+splitbackup: false
 
 ## Custom date format string that is appended to every backup.
 ## If left empty, the default date format is used.
@@ -105,9 +112,13 @@ notifyallplayers: true
 # This is usefull for debugging configuration.
 showconfigonstartup: true
 
+## Enable online version checking? (Default: true)
+# Requires internet connectivity.
+enableversioncheck: true
+
 ###############################################
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
-requiredstrings: str-29
-version: 1.8.6
+requiredstrings: str-30
+version: 1.8.7

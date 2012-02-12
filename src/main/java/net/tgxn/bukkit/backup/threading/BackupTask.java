@@ -4,10 +4,9 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.logging.Level;
-import net.tgxn.bukkit.backup.BackupMain;
+import java.util.logging.Logger;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.utils.FileUtils;
@@ -19,30 +18,37 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 /**
- * The Task copies and backups the worlds and delete older backups. This task
- * is only runes once in doBackup and doing all the thread safe options.
- * The PrepareBackupTask and BackupTask are two threads to find a compromise between
+ * The Task copies and backups the worlds and delete older backups. This task is
+ * only runes once in doBackup and doing all the thread safe options. The
+ * PrepareBackupTask and BackupTask are two threads to find a compromise between
  * security and performance.
  *
  * @author Kilian Gaertner, Domenic Horner (gamerx)
  */
 public class BackupTask implements Runnable {
 
+    // From params
     private Server server;
     private Plugin plugin;
     private Settings settings;
     private Strings strings;
     private LinkedList<String> worldsToBackup;
+    // Settings
     private List<String> pluginList;
-    private boolean splitbackup;
+    private boolean splitBackup;
     private boolean shouldZIP;
-    private String backupsPath;
-    private String thisBackupFolder;
     private boolean backupEverything;
+    private String backupsPath;
+    // Instance variables
+    private String theFinalDestination;
+    private String tempFolder;
+    private String tempInstFolder;
+    private String backupName;
+    private boolean useTempFolder;
 
     /**
-     * The main doBackup constructor.
-     * 
+     * The main BackupTask constructor.
+     *
      * @param settings The settings object, to get the plugins settings.
      * @param strings Strings object, for all string values
      * @param worldsToBackup The list of worlds that need to be backed up.
@@ -58,86 +64,77 @@ public class BackupTask implements Runnable {
 
     @Override
     public void run() {
+
         // Load settings.
+        backupName = getFolderName();
         backupsPath = settings.getStringProperty("backuppath").concat(FILE_SEPARATOR);
-        thisBackupFolder = backupsPath.concat(getFolderName());
         backupEverything = settings.getBooleanProperty("backupeverything");
-        splitbackup = settings.getBooleanProperty("splitbackup");
+        splitBackup = settings.getBooleanProperty("splitbackup");
         shouldZIP = settings.getBooleanProperty("zipbackup");
         pluginList = Arrays.asList(settings.getStringProperty("skipplugins").split(";"));
+        useTempFolder = settings.getBooleanProperty("usetemp");
 
-        // Starts the process.
-        doBackup();
+        // While backing up, use a temp folder, then move to backups folder.
+
+        // Set up temp folder.
+        tempFolder = backupsPath.concat(settings.getStringProperty("tempfoldername")).concat(FILE_SEPARATOR);
+        if (useTempFolder)
+            SharedUtils.checkFolderAndCreate(new File(tempFolder));
+
+        // ZIP on.
+        if (shouldZIP) {
+            tempInstFolder = tempFolder.concat(backupName);
+        } else {
+            if (useTempFolder) {
+                tempInstFolder = tempFolder.concat(backupName);
+            } else {
+                tempInstFolder = backupsPath.concat(backupName);
+            }
+        }
+        if (!splitBackup && useTempFolder) {
+            SharedUtils.checkFolderAndCreate(new File(tempInstFolder));
+        }
+
+        // Set up destination.
+        theFinalDestination = backupsPath.concat(backupName);
+
+        // Pass the torch. ;)
+        processBackup();
     }
 
     /**
-     * This method does high-level backup processes.
-     *
+     * This method does high-level backup processing.
      */
-    public void doBackup() {
+    public void processBackup() {
 
-        // We are performing a full server doBackup.
+        // Are we backing all server files or just worlds and plugins?
         if (backupEverything) {
-
-            // Setup FileFilter to exclude the backups path.
-            FileFilter ff = new FileFilter() {
-
-                /**
-                 * Files to accept/deny.
-                 */
-                @Override
-                public boolean accept(File f) {
-
-                    // Disallow server.log and the backuppath.
-                    if (f.getName().equals(settings.getStringProperty("backuppath"))) {
-                        return false;
-                    }
-
-                    if (f.getName().equals("server.log")) {
-                        return false;
-                    }
-
-                    return true;
-                }
-            };
-
-            // Setup Source and destination DIR's.
-            File srcDIR = new File("./");
-            File destDIR = new File(thisBackupFolder);
-
-            // Copy this world into the doBackup directory, in a folder called the worlds name.
-            try {
-
-                // Copy the directory.
-                FileUtils.copyDirectory(srcDIR, destDIR, ff, true);
-
-                // Perform the zipping action. 
-                doZIP(thisBackupFolder);
-
-            } catch (FileNotFoundException fnfe) {
-                LogUtils.exceptionLog(fnfe.getStackTrace(), "Failed to copy world: File not found.");
-            } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to copy world: IO Exception.");
-            }
+            doEverythingBackup();
         } else {
 
-            // World backup checking.
-            if ((worldsToBackup != null) && (settings.getBooleanProperty("backupworlds"))) {
+            // Make sure world backup is enabled and that we have worlds to backup.
+            if (settings.getBooleanProperty("backupworlds") && worldsToBackup != null) {
                 backupWorlds();
             } else {
                 LogUtils.sendLog(strings.getString("skipworlds"), Level.INFO, true);
             }
 
-            // Plugin backup checking.
+            // Check plugin backup is enabled
             if (settings.getBooleanProperty("backupplugins")) {
                 backupPlugins();
             } else {
                 LogUtils.sendLog(strings.getString("skipplugins"), Level.INFO, true);
             }
 
-            // Check if split backup.
-            if (!splitbackup) {
-                doZIP(thisBackupFolder);
+            // If this is a non-split backup, we need to ZIP the whole thing.
+            if (!splitBackup) {
+                if (useTempFolder) {
+                    doCopyAndZIP(tempInstFolder, theFinalDestination);
+                } else {
+                    doCopyAndZIP(tempInstFolder, theFinalDestination);
+                }
+
+
             }
         }
 
@@ -148,6 +145,50 @@ public class BackupTask implements Runnable {
 
         // Finish backup.
         finishBackup();
+    }
+
+    private void doEverythingBackup() {
+
+        // Filefiler for excludes.
+        FileFilter ff = new FileFilter() {
+
+            /**
+             * Files to accept/deny.
+             */
+            @Override
+            public boolean accept(File f) {
+
+                // Disallow server.log and the backuppath.
+                if (f.getName().equals(settings.getStringProperty("backuppath"))) {
+                    return false;
+                }
+
+                if (f.getName().equals("server.log")) {
+                    return false;
+                }
+
+                return true;
+            }
+        };
+
+        // Setup Source and destination DIR's.
+        File srcDIR = new File("./");
+        File destDIR = new File(tempInstFolder);
+
+        // Copy this world into the doBackup directory, in a folder called the worlds name.
+        try {
+
+            // Copy the directory.
+            FileUtils.copyDirectory(srcDIR, destDIR, ff, true);
+
+            // Perform the zipping action. 
+            doCopyAndZIP(tempInstFolder, theFinalDestination);
+
+        } catch (FileNotFoundException fnfe) {
+            LogUtils.exceptionLog(fnfe.getStackTrace(), "Failed to copy world: File not found.");
+        } catch (IOException ioe) {
+            LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to copy world: IO Exception.");
+        }
     }
 
     /**
@@ -165,16 +206,15 @@ public class BackupTask implements Runnable {
             String currentWorldName = worldsToBackup.removeFirst();
 
             // Check for split backup.
-            if (splitbackup) {
+            if (splitBackup) {
 
                 // Check this worlds folder exists.
-                File worldBackupFolder = new File(backupsPath.concat(FILE_SEPARATOR).concat(currentWorldName));
-
-                // Create if needed.
+                File worldBackupFolder = new File(backupsPath.concat(currentWorldName));
                 SharedUtils.checkFolderAndCreate(worldBackupFolder);
 
                 // This worlds backup folder.
-                String thisWorldBackupFolder = backupsPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(getFolderName());
+                String thisWorldBackupFolder = tempFolder.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
+                String finalWorldBackupFolder = backupsPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
 
                 // Copy the current world into it's backup folder.
                 try {
@@ -185,12 +225,12 @@ public class BackupTask implements Runnable {
                 }
 
                 // Check and ZIP folder.
-                doZIP(thisWorldBackupFolder);
+                doCopyAndZIP(thisWorldBackupFolder, finalWorldBackupFolder);
 
             } else {
 
                 // This worlds backup folder.
-                String thisWorldBackupFolder = thisBackupFolder.concat(FILE_SEPARATOR).concat(currentWorldName);
+                String thisWorldBackupFolder = tempInstFolder.concat(FILE_SEPARATOR).concat(currentWorldName);
 
                 // Copy the current world into it's backup folder.
                 try {
@@ -243,10 +283,13 @@ public class BackupTask implements Runnable {
 
         // Check if this is a split backup or not, and set backup path depending on this.
         String pluginsBackupPath;
-        if (splitbackup) {
-            pluginsBackupPath = backupsPath.concat("plugins").concat(FILE_SEPARATOR).concat(getFolderName());
+        String finalPluginsPath;
+        if (splitBackup) {
+            pluginsBackupPath = tempFolder.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
+            finalPluginsPath = backupsPath.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
         } else {
-            pluginsBackupPath = thisBackupFolder.concat(FILE_SEPARATOR).concat("plugins");
+            pluginsBackupPath = tempInstFolder.concat(FILE_SEPARATOR).concat("plugins");
+            finalPluginsPath = null;
         }
 
         // Create if needed.
@@ -266,14 +309,14 @@ public class BackupTask implements Runnable {
         }
 
         // Check if ZIP is required.
-        if (splitbackup) {
-            doZIP(pluginsBackupPath);
+        if (splitBackup) {
+            doCopyAndZIP(pluginsBackupPath, finalPluginsPath);
         }
     }
 
     /**
      * Get the name of this backups folder.
-     * 
+     *
      * @return The name, as a string.
      */
     private String getFolderName() {
@@ -295,31 +338,68 @@ public class BackupTask implements Runnable {
 
     /**
      * Add the folder specified to a ZIP file.
-     * 
-     * @param folderToZIP The folder that needs to be ZIP'ed
+     *
+     * @param folderToZIP
+     *
+     * ZIPENABLED
+     *
+     * backups/temp/blah -> backups/blah.zip
+     *
+     * ~~~ OR ~~~
+     *
+     * backups/temp/blah -> ( backups/blah
+     *
+     * sourceDIR finalDIR
+     *
      */
-    private void doZIP(String folderToZIP) {
+    /**
+     * Copies items from the temp DIR to the main DIR after ZIP if needed. After
+     * it has done the required action, it deletes the source folder.
+     *
+     * @param sourceDIR The source directory. (ex: "backups/temp/xxxxxxxx")
+     * @param finalDIR The final destination. (ex: "backups/xxxxxxxx")
+     */
+    private void doCopyAndZIP(String sourceDIR, String finalDIR) {
+
+        // Sdo we need to do the ZIP?
         if (shouldZIP) {
             // ZIP the Folder.
             try {
-                FileUtils.zipDir(folderToZIP, folderToZIP);
+                FileUtils.zipDir(sourceDIR, finalDIR);
             } catch (IOException ioe) {
                 LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to ZIP backup: IO Exception.");
             }
             // Delete the folder.
             try {
                 // Delete the original doBackup directory.
-                FileUtils.deleteDirectory(new File(folderToZIP));
-                new File(folderToZIP).delete();
+                FileUtils.deleteDirectory(new File(sourceDIR));
+                new File(sourceDIR).delete();
             } catch (IOException ioe) {
                 LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to delete temp folder: IO Exception.");
             }
+        } else {
+            if (useTempFolder) {
+                try {
+                    FileUtils.copyDirectory(sourceDIR, finalDIR);
+                } catch (IOException ex) {
+                    Logger.getLogger(BackupTask.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                // Delete the folder.
+                try {
+                    // Delete the original doBackup directory.
+                    FileUtils.deleteDirectory(new File(sourceDIR));
+                    new File(sourceDIR).delete();
+                } catch (IOException ioe) {
+                    LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to delete temp folder: IO Exception.");
+                }
+            }
         }
+
     }
 
     /**
-     * Check whether there are more backups as allowed to store. 
-     * When this case is true, it deletes oldest ones.
+     * Check whether there are more backups as allowed to store. When this case
+     * is true, it deletes oldest ones.
      */
     private boolean deleteOldBackups() {
 
@@ -327,7 +407,7 @@ public class BackupTask implements Runnable {
         File backupDir = new File(settings.getStringProperty("backuppath"));
 
         // Check if split doBackup or not.
-        if (splitbackup) {
+        if (splitBackup) {
             try {
                 // Loop the folders, and clean for each.
                 File[] foldersToClean = backupDir.listFiles();
@@ -426,7 +506,8 @@ public class BackupTask implements Runnable {
     }
 
     /**
-     * Creates a temporary Runnable that is running on the main thread by the scheduler to prevent thread problems.
+     * Creates a temporary Runnable that is running on the main thread by the
+     * scheduler to prevent thread problems.
      */
     private void finishBackup() {
 
@@ -455,18 +536,14 @@ public class BackupTask implements Runnable {
                         server.broadcastMessage(completedBackupMessage);
                     } else {
                         // Verify Permissions
-                        if (BackupMain.permissionsHandler != null) {
+                        Player[] players = server.getOnlinePlayers();
+                        // Loop through all online players.
+                        for (int pos = 0; pos < players.length; pos++) {
+                            Player currentplayer = players[pos];
 
-                            // Get all players.
-                            Player[] players = server.getOnlinePlayers();
-                            // Loop through all online players.
-                            for (int pos = 0; pos < players.length; pos++) {
-                                Player currentplayer = players[pos];
-
-                                // If the current player has the right permissions, notify them.
-                                if (BackupMain.permissionsHandler.has(currentplayer, "backup.notify")) {
-                                    currentplayer.sendMessage(completedBackupMessage);
-                                }
+                            // If the current player has the right permissions, notify them.
+                            if (currentplayer.hasPermission("backup.notify")) {
+                                currentplayer.sendMessage(completedBackupMessage);
                             }
                         }
                     }
