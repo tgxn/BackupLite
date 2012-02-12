@@ -19,7 +19,7 @@ import org.bukkit.plugin.Plugin;
  */
 public class CommandListener implements Listener, CommandExecutor {
 
-    private PrepareBackup backupTask = null;
+    private PrepareBackup prepareBackup = null;
     private final Plugin plugin;
     private Settings settings;
     private Strings strings;
@@ -33,7 +33,7 @@ public class CommandListener implements Listener, CommandExecutor {
      * @param strings The strings configuration for th plugin.
      */
     public CommandListener(PrepareBackup prepareBackup, Plugin plugin, Settings settings, Strings strings) {
-        this.backupTask = prepareBackup;
+        this.prepareBackup = prepareBackup;
         this.plugin = plugin;
         this.settings = settings;
         this.strings = strings;
@@ -117,8 +117,6 @@ public class CommandListener implements Listener, CommandExecutor {
                         if (checkPerms(player, "backup.upgradeconf")) {
                             updateConfig(player);
                         }
-                    } else if (argument.equals("")) {
-                    } else if (argument.equals("")) {
                     }
 
                 } else {
@@ -143,8 +141,8 @@ public class CommandListener implements Listener, CommandExecutor {
      * Start a manual backup.
      */
     private void doManualBackup() {
-        backupTask.setAsManualBackup();
-        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, backupTask);
+        prepareBackup.setAsManualBackup();
+        plugin.getServer().getScheduler().scheduleAsyncDelayedTask(plugin, prepareBackup);
     }
 
     /**
@@ -177,7 +175,7 @@ public class CommandListener implements Listener, CommandExecutor {
 
         // We hooked a perms system.
         if (player.isPermissionSet(permission)) {
-            if (player.hasPermission(permission)) {
+            if (!player.hasPermission(permission)) {
                 player.sendMessage(strings.getString("norights"));
                 return false;
             } else {
