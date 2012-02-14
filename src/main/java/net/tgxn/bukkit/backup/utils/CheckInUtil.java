@@ -32,9 +32,9 @@ public class CheckInUtil implements Runnable {
                 LogUtils.sendLog(strings.getString("pluginupdate", "At version: " + thisVersion));
             readURL.close();
         } catch (MalformedURLException ex) {
-            LogUtils.exceptionLog(ex.getStackTrace(), "Error getting latest version.");
+            LogUtils.sendLog("Failed to retrieve latest version.");
         } catch (IOException ex) {
-            LogUtils.exceptionLog(ex.getStackTrace(), "Error getting latest version.");
+            LogUtils.sendLog("Failed to retrieve latest version.");
         }
     }
 }
