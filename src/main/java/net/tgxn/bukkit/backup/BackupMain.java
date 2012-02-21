@@ -126,7 +126,9 @@ public class BackupMain extends JavaPlugin {
     
     @Override
     public void onDisable () {
-        
+
+        //this.getServer().getScheduler().getPendingTasks().
+
         // Stop and scheduled tasks.
         this.getServer().getScheduler().cancelTasks(this);
         
