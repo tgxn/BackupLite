@@ -10,6 +10,10 @@
 # Format: [Time][M-Minutes, H-Hours, D-Days, W-Weeks]
 backupinterval: 15M
 
+## Should the backup stop the schedule after the first backup? (Default: false)
+# One backup will be performed at the time specified under backupinterval.
+norepeat: false
+
 ## Enable scheduled save-all? (Default: "-1" / Off)
 # (Note: -1 disables this feature.)
 # Format: [Time][M-Minutes, H-Hours, D-Days, W-Weeks]

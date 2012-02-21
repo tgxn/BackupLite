@@ -88,7 +88,14 @@ public class BackupMain extends JavaPlugin {
         int backupInterval = settings.getIntervalInMinutes("backupinterval");
         if (backupInterval != 0) {
             backupInterval *= 1200;
-            mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
+
+            // Should the schedule repeat?
+            if(settings.getBooleanProperty("norepeat")) {
+                mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncDelayedTask(this, prepareBackup, backupInterval);
+            } else {
+                mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
+            }
+            
         } else {
             LogUtils.sendLog(strings.getString("disbaledauto"));
         }
@@ -116,7 +123,7 @@ public class BackupMain extends JavaPlugin {
         }
         
         if(settings.getBooleanProperty("enableversioncheck")) {
-            CheckInUtil checkIn = null;
+            CheckInUtil checkIn;
             checkIn = new CheckInUtil(this.getDescription().getVersion(), strings);
             pluginServer.getScheduler().scheduleAsyncDelayedTask(this, checkIn);
         }
