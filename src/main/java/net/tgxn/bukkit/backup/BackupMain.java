@@ -114,11 +114,12 @@ public class BackupMain extends JavaPlugin {
             LogUtils.sendLog("Interval: " + buInterval + ", Max: " + max + ", On Empty: " + empty + ", Everything: " + everything + ".", false);
             LogUtils.sendLog("Save-All Int: " + saInterval + ", Split: " + split + ", ZIP: " + zip + ", Path: " + path + ".", false);
         }
-
-        CheckInUtil checkIn = null;
-        if(settings.getBooleanProperty("enableversioncheck"))
+        
+        if(settings.getBooleanProperty("enableversioncheck")) {
+            CheckInUtil checkIn = null;
             checkIn = new CheckInUtil(this.getDescription().getVersion(), strings);
             pluginServer.getScheduler().scheduleAsyncDelayedTask(this, checkIn);
+        }
         
         // Notify loading complete.
         LogUtils.sendLog(this.getDescription().getFullName() + " has completed loading!", false);
