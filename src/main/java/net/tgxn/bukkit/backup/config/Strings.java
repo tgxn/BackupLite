@@ -44,9 +44,9 @@ public class Strings {
                 createDefaultStrings();
             }
         } catch (NullPointerException npe) {
-            LogUtils.exceptionLog(npe.getStackTrace(), "Error checking strings file.");
+            LogUtils.exceptionLog(npe, "Error checking strings file.");
         } catch (SecurityException se) {
-            LogUtils.exceptionLog(se.getStackTrace(), "Error checking strings file.");
+            LogUtils.exceptionLog(se, "Error checking strings file.");
         }
     }
     
@@ -88,11 +88,11 @@ public class Strings {
         try {
             fileStringConfiguration.load(stringsFile);
         } catch (FileNotFoundException ex) {
-            LogUtils.exceptionLog(ex.getStackTrace(), "Error loading strings file.");
+            LogUtils.exceptionLog(ex, "Error loading strings file.");
         } catch (InvalidConfigurationException ice) {
-            LogUtils.exceptionLog(ice.getStackTrace(), "Error loading strings file.");
+            LogUtils.exceptionLog(ice, "Error loading strings file.");
         } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe.getStackTrace(), "Error loading strings file.");
+            LogUtils.exceptionLog(ioe, "Error loading strings file.");
         }
     }
     
@@ -122,7 +122,7 @@ public class Strings {
                 bWriter.newLine();
             }
         } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe.getStackTrace(), "Error opening streams.");
+            LogUtils.exceptionLog(ioe, "Error opening streams.");
         }
         
         // Close the open buffers.
@@ -135,7 +135,7 @@ public class Strings {
                     bWriter.close();
                 }
             } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe.getStackTrace(), "Error closing streams.");
+                LogUtils.exceptionLog(ioe, "Error closing streams.");
             }
         }
     }

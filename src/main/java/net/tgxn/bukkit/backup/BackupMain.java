@@ -35,7 +35,7 @@ public class BackupMain extends JavaPlugin {
     
     @Override
     public void onLoad() {
-        
+
         // Initalize main data folder variable.
         mainDataFolder = this.getDataFolder();
         
@@ -103,6 +103,8 @@ public class BackupMain extends JavaPlugin {
         // Configure save-all schedule.
         int saveAllInterval = settings.getIntervalInMinutes("saveallinterval");
         if(saveAllInterval != 0) {
+            // COnvert to ticks.
+            saveAllInterval *= 1200;
             saveAllTask = new SaveAllTask(pluginServer);
             saveAllTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, saveAllTask, saveAllInterval, saveAllInterval);
         }

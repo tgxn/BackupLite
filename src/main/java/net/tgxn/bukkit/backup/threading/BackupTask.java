@@ -185,9 +185,9 @@ public class BackupTask implements Runnable {
             doCopyAndZIP(tempInstFolder, theFinalDestination);
 
         } catch (FileNotFoundException fnfe) {
-            LogUtils.exceptionLog(fnfe.getStackTrace(), "Failed to copy world: File not found.");
+            LogUtils.exceptionLog(fnfe, "Failed to copy world: File not found.");
         } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to copy world: IO Exception.");
+            LogUtils.exceptionLog(ioe, "Failed to copy world: IO Exception.");
         }
     }
 
@@ -237,9 +237,9 @@ public class BackupTask implements Runnable {
                     FileUtils.copyDirectory(currentWorldName, thisWorldBackupFolder);
 
                 } catch (FileNotFoundException ex) {
-                    LogUtils.exceptionLog(ex.getStackTrace());
+                    LogUtils.exceptionLog(ex);
                 } catch (IOException ioe) {
-                    LogUtils.exceptionLog(ioe.getStackTrace());
+                    LogUtils.exceptionLog(ioe);
                 }
             }
         }
@@ -303,9 +303,9 @@ public class BackupTask implements Runnable {
             }
             FileUtils.copyDirectory(pluginsFolder, new File(pluginsBackupPath), pluginsFileFilter, true);
         } catch (FileNotFoundException ex) {
-            LogUtils.exceptionLog(ex.getStackTrace());
+            LogUtils.exceptionLog(ex);
         } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe.getStackTrace());
+            LogUtils.exceptionLog(ioe);
         }
 
         // Check if ZIP is required.
@@ -367,7 +367,7 @@ public class BackupTask implements Runnable {
             try {
                 FileUtils.zipDir(sourceDIR, finalDIR);
             } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to ZIP backup: IO Exception.");
+                LogUtils.exceptionLog(ioe, "Failed to ZIP backup: IO Exception.");
             }
             // Delete the folder.
             try {
@@ -375,7 +375,7 @@ public class BackupTask implements Runnable {
                 FileUtils.deleteDirectory(new File(sourceDIR));
                 new File(sourceDIR).delete();
             } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to delete temp folder: IO Exception.");
+                LogUtils.exceptionLog(ioe, "Failed to delete temp folder: IO Exception.");
             }
         } else {
             if (useTempFolder) {
@@ -390,7 +390,7 @@ public class BackupTask implements Runnable {
                     FileUtils.deleteDirectory(new File(sourceDIR));
                     new File(sourceDIR).delete();
                 } catch (IOException ioe) {
-                    LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to delete temp folder: IO Exception.");
+                    LogUtils.exceptionLog(ioe, "Failed to delete temp folder: IO Exception.");
                 }
             }
         }
@@ -419,10 +419,10 @@ public class BackupTask implements Runnable {
                     }
                 }
             } catch (NullPointerException npe) {
-                LogUtils.exceptionLog(npe.getStackTrace());
+                LogUtils.exceptionLog(npe);
                 return false;
             } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe.getStackTrace());
+                LogUtils.exceptionLog(ioe);
                 return false;
             }
 
@@ -432,10 +432,10 @@ public class BackupTask implements Runnable {
             try {
                 cleanFolder(backupDir);
             } catch (NullPointerException npe) {
-                LogUtils.exceptionLog(npe.getStackTrace());
+                LogUtils.exceptionLog(npe);
                 return false;
             } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe.getStackTrace());
+                LogUtils.exceptionLog(ioe);
                 return false;
             }
         }
@@ -488,7 +488,7 @@ public class BackupTask implements Runnable {
                 }
             }
         } catch (SecurityException se) {
-            LogUtils.exceptionLog(se.getStackTrace(), "Failed to clean old backups: Security Exception.");
+            LogUtils.exceptionLog(se, "Failed to clean old backups: Security Exception.");
         }
     }
 

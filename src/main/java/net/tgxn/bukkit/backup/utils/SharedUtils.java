@@ -22,7 +22,7 @@ public class SharedUtils {
                     return true;
                 }
             } catch (SecurityException se) {
-                LogUtils.exceptionLog(se.getStackTrace());
+                LogUtils.exceptionLog(se);
             }
         }
         return false;

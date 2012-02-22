@@ -48,7 +48,7 @@ public class LogUtils {
      * @param ste The stack trace.
      * @param message Message accompanying it.
      */
-    public static void exceptionLog(StackTraceElement ste[], String message) {
+    public static void exceptionLog(Throwable ste, String message) {
         sendLog(message, Level.SEVERE, true);
         exceptionLog(ste);
     }
@@ -58,24 +58,10 @@ public class LogUtils {
      * 
      * @param ste The stack trace element.
      */
-    public static void exceptionLog(StackTraceElement ste[]) {
-        String tags = "[" + plugin.getDescription().getName()  + "] ";
-        try {
-            String toSystemOut = "";
-            String[] error = null;
-            for (int pos = 0; pos < ste.length; pos++) {
-
-                toSystemOut =  ste[pos].getFileName() + ":" + ste[pos].getLineNumber();
-
-                error[0] = ste[pos].getFileName() + ":" + ste[pos].getLineNumber() + " ==>" + ste[pos].getMethodName() + "()";
-                error[1] = ste[pos].toString();
-            }
-            System.out.println(tags + "Error: "+toSystemOut);
-        } catch(NullPointerException npe) {
-            System.out.println(tags + "Error: Null Pointer in exception class!");
-        }
+    public static void exceptionLog(Throwable ste) {
+        sendLog("Please provide following error with support request:", Level.SEVERE, true);
+        ste.printStackTrace(System.out);
     }
-    
 
     /**
      * Sends log message.

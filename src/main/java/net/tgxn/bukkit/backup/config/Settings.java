@@ -50,9 +50,9 @@ public final class Settings {
                 createDefaultSettings();
             }
         } catch (NullPointerException npe) {
-            LogUtils.exceptionLog(npe.getStackTrace(), "Failed to create default configuration file.");
+            LogUtils.exceptionLog(npe, "Failed to create default configuration file.");
         } catch (SecurityException se) {
-            LogUtils.exceptionLog(se.getStackTrace(), "Failed to create default configuration file.");
+            LogUtils.exceptionLog(se, "Failed to create default configuration file.");
         }
     }
     
@@ -64,9 +64,9 @@ public final class Settings {
         try {
             fileSettingConfiguration.load(configFile);
         } catch (InvalidConfigurationException ice) {
-            LogUtils.exceptionLog(ice.getStackTrace(), "Failed to load configuration.");
+            LogUtils.exceptionLog(ice, "Failed to load configuration.");
         } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe.getStackTrace(), "Failed to load configuration.");
+            LogUtils.exceptionLog(ioe, "Failed to load configuration.");
         }
     }
     
@@ -135,7 +135,7 @@ public final class Settings {
                 bWriter.newLine();
             }
         } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe.getStackTrace(), "Error opening stream.");
+            LogUtils.exceptionLog(ioe, "Error opening stream.");
         }
         
         finally {
@@ -147,7 +147,7 @@ public final class Settings {
                     bWriter.close();
                 }
             } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe.getStackTrace(), "Error closing stream.");
+                LogUtils.exceptionLog(ioe, "Error closing stream.");
             }
         }
     }
@@ -192,7 +192,7 @@ public final class Settings {
      * @return Amount of time between backups. (In minutes)
      */
     public int getIntervalInMinutes(String forSetting) {
-        String settingInterval = getStringProperty(forSetting).trim();
+        String settingInterval = getStringProperty(forSetting).trim().toLowerCase();
         // If it is null or set to disable.
         if(settingInterval.equals("-1") || settingInterval == null) {
             return 0;
@@ -200,21 +200,21 @@ public final class Settings {
         // If it is just a number, return minutes.
         if (settingInterval.matches("^[0-9]+$")) {
             return Integer.parseInt(settingInterval);
-        } else if(settingInterval.matches("[0-9]+[a-zA-Z]")) {
-            Pattern timePattern = Pattern.compile("^([0-9]+)[A-Za-z]$");
+        } else if(settingInterval.matches("[0-9]+[a-z]")) {
+            Pattern timePattern = Pattern.compile("^([0-9]+)[a-z]$");
             Matcher amountTime = timePattern.matcher(settingInterval);
-            Pattern letterPattern = Pattern.compile("^[0-9]+([A-Za-z])$");
+            Pattern letterPattern = Pattern.compile("^[0-9]+([a-z])$");
             Matcher letterTime = letterPattern.matcher(settingInterval);
             if(letterTime.matches() && amountTime.matches()) {
                 String letter = letterTime.group(1);
                 int time = Integer.parseInt(amountTime.group(1));
-                if (letter.equals("M")) {
+                if (letter.equals("m")) {
                     return time;
-                } else if (letter.equals("H")) {
+                } else if (letter.equals("h")) {
                     return time * 60;
-                } else if (letter.equals("D")) {
+                } else if (letter.equals("d")) {
                     return time * 1440;
-                } else if (letter.equals("W")) {
+                } else if (letter.equals("w")) {
                     return time * 10080;
                 } else {
                     LogUtils.sendLog(strings.getString("unknowntimeident"));
