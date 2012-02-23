@@ -13,6 +13,7 @@ import net.tgxn.bukkit.backup.utils.FileUtils;
 import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import net.tgxn.bukkit.backup.utils.SharedUtils;
+import net.tgxn.bukkit.backup.utils.SyncSaveAllUtil;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -33,6 +34,7 @@ public class BackupTask implements Runnable {
     private Settings settings;
     private Strings strings;
     private LinkedList<String> worldsToBackup;
+    private SyncSaveAllUtil syncSaveAllUtil;
     // Settings
     private List<String> pluginList;
     private boolean splitBackup;
@@ -519,8 +521,13 @@ public class BackupTask implements Runnable {
 
                 // Should we enable auto-save again?
                 if (settings.getBooleanProperty("enableautosave")) {
-                    server.dispatchCommand(server.getConsoleSender(), "save-on");
+                    syncSaveAllUtil = new SyncSaveAllUtil(server, 2);
+                    server.getScheduler().scheduleSyncDelayedTask(plugin, syncSaveAllUtil);
                 }
+
+                // Delete the temp directory.
+                File tempFile = new File(tempFolder);
+                deleteDir(tempFile);
 
                 // Notify that it has completed.
                 notifyCompleted();

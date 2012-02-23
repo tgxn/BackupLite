@@ -7,9 +7,9 @@ import java.util.logging.Level;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.utils.LogUtils;
+import net.tgxn.bukkit.backup.utils.SyncSaveAllUtil;
 import org.bukkit.Server;
 import org.bukkit.World;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -21,7 +21,8 @@ public class PrepareBackup implements Runnable {
     private boolean isManualBackup;
     private Plugin plugin;
     public boolean isLastBackup;
-    
+    private SyncSaveAllUtil syncSaveAllUtil;
+
     public PrepareBackup (Server server, Settings settings, Strings strings) {
         this.server = server;
         this.settings = settings;
@@ -89,8 +90,9 @@ public class PrepareBackup implements Runnable {
             }
         }
         if(settings.getBooleanProperty("alwayssaveall")) {
-            ConsoleCommandSender consoleCommandSender = server.getConsoleSender();
-            server.dispatchCommand(consoleCommandSender, "save-all");
+            syncSaveAllUtil = new SyncSaveAllUtil(server, 0);
+            server.getScheduler().scheduleSyncDelayedTask(plugin, syncSaveAllUtil);
+
             LogUtils.sendLog(strings.getString("alwayssaveall"));
         }
     }
@@ -104,9 +106,8 @@ public class PrepareBackup implements Runnable {
         notifyStarted();
 
         // Perform world saving, and turn it off.
-        ConsoleCommandSender consoleCommandSender = server.getConsoleSender();
-        server.dispatchCommand(consoleCommandSender, "save-all");
-        server.dispatchCommand(consoleCommandSender, "save-off");
+        syncSaveAllUtil = new SyncSaveAllUtil(server, 1);
+        server.getScheduler().scheduleSyncDelayedTask(plugin, syncSaveAllUtil);
 
         // Save players.
         server.savePlayers();

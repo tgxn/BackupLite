@@ -23,7 +23,7 @@ public class CheckInUtil implements Runnable {
 
     public void run() {
         try {
-            URL versionURL = new URL("1http://checkin.bukkitbackup.com/index.php?ver="+thisVersion+"&fromplugin");
+            URL versionURL = new URL("http://checkin.bukkitbackup.com/index.php?ver="+thisVersion+"&fromplugin");
             BufferedReader readURL = new BufferedReader(new InputStreamReader(versionURL.openStream()));
             String webVersion = readURL.readLine();
             if(!webVersion.equals(thisVersion))

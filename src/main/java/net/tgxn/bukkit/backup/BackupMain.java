@@ -6,11 +6,11 @@ import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.listeners.CommandListener;
 import net.tgxn.bukkit.backup.listeners.EventListener;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
-import net.tgxn.bukkit.backup.threading.SaveAllTask;
 import net.tgxn.bukkit.backup.utils.CheckInUtil;
 import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import net.tgxn.bukkit.backup.utils.SharedUtils;
+import net.tgxn.bukkit.backup.utils.SyncSaveAllUtil;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -31,7 +31,7 @@ public class BackupMain extends JavaPlugin {
     private static Strings strings;
     private static Settings settings;
     private PrepareBackup prepareBackup;
-    private SaveAllTask saveAllTask;
+    private SyncSaveAllUtil syncSaveAllUtil;
     
     @Override
     public void onLoad() {
@@ -55,16 +55,10 @@ public class BackupMain extends JavaPlugin {
         // Complee initalization of LogUtils.
         LogUtils.finishInitLogUtils(settings.getBooleanProperty("displaylog"), settings.getBooleanProperty("logtofile"), settings.getStringProperty("backuplogname"));
         
-        // Check backup path and the temp folder.
-        if(SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath")))) {
-            
-            // Create the tempoary folder.
-            if(settings.getBooleanProperty("usetemp"))
-                SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath").concat(FILE_SEPARATOR).concat(settings.getStringProperty("tempfoldername"))));
-            
-            // Notify users of this.
+        // Check backup path and the temp folder, then notify users of this.
+        if(SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath"))))
             LogUtils.sendLog(strings.getString("createbudir"));
-        }
+
     }
     
     @Override
@@ -105,8 +99,10 @@ public class BackupMain extends JavaPlugin {
         if(saveAllInterval != 0) {
             // COnvert to ticks.
             saveAllInterval *= 1200;
-            saveAllTask = new SaveAllTask(pluginServer);
-            saveAllTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, saveAllTask, saveAllInterval, saveAllInterval);
+
+            // Syncronised save-all.
+            syncSaveAllUtil = new SyncSaveAllUtil(pluginServer, 0);
+            saveAllTaskID = pluginServer.getScheduler().scheduleSyncDelayedTask(this, syncSaveAllUtil);
         }
 
         // Startup configuration output.

@@ -53,7 +53,7 @@ alwayssaveall: false
 backuppath: backups
 
 ## Do we use the temp folder when doing backup? (Default: true)
-# It is required for Ziped backups.
+# It is required for Zipped backups.
 usetemp: true
 
 ## Name for the temp folder. (Default: temp)
