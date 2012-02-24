@@ -112,9 +112,9 @@ backuplogname: backup.log
 # False will only notify players with the "backup.notify" permission.
 notifyallplayers: true
 
-## Prints a list of configuration on plugin enable. (Default: true)
+## Prints a list of configuration on plugin enable. (Default: false)
 # This is usefull for debugging configuration.
-showconfigonstartup: true
+showconfigonstartup: false
 
 ## Enable online version checking? (Default: true)
 # Requires internet connectivity.

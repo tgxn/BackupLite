@@ -4,13 +4,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.plugin.Plugin;
 
-/**
- * Logging utilities, also handles try-catch exceptions.
- * 
- * @author Domenic Horner (gamerx)
- */
 public class LogUtils {
-    
+
+    // Private veriables for this class.
     private static Level logLevel = Level.INFO;
     private static Logger logger;
     private static Plugin plugin;
@@ -19,9 +15,9 @@ public class LogUtils {
     private static String logFileName;
 
     /**
-     * Main Constructor for LogUtils.
-     * Creates logger, sets default log level and variables.
-     * 
+     * Main Constructor for LogUtils. Creates logger, sets default log level and
+     * variables.
+     *
      * @param plugin The plugin's object.
      */
     public static void initLogUtils(Plugin plugin) {
@@ -29,13 +25,13 @@ public class LogUtils {
             if (plugin != null) {
                 LogUtils.logger = Logger.getLogger(plugin.getServer().getLogger().getName() + "." + plugin.getServer().getName());
             }
-            
+
             LogUtils.logLevel = Level.INFO;
             LogUtils.logger.setLevel(Level.INFO);
             LogUtils.plugin = plugin;
         }
     }
-    
+
     public static void finishInitLogUtils(boolean logToConsole, boolean logtofile, String logFileName) {
         LogUtils.logToConsole = logToConsole;
         LogUtils.logToFile = logtofile;
@@ -44,7 +40,7 @@ public class LogUtils {
 
     /**
      * Exception handling, Called instead of sendLog so it can be debugged.
-     * 
+     *
      * @param ste The stack trace.
      * @param message Message accompanying it.
      */
@@ -52,10 +48,10 @@ public class LogUtils {
         sendLog(message, Level.SEVERE, true);
         exceptionLog(ste);
     }
-    
+
     /**
      * Parse the STE and print the error.
-     * 
+     *
      * @param ste The stack trace element.
      */
     public static void exceptionLog(Throwable ste) {
@@ -65,27 +61,28 @@ public class LogUtils {
 
     /**
      * Sends log message.
-     * 
-     * @param message 
+     *
+     * @param message
      */
     public static void sendLog(String message) {
         sendLog(message, Level.INFO, true);
     }
+
     /**
      * Sends log message.
-     * 
+     *
      * @param message
-     * @param tags 
+     * @param tags
      */
     public static void sendLog(String message, boolean tags) {
         sendLog(message, Level.INFO, tags);
     }
-    
+
     /**
      * Sends log message.
-     * 
+     *
      * @param message
-     * @param tags 
+     * @param tags
      */
     public static void sendLog(Level level, String message) {
         sendLog(message, level, true);
@@ -93,34 +90,37 @@ public class LogUtils {
 
     /**
      * Sends log message.
-     * 
+     *
      * @param logLevel Logger level for this item.
      * @param message The text of the log.
      * @param addTags Should we add tags to the string.
      */
     public static void sendLog(String message, Level logLevel, boolean addTags) {
-        final String nameTag = ("[" + plugin.getDescription().getName()  + "] ");
-        if(addTags)
+        final String nameTag = ("[" + plugin.getDescription().getName() + "] ");
+        if (addTags) {
             message = nameTag + message;
-        if(logToConsole)
+        }
+        if (logToConsole) {
             logger.log(logLevel, message);
-        if(logToFile) {}
-            //@TODO Log to file code. using
+        }
+        if (logToFile) {
+        }
+        //@TODO Log to file code.
     }
-    
+
     /**
      * Sets the default LoglLevel.
-     * 
+     *
      * @param logLevel The level to set the logger to.
      */
     public static void setLogLevel(Level logLevel) {
         LogUtils.logLevel = logLevel;
         LogUtils.logger.setLevel(logLevel);
     }
-    
+
     /**
      * Gets the current LogLevel.
-     * 
+     *
      * @return The current log level.
      */
     public static Level getLogLevel() {

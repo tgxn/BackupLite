@@ -18,35 +18,27 @@ import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-/**
- * The Task copies and backups the worlds and delete older backups. This task is
- * only runes once in doBackup and doing all the thread safe options. The
- * PrepareBackupTask and BackupTask are two threads to find a compromise between
- * security and performance.
- *
- * @author Kilian Gaertner, Domenic Horner (gamerx)
- */
 public class BackupTask implements Runnable {
 
-    // From params
+    // Private veriables passed to class using params.
     private Server server;
     private Plugin plugin;
     private Settings settings;
     private Strings strings;
     private LinkedList<String> worldsToBackup;
-    private SyncSaveAllUtil syncSaveAllUtil;
-    // Settings
+    // Settings variables.
     private List<String> pluginList;
     private boolean splitBackup;
     private boolean shouldZIP;
     private boolean backupEverything;
     private String backupsPath;
-    // Instance variables
     private String theFinalDestination;
     private String tempFolder;
     private String tempInstFolder;
     private String backupName;
     private boolean useTempFolder;
+    // Save-All handler.
+    private SyncSaveAllUtil syncSaveAllUtil;
 
     /**
      * The main BackupTask constructor.
@@ -76,12 +68,11 @@ public class BackupTask implements Runnable {
         pluginList = Arrays.asList(settings.getStringProperty("skipplugins").split(";"));
         useTempFolder = settings.getBooleanProperty("usetemp");
 
-        // While backing up, use a temp folder, then move to backups folder.
-
         // Set up temp folder.
         tempFolder = backupsPath.concat(settings.getStringProperty("tempfoldername")).concat(FILE_SEPARATOR);
-        if (useTempFolder)
+        if (useTempFolder) {
             SharedUtils.checkFolderAndCreate(new File(tempFolder));
+        }
 
         // ZIP on.
         if (shouldZIP) {

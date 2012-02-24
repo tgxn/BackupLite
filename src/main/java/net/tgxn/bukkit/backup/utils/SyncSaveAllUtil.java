@@ -1,20 +1,13 @@
 package net.tgxn.bukkit.backup.utils;
 
-import net.tgxn.bukkit.backup.config.Settings;
-import net.tgxn.bukkit.backup.config.Strings;
 import org.bukkit.Server;
 import org.bukkit.command.ConsoleCommandSender;
 
-/**
- *
- * @author Domenic Horner
- */
 public class SyncSaveAllUtil implements Runnable {
 
     private final Server server;
     private int mode;
-    
-    
+
     public SyncSaveAllUtil(Server server, int mode) {
         this.server = server;
         this.mode = mode;
@@ -23,7 +16,7 @@ public class SyncSaveAllUtil implements Runnable {
     @Override
     public void run() {
         ConsoleCommandSender consoleCommandSender = server.getConsoleSender();
-        switch(mode) {
+        switch (mode) {
             case 0:
                 server.dispatchCommand(consoleCommandSender, "save-all");
                 break;

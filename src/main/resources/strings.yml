@@ -37,8 +37,9 @@ removeold            : 'Removing the following backup(s) due to age:'
 lastbackup           : Last player left, backing up!
 alwayssaveall        : Forcing /save-all, stand by!
 unknowntimeident     : Failed to detect interval amount. (Please use M, H, D, or W).
-pluginoutdate        : Plugin is out of date, %%ARG%%.
-pluginupdate         : Plugin is up to date, %%ARG%%.
+pluginoutdate        : 'Plugin is out of date, This: %%ARG%%, Latest: %%ARG1%%.'
+pluginupdate         : 'Plugin is up to date, At version: %%ARG%%.'
+skipbackupbypass     : Skipping backup because all players have bypass node.
 
 #========= Error Strings ==========#
 
@@ -53,4 +54,4 @@ checkbackupinterval  : Please check your backupinterval setting is formatted cor
 
 stringnotfound       : 'String not found - '
 packagedwith         : 1.8.8-dev
-version              : str-30
+version              : str-dev-188-1
