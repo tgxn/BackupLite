@@ -23,6 +23,8 @@ defaultperms         : No permissions plugin detected, defaulting to OP.
 hookedperms          : Found and hooked a permissions plugin.
 newconfigfile        : No config file exists, creating default.
 disbaledauto         : You have disabled scheduled backups!
+norepeatenabled      : Backup will be performed once in %%ARG%% minutes.
+savealltimeron       : Save-All will be performed ever %%ARG%% minutes.
 
 #========= Notification Strings ==========#
 

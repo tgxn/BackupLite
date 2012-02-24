@@ -18,6 +18,7 @@ public class PrepareBackup implements Runnable {
     // Public variables.
     public boolean isLastBackup;
     public boolean isManualBackup;
+    public LinkedList<String> worldsToBackup;
     // Private variables for this class.
     private final Server server;
     private final Settings settings;
@@ -118,7 +119,7 @@ public class PrepareBackup implements Runnable {
 
         // Create list of worlds to ignore.
         List<String> ignoredWorldNames = getIgnoredWorldNames();
-        LinkedList<String> worldsToBackup = new LinkedList<String>();
+        worldsToBackup = new LinkedList<String>();
         for (World world : server.getWorlds()) {
             if ((world.getName() != null) && !world.getName().isEmpty() && (!ignoredWorldNames.contains(world.getName()))) {
                 LogUtils.sendLog("Adding world '" + world.getName() + "' to backup list", Level.FINE, true);
@@ -127,7 +128,13 @@ public class PrepareBackup implements Runnable {
         }
 
         // Scedule the doBackup.
-        server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(server, settings, strings, worldsToBackup));
+        server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+            private LinkedList<String> worldsToBackup;
+            @Override
+            public void run() {
+                server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(server, settings, strings, worldsToBackup));
+            }
+        });
         isManualBackup = false;
     }
 

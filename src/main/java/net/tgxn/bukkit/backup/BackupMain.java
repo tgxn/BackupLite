@@ -76,12 +76,15 @@ public class BackupMain extends JavaPlugin {
         int backupInterval = settings.getIntervalInMinutes("backupinterval");
         if (backupInterval != 0) {
 
+            int backupMinutes = backupInterval;
+
             // Convert to server ticks.
             backupInterval *= 1200;
 
             // Should the schedule repeat?
             if (settings.getBooleanProperty("norepeat")) {
                 mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncDelayedTask(this, prepareBackup, backupInterval);
+                LogUtils.sendLog(strings.getString("norepeatenabled", Integer.toString(backupMinutes)));
             } else {
                 mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
             }
@@ -94,8 +97,12 @@ public class BackupMain extends JavaPlugin {
         int saveAllInterval = settings.getIntervalInMinutes("saveallinterval");
         if (saveAllInterval != 0) {
 
+            int saveAllMinutes = saveAllInterval;
+
             // Convert to server ticks.
             saveAllInterval *= 1200;
+
+            LogUtils.sendLog(strings.getString("savealltimeron", Integer.toString(saveAllMinutes)));
 
             // Syncronised save-all.
             syncSaveAllUtil = new SyncSaveAllUtil(pluginServer, 0);
