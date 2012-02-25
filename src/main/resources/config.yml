@@ -10,6 +10,10 @@
 # Format: [Time][M-Minutes, H-Hours, D-Days, W-Weeks]
 backupinterval: 15M
 
+## Should the backup stop the schedule after the first backup? (Default: false)
+# One backup will be performed at the time specified under backupinterval.
+norepeat: false
+
 ## Enable scheduled save-all? (Default: "-1" / Off)
 # (Note: -1 disables this feature.)
 # Format: [Time][M-Minutes, H-Hours, D-Days, W-Weeks]
@@ -49,7 +53,7 @@ alwayssaveall: false
 backuppath: backups
 
 ## Do we use the temp folder when doing backup? (Default: true)
-# It is required for Ziped backups.
+# It is required for Zipped backups.
 usetemp: true
 
 ## Name for the temp folder. (Default: temp)
@@ -108,9 +112,9 @@ backuplogname: backup.log
 # False will only notify players with the "backup.notify" permission.
 notifyallplayers: true
 
-## Prints a list of configuration on plugin enable. (Default: true)
+## Prints a list of configuration on plugin enable. (Default: false)
 # This is usefull for debugging configuration.
-showconfigonstartup: true
+showconfigonstartup: false
 
 ## Enable online version checking? (Default: true)
 # Requires internet connectivity.
@@ -120,5 +124,5 @@ enableversioncheck: true
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
-requiredstrings: str-30
-version: 1.8.7
+requiredstrings: str-188-1
+version: 1.8.8

@@ -1,4 +1,4 @@
-package net.tgxn.bukkit.backup.listeners;
+package net.tgxn.bukkit.backup.events;
 
 import java.io.File;
 import net.tgxn.bukkit.backup.config.Settings;
@@ -12,14 +12,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
-/**
- * Command listener and handler.
- *
- * @author Domenic Horner (gamerx)
- */
-public class CommandListener implements Listener, CommandExecutor {
+public class CommandHandler implements Listener, CommandExecutor {
 
-    private PrepareBackup backupTask = null;
+    private PrepareBackup prepareBackup = null;
     private final Plugin plugin;
     private Settings settings;
     private Strings strings;
@@ -32,8 +27,8 @@ public class CommandListener implements Listener, CommandExecutor {
      * @param settings Load settings for the plugin.
      * @param strings The strings configuration for th plugin.
      */
-    public CommandListener(PrepareBackup prepareBackup, Plugin plugin, Settings settings, Strings strings) {
-        this.backupTask = prepareBackup;
+    public CommandHandler(PrepareBackup prepareBackup, Plugin plugin, Settings settings, Strings strings) {
+        this.prepareBackup = prepareBackup;
         this.plugin = plugin;
         this.settings = settings;
         this.strings = strings;
@@ -117,8 +112,6 @@ public class CommandListener implements Listener, CommandExecutor {
                         if (checkPerms(player, "backup.upgradeconf")) {
                             updateConfig(player);
                         }
-                    } else if (argument.equals("")) {
-                    } else if (argument.equals("")) {
                     }
 
                 } else {
@@ -143,8 +136,8 @@ public class CommandListener implements Listener, CommandExecutor {
      * Start a manual backup.
      */
     private void doManualBackup() {
-        backupTask.setAsManualBackup();
-        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, backupTask);
+        prepareBackup.setAsManualBackup();
+        plugin.getServer().getScheduler().scheduleAsyncDelayedTask(plugin, prepareBackup);
     }
 
     /**
@@ -177,7 +170,7 @@ public class CommandListener implements Listener, CommandExecutor {
 
         // We hooked a perms system.
         if (player.isPermissionSet(permission)) {
-            if (player.hasPermission(permission)) {
+            if (!player.hasPermission(permission)) {
                 player.sendMessage(strings.getString("norights"));
                 return false;
             } else {

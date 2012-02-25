@@ -3,70 +3,58 @@ package net.tgxn.bukkit.backup;
 import java.io.File;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
-import net.tgxn.bukkit.backup.listeners.CommandListener;
-import net.tgxn.bukkit.backup.listeners.EventListener;
+import net.tgxn.bukkit.backup.events.CommandHandler;
+import net.tgxn.bukkit.backup.events.EventListener;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
-import net.tgxn.bukkit.backup.threading.SaveAllTask;
 import net.tgxn.bukkit.backup.utils.CheckInUtil;
-import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import net.tgxn.bukkit.backup.utils.SharedUtils;
+import net.tgxn.bukkit.backup.utils.SyncSaveAllUtil;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/**
- * Main class file for Backup plugin.
- *
- * @author Domenic Horner (gamerx)
- */
 public class BackupMain extends JavaPlugin {
-    
-    // Task ID for main recurring BackupTask. and Main plugin data folder.
+
+    // Setup public variables used in this plugin.
     public int mainBackupTaskID = -2;
     public int saveAllTaskID = -2;
     public File mainDataFolder;
-    
-    // Strings, Settings, and the PrepareBackup task.
+    // Private variables for this class.
     private static Strings strings;
     private static Settings settings;
     private PrepareBackup prepareBackup;
-    private SaveAllTask saveAllTask;
-    
+    private SyncSaveAllUtil syncSaveAllUtil;
+
     @Override
     public void onLoad() {
-        
+
         // Initalize main data folder variable.
         mainDataFolder = this.getDataFolder();
-        
+
         // Initalize logging utilities.
         LogUtils.initLogUtils(this);
-        
+
         // check and create main datafile.
         SharedUtils.checkFolderAndCreate(mainDataFolder);
-        
+
         // Load configuration files.
         strings = new Strings(new File(mainDataFolder, "strings.yml"));
         settings = new Settings(this, new File(mainDataFolder, "config.yml"), strings);
-        
+
         // Run version checking on strings file.
         strings.checkStringsVersion(settings.getStringProperty("requiredstrings"));
-        
+
         // Complee initalization of LogUtils.
         LogUtils.finishInitLogUtils(settings.getBooleanProperty("displaylog"), settings.getBooleanProperty("logtofile"), settings.getStringProperty("backuplogname"));
-        
-        // Check backup path and the temp folder.
-        if(SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath")))) {
-            
-            // Create the tempoary folder.
-            if(settings.getBooleanProperty("usetemp"))
-                SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath").concat(FILE_SEPARATOR).concat(settings.getStringProperty("tempfoldername"))));
-            
-            // Notify users of this.
+
+        // Check backup path and the temp folder, then notify users of this.
+        if (SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath")))) {
             LogUtils.sendLog(strings.getString("createbudir"));
         }
+
     }
-    
+
     @Override
     public void onEnable() {
 
@@ -78,26 +66,47 @@ public class BackupMain extends JavaPlugin {
         prepareBackup = new PrepareBackup(pluginServer, settings, strings);
 
         // Initalize Command Listener.
-        getCommand("backup").setExecutor(new CommandListener(prepareBackup, this, settings, strings));
-        
+        getCommand("backup").setExecutor(new CommandHandler(prepareBackup, this, settings, strings));
+
         // Initalize Event Listener.
         EventListener eventListener = new EventListener(prepareBackup, this, settings, strings);
         pluginManager.registerEvents(eventListener, this);
-        
+
         // Configure main backup task schedule.
         int backupInterval = settings.getIntervalInMinutes("backupinterval");
         if (backupInterval != 0) {
+
+            int backupMinutes = backupInterval;
+
+            // Convert to server ticks.
             backupInterval *= 1200;
-            mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
+
+            // Should the schedule repeat?
+            if (settings.getBooleanProperty("norepeat")) {
+                mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncDelayedTask(this, prepareBackup, backupInterval);
+                LogUtils.sendLog(strings.getString("norepeatenabled", Integer.toString(backupMinutes)));
+            } else {
+                mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
+            }
+
         } else {
             LogUtils.sendLog(strings.getString("disbaledauto"));
         }
 
         // Configure save-all schedule.
         int saveAllInterval = settings.getIntervalInMinutes("saveallinterval");
-        if(saveAllInterval != 0) {
-            saveAllTask = new SaveAllTask(pluginServer);
-            saveAllTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, saveAllTask, saveAllInterval, saveAllInterval);
+        if (saveAllInterval != 0) {
+
+            int saveAllMinutes = saveAllInterval;
+
+            // Convert to server ticks.
+            saveAllInterval *= 1200;
+
+            LogUtils.sendLog(strings.getString("savealltimeron", Integer.toString(saveAllMinutes)));
+
+            // Syncronised save-all.
+            syncSaveAllUtil = new SyncSaveAllUtil(pluginServer, 0);
+            saveAllTaskID = pluginServer.getScheduler().scheduleSyncRepeatingTask(this, syncSaveAllUtil, saveAllInterval, saveAllInterval);
         }
 
         // Startup configuration output.
@@ -115,22 +124,22 @@ public class BackupMain extends JavaPlugin {
             LogUtils.sendLog("Save-All Int: " + saInterval + ", Split: " + split + ", ZIP: " + zip + ", Path: " + path + ".", false);
         }
 
-        CheckInUtil checkIn = null;
-        if(settings.getBooleanProperty("enableversioncheck"))
-            checkIn = new CheckInUtil(this.getDescription().getVersion(), strings);
-            pluginServer.getScheduler().scheduleAsyncDelayedTask(this, checkIn);
-        
+        // Version checking task.
+        if (settings.getBooleanProperty("enableversioncheck")) {
+            pluginServer.getScheduler().scheduleAsyncDelayedTask(this, new CheckInUtil(this.getDescription().getVersion(), strings));
+        }
+
         // Notify loading complete.
         LogUtils.sendLog(this.getDescription().getFullName() + " has completed loading!", false);
     }
-    
+
     @Override
-    public void onDisable () {
-        
+    public void onDisable() {
+
         // Stop and scheduled tasks.
         this.getServer().getScheduler().cancelTasks(this);
-        
+
         // Shutdown complete.
-        LogUtils.sendLog(this.getDescription().getFullName() + " has completed un-loading!", false);
+        LogUtils.sendLog(this.getDescription().getFullName() + " has completely un-loaded!", false);
     }
 }

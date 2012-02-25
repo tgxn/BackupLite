@@ -7,12 +7,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import net.tgxn.bukkit.backup.config.Strings;
 
-/**
- *
- * @author Domenic Horner
- */
 public class CheckInUtil implements Runnable {
 
+    // Private variables for this class.
     private String thisVersion;
     private Strings strings;
 
@@ -23,18 +20,20 @@ public class CheckInUtil implements Runnable {
 
     public void run() {
         try {
-            URL versionURL = new URL("http://checkin.bukkitbackup.com/?ver="+thisVersion+"&fromplugin");
+            URL versionURL = new URL("http://checkin.bukkitbackup.com/index.php?ver=" + thisVersion + "&fromplugin");
             BufferedReader readURL = new BufferedReader(new InputStreamReader(versionURL.openStream()));
             String webVersion = readURL.readLine();
-            if(!webVersion.equals(thisVersion))
-                LogUtils.sendLog(strings.getString("pluginoutdate", "This: " + thisVersion + ", Latest: " +webVersion));
-            else
-                LogUtils.sendLog(strings.getString("pluginupdate", "At version: " + thisVersion));
+            if (!webVersion.equals(thisVersion)) {
+                LogUtils.sendLog(strings.getString("pluginoutdate", thisVersion, webVersion));
+            } else {
+                LogUtils.sendLog(strings.getString("pluginupdate", thisVersion));
+            }
             readURL.close();
         } catch (MalformedURLException ex) {
-            LogUtils.exceptionLog(ex.getStackTrace(), "Error getting latest version.");
+            LogUtils.sendLog("Failed to retrieve latest version.");
+            LogUtils.exceptionLog(ex);
         } catch (IOException ex) {
-            LogUtils.exceptionLog(ex.getStackTrace(), "Error getting latest version.");
+            LogUtils.sendLog("Failed to retrieve latest version.");
         }
     }
 }

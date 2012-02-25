@@ -16,7 +16,6 @@
  *
  * (modified version)
  */
-
 package net.tgxn.bukkit.backup.utils;
 
 import java.io.*;
@@ -27,22 +26,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * General file manipulation utilities.
- * <p>
- * Facilities are provided in the following areas:
- * <ul>
- * <li>writing to a file
- * <li>reading from a file
- * <li>make a directory including parent directories
- * <li>copying files and directories
- * <li>deleting files and directories
- * <li>converting to and from a URL
- * <li>listing files and directories by filter and extension
- * <li>comparing file content
- * <li>file last changed date
- * <li>calculating a checksum
- * </ul>
- * <p>
+ * General file manipulation utilities. <p> Facilities are provided in the
+ * following areas: <ul> <li>writing to a file <li>reading from a file <li>make
+ * a directory including parent directories <li>copying files and directories
+ * <li>deleting files and directories <li>converting to and from a URL
+ * <li>listing files and directories by filter and extension <li>comparing file
+ * content <li>file last changed date <li>calculating a checksum </ul> <p>
  * Origin of code: Excalibur, Alexandria, Commons-Utils
  *
  * @author <a href="mailto:burton@relativity.yi.org">Kevin A. Burton</A>
@@ -66,7 +55,7 @@ public class FileUtils {
     /**
      * Instances should NOT be constructed in standard programming.
      */
-    public FileUtils () {
+    public FileUtils() {
         super();
     }
     /**
@@ -94,89 +83,85 @@ public class FileUtils {
     private static final char WINDOWS_SEPARATOR = '\\';
 
     /**
-     * Copies a whole directory to a new location preserving the file dates.
-     * <p>
-     * This method copies the specified directory and all its child
-     * directories and files to the specified destination.
-     * The destination is the new location and name of the directory.
-     * <p>
-     * The destination directory is created if it does not exist.
-     * If the destination directory did exist, then this method merges
-     * the source with the destination, with the source taking precedence.
-     * <p>
-     * <strong>Note:</strong> This method tries to preserve the files' last
-     * modified date/times using {@link File#setLastModified(long)}, however
-     * it is not guaranteed that those operations will succeed.
-     * If the modification operation fails, no indication is provided.
+     * Copies a whole directory to a new location preserving the file dates. <p>
+     * This method copies the specified directory and all its child directories
+     * and files to the specified destination. The destination is the new
+     * location and name of the directory. <p> The destination directory is
+     * created if it does not exist. If the destination directory did exist,
+     * then this method merges the source with the destination, with the source
+     * taking precedence. <p> <strong>Note:</strong> This method tries to
+     * preserve the files' last modified date/times using {@link File#setLastModified(long)},
+     * however it is not guaranteed that those operations will succeed. If the
+     * modification operation fails, no indication is provided.
      *
-     * @param srcDir  an existing directory to copy, must not be <code>null</code>
-     * @param destDir  the new directory, must not be <code>null</code>
+     * @param srcDir an existing directory to copy, must not be
+     * <code>null</code>
+     * @param destDir the new directory, must not be
+     * <code>null</code>
      *
-     * @throws NullPointerException if source or destination is <code>null</code>
+     * @throws NullPointerException if source or destination is
+     * <code>null</code>
      * @throws IOException if source or destination is invalid
      * @throws IOException if an IO error occurs during copying
      * @since Commons IO 1.1
      */
-    public static void copyDirectory (String srcDir, String destDir) throws IOException {
+    public static void copyDirectory(String srcDir, String destDir) throws IOException {
 
         copyDirectory(new File(srcDir), new File(destDir), true);
     }
 
     /**
-     * Copies a whole directory to a new location.
-     * <p>
-     * This method copies the contents of the specified source directory
-     * to within the specified destination directory.
-     * <p>
-     * The destination directory is created if it does not exist.
-     * If the destination directory did exist, then this method merges
-     * the source with the destination, with the source taking precedence.
-     * <p>
-     * <strong>Note:</strong> Setting <code>preserveFileDate</code> to
-     * <code>true</code> tries to preserve the files' last modified
-     * date/times using {@link File#setLastModified(long)}, however it is
-     * not guaranteed that those operations will succeed.
-     * If the modification operation fails, no indication is provided.
+     * Copies a whole directory to a new location. <p> This method copies the
+     * contents of the specified source directory to within the specified
+     * destination directory. <p> The destination directory is created if it
+     * does not exist. If the destination directory did exist, then this method
+     * merges the source with the destination, with the source taking
+     * precedence. <p> <strong>Note:</strong> Setting
+     * <code>preserveFileDate</code> to
+     * <code>true</code> tries to preserve the files' last modified date/times
+     * using {@link File#setLastModified(long)}, however it is not guaranteed
+     * that those operations will succeed. If the modification operation fails,
+     * no indication is provided.
      *
-     * @param srcDir  an existing directory to copy, must not be <code>null</code>
-     * @param destDir  the new directory, must not be <code>null</code>
-     * @param preserveFileDate  true if the file date of the copy
-     *  should be the same as the original
+     * @param srcDir an existing directory to copy, must not be
+     * <code>null</code>
+     * @param destDir the new directory, must not be
+     * <code>null</code>
+     * @param preserveFileDate true if the file date of the copy should be the
+     * same as the original
      *
-     * @throws NullPointerException if source or destination is <code>null</code>
+     * @throws NullPointerException if source or destination is
+     * <code>null</code>
      * @throws IOException if source or destination is invalid
      * @throws IOException if an IO error occurs during copying
      * @since Commons IO 1.1
      */
-    private static void copyDirectory (File srcDir, File destDir,
-                                       boolean preserveFileDate) throws IOException {
+    private static void copyDirectory(File srcDir, File destDir,
+            boolean preserveFileDate) throws IOException {
         copyDirectory(srcDir, destDir, null, preserveFileDate);
     }
 
     /**
-     * Copies a filtered directory to a new location.
-     * <p>
-     * This method copies the contents of the specified source directory
-     * to within the specified destination directory.
-     * <p>
-     * The destination directory is created if it does not exist.
-     * If the destination directory did exist, then this method merges
-     * the source with the destination, with the source taking precedence.
-     * <p>
-     * <strong>Note:</strong> Setting <code>preserveFileDate</code> to
-     * <code>true</code> tries to preserve the files' last modified
-     * date/times using {@link File#setLastModified(long)}, however it is
-     * not guaranteed that those operations will succeed.
-     * If the modification operation fails, no indication is provided.
+     * Copies a filtered directory to a new location. <p> This method copies the
+     * contents of the specified source directory to within the specified
+     * destination directory. <p> The destination directory is created if it
+     * does not exist. If the destination directory did exist, then this method
+     * merges the source with the destination, with the source taking
+     * precedence. <p> <strong>Note:</strong> Setting
+     * <code>preserveFileDate</code> to
+     * <code>true</code> tries to preserve the files' last modified date/times
+     * using {@link File#setLastModified(long)}, however it is not guaranteed
+     * that those operations will succeed. If the modification operation fails,
+     * no indication is provided.
      *
      * <h4>Example: Copy directories only</h4>
-     *  <pre>
+     * <pre>
      *  // only copy the directory structure
      *  FileUtils.copyDirectory(srcDir, destDir, DirectoryFileFilter.DIRECTORY, false);
-     *  </pre>
+     * </pre>
      *
      * <h4>Example: Copy directories and txt files</h4>
-     *  <pre>
+     * <pre>
      *  // Create a filter for ".txt" files
      *  IOFileFilter txtSuffixFilter = FileFilterUtils.suffixFileFilter(".txt");
      *  IOFileFilter txtFiles = FileFilterUtils.andFileFilter(FileFileFilter.FILE, txtSuffixFilter);
@@ -186,31 +171,40 @@ public class FileUtils {
      *
      *  // Copy using the filter
      *  FileUtils.copyDirectory(srcDir, destDir, filter, false);
-     *  </pre>
+     * </pre>
      *
-     * @param srcDir  an existing directory to copy, must not be <code>null</code>
-     * @param destDir  the new directory, must not be <code>null</code>
-     * @param filter  the filter to apply, null means copy all directories and files
-     * @param preserveFileDate  true if the file date of the copy
-     *  should be the same as the original
+     * @param srcDir an existing directory to copy, must not be
+     * <code>null</code>
+     * @param destDir the new directory, must not be
+     * <code>null</code>
+     * @param filter the filter to apply, null means copy all directories and
+     * files
+     * @param preserveFileDate true if the file date of the copy should be the
+     * same as the original
      *
-     * @throws NullPointerException if source or destination is <code>null</code>
+     * @throws NullPointerException if source or destination is
+     * <code>null</code>
      * @throws IOException if source or destination is invalid
      * @throws IOException if an IO error occurs during copying
      * @since Commons IO 1.4
      */
-    public static void copyDirectory (File srcDir, File destDir,
-                                       FileFilter filter, boolean preserveFileDate) throws IOException {
-        if (srcDir == null)
+    public static void copyDirectory(File srcDir, File destDir,
+            FileFilter filter, boolean preserveFileDate) throws IOException {
+        if (srcDir == null) {
             throw new NullPointerException("Source must not be null");
-        if (destDir == null)
+        }
+        if (destDir == null) {
             throw new NullPointerException("Destination must not be null");
-        if (!srcDir.exists())
+        }
+        if (!srcDir.exists()) {
             throw new FileNotFoundException("Source '" + srcDir + "' does not exist");
-        if (!srcDir.isDirectory())
+        }
+        if (!srcDir.isDirectory()) {
             throw new IOException("Source '" + srcDir + "' exists but is not a directory");
-        if (srcDir.getCanonicalPath().equals(destDir.getCanonicalPath()))
+        }
+        if (srcDir.getCanonicalPath().equals(destDir.getCanonicalPath())) {
             throw new IOException("Source '" + srcDir + "' and destination '" + destDir + "' are the same");
+        }
 
         // Cater for destination being directory within the source directory (see IO-141)
         List<String> exclusionList = null;
@@ -230,53 +224,67 @@ public class FileUtils {
     /**
      * Internal copy directory method.
      *
-     * @param srcDir  the validated source directory, must not be <code>null</code>
-     * @param destDir  the validated destination directory, must not be <code>null</code>
-     * @param filter  the filter to apply, null means copy all directories and files
-     * @param preserveFileDate  whether to preserve the file date
-     * @param exclusionList  List of files and directories to exclude from the copy, may be null
+     * @param srcDir the validated source directory, must not be
+     * <code>null</code>
+     * @param destDir the validated destination directory, must not be
+     * <code>null</code>
+     * @param filter the filter to apply, null means copy all directories and
+     * files
+     * @param preserveFileDate whether to preserve the file date
+     * @param exclusionList List of files and directories to exclude from the
+     * copy, may be null
      * @throws IOException if an error occurs
      * @since Commons IO 1.1
      */
-    private static void doCopyDirectory (File srcDir, File destDir, FileFilter filter,
-                                         boolean preserveFileDate, List<String> exclusionList) throws IOException {
+    private static void doCopyDirectory(File srcDir, File destDir, FileFilter filter,
+            boolean preserveFileDate, List<String> exclusionList) throws IOException {
         // recurse
         File[] files = filter == null ? srcDir.listFiles() : srcDir.listFiles(filter);
-        if (files == null)  // null if security restricted
+        if (files == null) // null if security restricted
+        {
             throw new IOException("Failed to list contents of " + srcDir);
-        if (destDir.exists()) {
-            if (!destDir.isDirectory())
-                throw new IOException("Destination '" + destDir + "' exists but is not a directory");
         }
-        else if (!destDir.mkdirs())
+        if (destDir.exists()) {
+            if (!destDir.isDirectory()) {
+                throw new IOException("Destination '" + destDir + "' exists but is not a directory");
+            }
+        } else if (!destDir.mkdirs()) {
             throw new IOException("Destination '" + destDir + "' directory cannot be created");
-        if (!destDir.canWrite())
+        }
+        if (!destDir.canWrite()) {
             throw new IOException("Destination '" + destDir + "' cannot be written to");
+        }
         for (File file : files) {
             File copiedFile = new File(destDir, file.getName());
-            if (exclusionList == null || !exclusionList.contains(file.getCanonicalPath()))
-                if (file.isDirectory())
+            if (exclusionList == null || !exclusionList.contains(file.getCanonicalPath())) {
+                if (file.isDirectory()) {
                     doCopyDirectory(file, copiedFile, filter, preserveFileDate, exclusionList);
-                else
+                } else {
                     doCopyFile(file, copiedFile, preserveFileDate);
+                }
+            }
         }
 
         // Do this last, as the above has probably affected directory metadata
-        if (preserveFileDate)
+        if (preserveFileDate) {
             destDir.setLastModified(srcDir.lastModified());
+        }
     }
 
     /**
      * Internal copy file method.
      *
-     * @param srcFile  the validated source file, must not be <code>null</code>
-     * @param destFile  the validated destination file, must not be <code>null</code>
-     * @param preserveFileDate  whether to preserve the file date
+     * @param srcFile the validated source file, must not be
+     * <code>null</code>
+     * @param destFile the validated destination file, must not be
+     * <code>null</code>
+     * @param preserveFileDate whether to preserve the file date
      * @throws IOException if an error occurs
      */
-    private static void doCopyFile (File srcFile, File destFile, boolean preserveFileDate) throws IOException {
-        if (destFile.exists() && destFile.isDirectory())
+    private static void doCopyFile(File srcFile, File destFile, boolean preserveFileDate) throws IOException {
+        if (destFile.exists() && destFile.isDirectory()) {
             throw new IOException("Destination '" + destFile + "' exists but is a directory");
+        }
 
         FileInputStream fis = null;
         FileOutputStream fos = null;
@@ -294,28 +302,27 @@ public class FileUtils {
                 count = (size - pos) > FIFTY_MB ? FIFTY_MB : (size - pos);
                 pos += output.transferFrom(input, pos, count);
             }
-        }
-        finally {
+        } finally {
             closeQuietly(output);
             closeQuietly(fos);
             closeQuietly(input);
             closeQuietly(fis);
         }
 
-        if (srcFile.length() != destFile.length())
+        if (srcFile.length() != destFile.length()) {
             throw new IOException("Failed to copy full contents from '"
                     + srcFile + "' to '" + destFile + "'");
-        if (preserveFileDate)
+        }
+        if (preserveFileDate) {
             destFile.setLastModified(srcFile.lastModified());
+        }
     }
 
     /**
-     * Unconditionally close a <code>Closeable</code>.
-     * <p>
-     * Equivalent to {@link Closeable#close()}, except any exceptions will be ignored.
-     * This is typically used in finally blocks.
-     * <p>
-     * Example code:
+     * Unconditionally close a
+     * <code>Closeable</code>. <p> Equivalent to {@link Closeable#close()},
+     * except any exceptions will be ignored. This is typically used in finally
+     * blocks. <p> Example code:
      * <pre>
      *   Closeable closeable = null;
      *   try {
@@ -332,12 +339,12 @@ public class FileUtils {
      * @param closeable the object to close, may be null or already closed
      * @since Commons IO 2.0
      */
-    private static void closeQuietly (Closeable closeable) {
+    private static void closeQuietly(Closeable closeable) {
         try {
-            if (closeable != null)
+            if (closeable != null) {
                 closeable.close();
-        }
-        catch (IOException ioe) {
+            }
+        } catch (IOException ioe) {
             // ignore
         }
     }
@@ -345,15 +352,17 @@ public class FileUtils {
     /**
      * Deletes a directory recursively.
      *
-     * @param directory  directory to delete
+     * @param directory directory to delete
      * @throws IOException in case deletion is unsuccessful
      */
-    public static void deleteDirectory (File directory) throws IOException {
-        if (!directory.exists())
+    public static void deleteDirectory(File directory) throws IOException {
+        if (!directory.exists()) {
             return;
+        }
 
-        if (!isSymlink(directory))
+        if (!isSymlink(directory)) {
             cleanDirectory(directory);
+        }
 
         if (!directory.delete()) {
             String message = "Unable to delete directory " + directory + ".";
@@ -367,7 +376,7 @@ public class FileUtils {
      * @param directory directory to clean
      * @throws IOException in case cleaning is unsuccessful
      */
-    private static void cleanDirectory (File directory) throws IOException {
+    private static void cleanDirectory(File directory) throws IOException {
         if (!directory.exists()) {
             String message = directory + " does not exist";
             throw new IllegalArgumentException(message);
@@ -379,45 +388,48 @@ public class FileUtils {
         }
 
         File[] files = directory.listFiles();
-        if (files == null)  // null if security restricted
+        if (files == null) // null if security restricted
+        {
             throw new IOException("Failed to list contents of " + directory);
+        }
 
         IOException exception = null;
-        for (File file : files)
+        for (File file : files) {
             try {
                 forceDelete(file);
-            }
-            catch (IOException ioe) {
+            } catch (IOException ioe) {
                 exception = ioe;
             }
+        }
 
-        if (null != exception)
+        if (null != exception) {
             throw exception;
+        }
     }
 
     /**
-     * Deletes a file. If file is a directory, delete it and all sub-directories.
-     * <p>
-     * The difference between File.delete() and this method are:
-     * <ul>
-     * <li>A directory to be deleted does not have to be empty.</li>
+     * Deletes a file. If file is a directory, delete it and all
+     * sub-directories. <p> The difference between File.delete() and this method
+     * are: <ul> <li>A directory to be deleted does not have to be empty.</li>
      * <li>You get exceptions when a file or directory cannot be deleted.
-     *      (java.io.File methods returns a boolean)</li>
-     * </ul>
+     * (java.io.File methods returns a boolean)</li> </ul>
      *
-     * @param file  file or directory to delete, must not be <code>null</code>
-     * @throws NullPointerException if the directory is <code>null</code>
+     * @param file file or directory to delete, must not be
+     * <code>null</code>
+     * @throws NullPointerException if the directory is
+     * <code>null</code>
      * @throws FileNotFoundException if the file was not found
      * @throws IOException in case deletion is unsuccessful
      */
-    private static void forceDelete (File file) throws IOException {
-        if (file.isDirectory())
+    private static void forceDelete(File file) throws IOException {
+        if (file.isDirectory()) {
             deleteDirectory(file);
-        else {
+        } else {
             boolean filePresent = file.exists();
             if (!file.delete()) {
-                if (!filePresent)
+                if (!filePresent) {
                     throw new FileNotFoundException("File does not exist: " + file);
+                }
                 String message =
                         "Unable to delete file: " + file;
                 throw new IOException(message);
@@ -426,25 +438,26 @@ public class FileUtils {
     }
 
     /**
-     * Determines whether the specified file is a Symbolic Link rather than an actual file.
-     * <p>
-     * Will not return true if there is a Symbolic Link anywhere in the path,
-     * only if the specific file is.
+     * Determines whether the specified file is a Symbolic Link rather than an
+     * actual file. <p> Will not return true if there is a Symbolic Link
+     * anywhere in the path, only if the specific file is.
      *
      * @param file the file to check
      * @return true if the file is a Symbolic Link
      * @throws IOException if an IO error occurs while checking the file
      * @since Commons IO 2.0
      */
-    private static boolean isSymlink (File file) throws IOException {
-        if (file == null)
+    private static boolean isSymlink(File file) throws IOException {
+        if (file == null) {
             throw new NullPointerException("File must not be null");
-        if (isSystemWindows())
+        }
+        if (isSystemWindows()) {
             return false;
+        }
         File fileInCanonicalDir = null;
-        if (file.getParent() == null)
+        if (file.getParent() == null) {
             fileInCanonicalDir = file;
-        else {
+        } else {
             File canonicalDir = file.getParentFile().getCanonicalFile();
             fileInCanonicalDir = new File(canonicalDir, file.getName());
         }
@@ -457,7 +470,7 @@ public class FileUtils {
      *
      * @return true if the system is Windows
      */
-    private static boolean isSystemWindows () {
+    private static boolean isSystemWindows() {
         return SYSTEM_SEPARATOR == WINDOWS_SEPARATOR;
     }
     public final static String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -472,8 +485,9 @@ public class FileUtils {
      */
     public static void zipDir(String directory, String zipName) throws IOException {
         // create a ZipOutputStream to zip the data to
-        if (!zipName.endsWith(".zip"))
+        if (!zipName.endsWith(".zip")) {
             zipName += ".zip";
+        }
         ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipName));
         zipDir(directory, zos, "");
         // close the stream
@@ -482,6 +496,7 @@ public class FileUtils {
 
     /**
      * Zip up a directory path
+     *
      * @param directory
      * @param zos
      * @param path
@@ -512,6 +527,6 @@ public class FileUtils {
                 closeQuietly(fis);
             }
         }
-        
+
     }
 }

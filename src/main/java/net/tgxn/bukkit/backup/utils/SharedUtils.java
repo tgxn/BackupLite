@@ -3,15 +3,13 @@ package net.tgxn.bukkit.backup.utils;
 import java.io.File;
 
 /**
- * I don't like repeating myself.
- * 
- * @author Domenic Horner (gamerx)
+ * I don't like repeating myself. - Domenic H (2011)
  */
 public class SharedUtils {
-    
+
     /**
      * Checks if a folder exists and creates it if it does not.
-     * 
+     *
      * @param toCheck File to check.
      * @return True if created, false if exists.
      */
@@ -22,10 +20,9 @@ public class SharedUtils {
                     return true;
                 }
             } catch (SecurityException se) {
-                LogUtils.exceptionLog(se.getStackTrace());
+                LogUtils.exceptionLog(se);
             }
         }
         return false;
     }
-    
 }
