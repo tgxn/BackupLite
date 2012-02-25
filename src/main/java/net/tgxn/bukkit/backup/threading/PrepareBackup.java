@@ -129,7 +129,6 @@ public class PrepareBackup implements Runnable {
 
         // Scedule the doBackup.
         server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-            private LinkedList<String> worldsToBackup;
             @Override
             public void run() {
                 server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(server, settings, strings, worldsToBackup));

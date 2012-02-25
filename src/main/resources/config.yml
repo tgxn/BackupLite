@@ -124,5 +124,5 @@ enableversioncheck: true
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
-requiredstrings: str-30
-version: 1.8.8-dev
+requiredstrings: str-188-1
+version: 1.8.8
