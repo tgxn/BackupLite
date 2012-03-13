@@ -15,11 +15,10 @@ import org.bukkit.plugin.Plugin;
 
 public class PrepareBackup implements Runnable {
 
-    // Public variables.
     public boolean isLastBackup;
     public boolean isManualBackup;
     public LinkedList<String> worldsToBackup;
-    // Private variables for this class.
+
     private final Server server;
     private final Settings settings;
     private Strings strings;

@@ -278,7 +278,12 @@ public class BackupTask implements Runnable {
         String pluginsBackupPath;
         String finalPluginsPath;
         if (splitBackup) {
-            pluginsBackupPath = tempFolder.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
+            if (useTempFolder) {
+                pluginsBackupPath = tempFolder.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
+            } else {
+                pluginsBackupPath = backupsPath.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
+            }
+
             finalPluginsPath = backupsPath.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
         } else {
             pluginsBackupPath = tempInstFolder.concat(FILE_SEPARATOR).concat("plugins");

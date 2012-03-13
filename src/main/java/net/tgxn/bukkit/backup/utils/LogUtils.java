@@ -11,8 +11,6 @@ public class LogUtils {
     private static Logger logger;
     private static Plugin plugin;
     private static boolean logToConsole;
-    private static boolean logToFile;
-    private static String logFileName;
 
     /**
      * Main Constructor for LogUtils. Creates logger, sets default log level and
@@ -32,10 +30,8 @@ public class LogUtils {
         }
     }
 
-    public static void finishInitLogUtils(boolean logToConsole, boolean logtofile, String logFileName) {
+    public static void finishInitLogUtils(boolean logToConsole) {
         LogUtils.logToConsole = logToConsole;
-        LogUtils.logToFile = logtofile;
-        LogUtils.logFileName = logFileName;
     }
 
     /**
@@ -103,9 +99,6 @@ public class LogUtils {
         if (logToConsole) {
             logger.log(logLevel, message);
         }
-        if (logToFile) {
-        }
-        //@TODO Log to file code.
     }
 
     /**
