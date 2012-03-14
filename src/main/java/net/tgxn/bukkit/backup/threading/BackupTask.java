@@ -20,13 +20,11 @@ import org.bukkit.plugin.Plugin;
 
 public class BackupTask implements Runnable {
 
-    // Private veriables passed to class using params.
     private Server server;
     private Plugin plugin;
     private Settings settings;
     private Strings strings;
     private LinkedList<String> worldsToBackup;
-    // Settings variables.
     private List<String> pluginList;
     private boolean splitBackup;
     private boolean shouldZIP;
@@ -37,7 +35,6 @@ public class BackupTask implements Runnable {
     private String tempInstFolder;
     private String backupName;
     private boolean useTempFolder;
-    // Save-All handler.
     private SyncSaveAllUtil syncSaveAllUtil;
 
     /**
@@ -65,16 +62,16 @@ public class BackupTask implements Runnable {
         backupEverything = settings.getBooleanProperty("backupeverything");
         splitBackup = settings.getBooleanProperty("splitbackup");
         shouldZIP = settings.getBooleanProperty("zipbackup");
-        pluginList = Arrays.asList(settings.getStringProperty("skipplugins").split(";"));
+        pluginList = Arrays.asList(settings.getStringProperty("pluginlist").split(";"));
         useTempFolder = settings.getBooleanProperty("usetemp");
 
-        // Set up temp folder.
+        // Build temp folder path and create.
         tempFolder = backupsPath.concat(settings.getStringProperty("tempfoldername")).concat(FILE_SEPARATOR);
-        if (useTempFolder) {
+        if (useTempFolder || shouldZIP) {
             SharedUtils.checkFolderAndCreate(new File(tempFolder));
         }
 
-        // ZIP on.
+        // Set up backup path depending on config.
         if (shouldZIP) {
             tempInstFolder = tempFolder.concat(backupName);
         } else {
@@ -84,11 +81,13 @@ public class BackupTask implements Runnable {
                 tempInstFolder = backupsPath.concat(backupName);
             }
         }
-        if (!splitBackup && useTempFolder) {
+
+        // Create the instance folder.
+        if (!splitBackup && (useTempFolder || shouldZIP)) {
             SharedUtils.checkFolderAndCreate(new File(tempInstFolder));
         }
 
-        // Set up destination.
+        // The final destination for the backup.
         theFinalDestination = backupsPath.concat(backupName);
 
         // Pass the torch. ;)
@@ -121,13 +120,7 @@ public class BackupTask implements Runnable {
 
             // If this is a non-split backup, we need to ZIP the whole thing.
             if (!splitBackup) {
-                if (useTempFolder) {
-                    doCopyAndZIP(tempInstFolder, theFinalDestination);
-                } else {
-                    doCopyAndZIP(tempInstFolder, theFinalDestination);
-                }
-
-
+                doCopyAndZIP(tempInstFolder, theFinalDestination);
             }
         }
 

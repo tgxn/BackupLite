@@ -90,7 +90,7 @@ skipworlds:
 
 ## List of files to exclude from the plugin backup. (Default: none)
 # Seperate by a semicolon. eg. Plugin1;Plugin2;Plugin3. This takes effect at all directory levels.
-skipplugins:
+pluginlist:
 
 
 #======== Notification & Logging Settings ==========#
