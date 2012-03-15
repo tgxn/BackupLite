@@ -129,7 +129,8 @@ public class CommandHandler implements Listener, CommandExecutor {
         plugin.onDisable();
         plugin.onLoad();
         plugin.onEnable();
-        player.sendMessage(strings.getString("reloadedok", plugin.getDescription().getVersion()));
+        if (player != null)
+            player.sendMessage(strings.getString("reloadedok", plugin.getDescription().getVersion()));
     }
 
     /**
