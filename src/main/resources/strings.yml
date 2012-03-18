@@ -23,8 +23,8 @@ defaultperms         : No permissions plugin detected, defaulting to OP.
 hookedperms          : Found and hooked a permissions plugin.
 newconfigfile        : No config file exists, creating default.
 disbaledauto         : You have disabled scheduled backups!
-norepeatenabled      : Backup will be performed once in %%ARG%% minutes.
-savealltimeron       : Save-All will be performed ever %%ARG%% minutes.
+norepeatenabled      : Backup will be performed once in %%ARG%% minute(s).
+savealltimeron       : Save-All will be performed every %%ARG%% minute(s).
 
 #========= Notification Strings ==========#
 
@@ -33,7 +33,7 @@ disabledplugins      : 'Backup is disabled for the following plugin(s):'
 enabledplugins       : 'Backup is enabled for the following plugin(s):'
 allpluginsdisabled   : Plugin backup is on, but no plugins are selected.
 abortedbackup        : Aborted backup as no players online. Next attempt in %%ARG%% minutes.
-skipworlds           : Skipping worlds backup, for all worlds.
+skipworlds           : Either skipworlds is enabled or there are no worlds to backup.
 skipplugins          : Skipping plugin backup, for all plugins.
 removeold            : 'Removing the following backup(s) due to age:'
 lastbackup           : Last player left, backing up!
@@ -56,4 +56,4 @@ checkbackupinterval  : Please check your backupinterval setting is formatted cor
 
 stringnotfound       : 'String not found - '
 packagedwith         : 1.8.9-dev
-version              : str-dev-189-1
+version              : str-50

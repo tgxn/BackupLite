@@ -75,7 +75,7 @@ public class BackupMain extends JavaPlugin {
         if (backupInterval != -1 && backupInterval != 0) {
 
             // Convert to server ticks.
-            int backupIntervalInTicks = backupInterval *= 1200;
+            int backupIntervalInTicks = (backupInterval * 1200);
 
             // Should the schedule repeat?
             if (settings.getBooleanProperty("norepeat")) {
@@ -93,7 +93,7 @@ public class BackupMain extends JavaPlugin {
         if (saveAllInterval != 0 && saveAllInterval != -1) {
 
             // Convert to server ticks.
-            int saveAllIntervalInTicks = saveAllInterval *= 1200;
+            int saveAllIntervalInTicks = (saveAllInterval * 1200);
 
             LogUtils.sendLog(strings.getString("savealltimeron", Integer.toString(saveAllInterval)));
 

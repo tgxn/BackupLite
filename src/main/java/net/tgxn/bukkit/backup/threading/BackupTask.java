@@ -20,22 +20,30 @@ import org.bukkit.plugin.Plugin;
 
 public class BackupTask implements Runnable {
 
+    // instances
     private Server server;
     private Plugin plugin;
     private Settings settings;
     private Strings strings;
+    private SyncSaveAllUtil syncSaveAllUtil;
+
+    // settings
     private LinkedList<String> worldsToBackup;
     private List<String> pluginList;
     private boolean splitBackup;
     private boolean shouldZIP;
     private boolean backupEverything;
-    private String backupsPath;
-    private String theFinalDestination;
-    private String tempFolder;
-    private String tempInstFolder;
-    private String backupName;
     private boolean useTempFolder;
-    private SyncSaveAllUtil syncSaveAllUtil;
+
+    private String backupName; // the backups name, based on date an time. (default: '20120316-091450')
+
+    // folders
+    private String rootBackupPath; // the root of all out backups (default: 'backups/') with trailing /
+    private String rootTempPath; // the root of the temp folder (default: 'backups/temp/') with trailing /
+
+    private String thisFinalDestination; // the final resting place for the backup (default: 'backups/20120316-091450')
+    private String thisTempDestination; // the temp instance folder (default: 'backups/temp/20120316-091450')
+
 
     /**
      * The main BackupTask constructor.
@@ -55,42 +63,15 @@ public class BackupTask implements Runnable {
 
     @Override
     public void run() {
-
+        
         // Load settings.
-        backupName = getFolderName();
-        backupsPath = settings.getStringProperty("backuppath").concat(FILE_SEPARATOR);
         backupEverything = settings.getBooleanProperty("backupeverything");
         splitBackup = settings.getBooleanProperty("splitbackup");
         shouldZIP = settings.getBooleanProperty("zipbackup");
         pluginList = Arrays.asList(settings.getStringProperty("pluginlist").split(";"));
         useTempFolder = settings.getBooleanProperty("usetemp");
 
-        // Build temp folder path and create.
-        tempFolder = backupsPath.concat(settings.getStringProperty("tempfoldername")).concat(FILE_SEPARATOR);
-        if (useTempFolder || shouldZIP) {
-            SharedUtils.checkFolderAndCreate(new File(tempFolder));
-        }
-
-        // Set up backup path depending on config.
-        if (shouldZIP) {
-            tempInstFolder = tempFolder.concat(backupName);
-        } else {
-            if (useTempFolder) {
-                tempInstFolder = tempFolder.concat(backupName);
-            } else {
-                tempInstFolder = backupsPath.concat(backupName);
-            }
-        }
-
-        // Create the instance folder.
-        if (!splitBackup && (useTempFolder || shouldZIP)) {
-            SharedUtils.checkFolderAndCreate(new File(tempInstFolder));
-        }
-
-        // The final destination for the backup.
-        theFinalDestination = backupsPath.concat(backupName);
-
-        // Pass the torch. ;)
+        // Process the backup.
         processBackup();
     }
 
@@ -98,10 +79,33 @@ public class BackupTask implements Runnable {
      * This method does high-level backup processing.
      */
     public void processBackup() {
+        
+        // Build folder paths.
+        backupName = getFolderName();
+
+        rootBackupPath = settings.getStringProperty("backuppath").concat(FILE_SEPARATOR);
+
+        rootTempPath = rootBackupPath.concat(settings.getStringProperty("tempfoldername")).concat(FILE_SEPARATOR);
+        if (useTempFolder)
+            SharedUtils.checkFolderAndCreate(new File(rootTempPath));
+
+        // Set up destinations for temp and full backups.
+        if (useTempFolder) {
+            thisTempDestination = rootTempPath.concat(backupName);
+        } else {
+            thisTempDestination = rootBackupPath.concat(backupName);
+        }
+        if (!splitBackup && (useTempFolder || shouldZIP)) {
+            SharedUtils.checkFolderAndCreate(new File(thisTempDestination));
+        }
+
+        thisFinalDestination = rootBackupPath.concat(backupName);
 
         // Are we backing all server files or just worlds and plugins?
         if (backupEverything) {
+
             doEverythingBackup();
+            
         } else {
 
             // Make sure world backup is enabled and that we have worlds to backup.
@@ -119,15 +123,14 @@ public class BackupTask implements Runnable {
             }
 
             // If this is a non-split backup, we need to ZIP the whole thing.
-            if (!splitBackup) {
-                doCopyAndZIP(tempInstFolder, theFinalDestination);
-            }
+            if (!splitBackup)
+                doCopyAndZIP(thisTempDestination, thisFinalDestination);
+
         }
 
         // Should we delete any old backups.
-        if (!deleteOldBackups()) {
+        if (!deleteOldBackups())
             LogUtils.sendLog("Failed to delete old backups.");
-        }
 
         // Finish backup.
         finishBackup();
@@ -159,7 +162,7 @@ public class BackupTask implements Runnable {
 
         // Setup Source and destination DIR's.
         File srcDIR = new File("./");
-        File destDIR = new File(tempInstFolder);
+        File destDIR = new File(thisTempDestination);
 
         // Copy this world into the doBackup directory, in a folder called the worlds name.
         try {
@@ -168,12 +171,12 @@ public class BackupTask implements Runnable {
             FileUtils.copyDirectory(srcDIR, destDIR, ff, true);
 
             // Perform the zipping action. 
-            doCopyAndZIP(tempInstFolder, theFinalDestination);
+            doCopyAndZIP(thisTempDestination, thisFinalDestination);
 
         } catch (FileNotFoundException fnfe) {
-            LogUtils.exceptionLog(fnfe, "Failed to copy world: File not found.");
+            LogUtils.exceptionLog(fnfe, "Failed to copy server: File not found.");
         } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe, "Failed to copy world: IO Exception.");
+            LogUtils.exceptionLog(ioe, "Failed to copy server: IO Exception.");
         }
     }
 
@@ -195,12 +198,20 @@ public class BackupTask implements Runnable {
             if (splitBackup) {
 
                 // Check this worlds folder exists.
-                File worldBackupFolder = new File(backupsPath.concat(currentWorldName));
+                File worldBackupFolder = new File(rootBackupPath.concat(currentWorldName));
                 SharedUtils.checkFolderAndCreate(worldBackupFolder);
 
                 // This worlds backup folder.
-                String thisWorldBackupFolder = tempFolder.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
-                String finalWorldBackupFolder = backupsPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
+
+                // Set up destinations for temp and full backups.
+                String thisWorldBackupFolder;
+
+                if (useTempFolder) {
+                    thisWorldBackupFolder = rootTempPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
+                } else {
+                    thisWorldBackupFolder = rootBackupPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
+                }
+   
 
                 // Copy the current world into it's backup folder.
                 try {
@@ -210,13 +221,14 @@ public class BackupTask implements Runnable {
                     LogUtils.sendLog("Failed to copy world: IO Exception.");
                 }
 
+                String finalWorldBackupFolder = rootBackupPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
                 // Check and ZIP folder.
                 doCopyAndZIP(thisWorldBackupFolder, finalWorldBackupFolder);
 
             } else {
 
                 // This worlds backup folder.
-                String thisWorldBackupFolder = tempInstFolder.concat(FILE_SEPARATOR).concat(currentWorldName);
+                String thisWorldBackupFolder = thisTempDestination.concat(FILE_SEPARATOR).concat(currentWorldName);
 
                 // Copy the current world into it's backup folder.
                 try {
@@ -272,14 +284,14 @@ public class BackupTask implements Runnable {
         String finalPluginsPath;
         if (splitBackup) {
             if (useTempFolder) {
-                pluginsBackupPath = tempFolder.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
+                pluginsBackupPath = rootTempPath.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
             } else {
-                pluginsBackupPath = backupsPath.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
+                pluginsBackupPath = rootBackupPath.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
             }
 
-            finalPluginsPath = backupsPath.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
+            finalPluginsPath = rootBackupPath.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
         } else {
-            pluginsBackupPath = tempInstFolder.concat(FILE_SEPARATOR).concat("plugins");
+            pluginsBackupPath = thisTempDestination.concat(FILE_SEPARATOR).concat("plugins");
             finalPluginsPath = null;
         }
 
@@ -352,11 +364,12 @@ public class BackupTask implements Runnable {
      */
     private void doCopyAndZIP(String sourceDIR, String finalDIR) {
 
-        // Sdo we need to do the ZIP?
         if (shouldZIP) {
-            // ZIP the Folder.
+
+            
+
             try {
-                FileUtils.zipDir(sourceDIR, finalDIR);
+                FileUtils.zipDir(sourceDIR, sourceDIR+".zip");
             } catch (IOException ioe) {
                 LogUtils.exceptionLog(ioe, "Failed to ZIP backup: IO Exception.");
             }
@@ -368,23 +381,26 @@ public class BackupTask implements Runnable {
             } catch (IOException ioe) {
                 LogUtils.exceptionLog(ioe, "Failed to delete temp folder: IO Exception.");
             }
-        } else {
-            if (useTempFolder) {
-                try {
-                    FileUtils.copyDirectory(sourceDIR, finalDIR);
-                } catch (IOException ex) {
-                    Logger.getLogger(BackupTask.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                // Delete the folder.
-                try {
-                    // Delete the original doBackup directory.
-                    FileUtils.deleteDirectory(new File(sourceDIR));
-                    new File(sourceDIR).delete();
-                } catch (IOException ioe) {
-                    LogUtils.exceptionLog(ioe, "Failed to delete temp folder: IO Exception.");
-                }
+
+            sourceDIR = sourceDIR + ".zip";
+        }
+
+        if (useTempFolder) {
+            try {
+                FileUtils.copyDirectory(sourceDIR, finalDIR);
+            } catch (IOException ex) {
+                Logger.getLogger(BackupTask.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            // Delete the folder.
+            try {
+                // Delete the original doBackup directory.
+                FileUtils.deleteDirectory(new File(sourceDIR));
+                new File(sourceDIR).delete();
+            } catch (IOException ioe) {
+                LogUtils.exceptionLog(ioe, "Failed to delete temp folder: IO Exception.");
             }
         }
+
 
     }
 
@@ -515,7 +531,7 @@ public class BackupTask implements Runnable {
                 }
 
                 // Delete the temp directory.
-                File tempFile = new File(tempFolder);
+                File tempFile = new File(rootTempPath);
                 deleteDir(tempFile);
 
                 // Notify that it has completed.
