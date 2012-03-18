@@ -364,34 +364,21 @@ public class BackupTask implements Runnable {
      */
     private void doCopyAndZIP(String sourceDIR, String finalDIR) {
 
-        if (shouldZIP) {
-
-            
-
-            try {
-                FileUtils.zipDir(sourceDIR, sourceDIR+".zip");
-            } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe, "Failed to ZIP backup: IO Exception.");
-            }
-            // Delete the folder.
-            try {
-                // Delete the original doBackup directory.
-                FileUtils.deleteDirectory(new File(sourceDIR));
-                new File(sourceDIR).delete();
-            } catch (IOException ioe) {
-                LogUtils.exceptionLog(ioe, "Failed to delete temp folder: IO Exception.");
-            }
-
-            sourceDIR = sourceDIR + ".zip";
-        }
-
         if (useTempFolder) {
-            try {
-                FileUtils.copyDirectory(sourceDIR, finalDIR);
-            } catch (IOException ex) {
-                Logger.getLogger(BackupTask.class.getName()).log(Level.SEVERE, null, ex);
+            if (shouldZIP) {
+                try {
+                    FileUtils.zipDir(sourceDIR, finalDIR);
+                } catch (IOException ioe) {
+                    LogUtils.exceptionLog(ioe, "Failed to ZIP backup: IO Exception.");
+                }
+            } else {
+                try {
+                    FileUtils.copyDirectory(sourceDIR, finalDIR);
+                } catch (IOException ex) {
+                    Logger.getLogger(BackupTask.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
             }
-            // Delete the folder.
             try {
                 // Delete the original doBackup directory.
                 FileUtils.deleteDirectory(new File(sourceDIR));
@@ -399,7 +386,24 @@ public class BackupTask implements Runnable {
             } catch (IOException ioe) {
                 LogUtils.exceptionLog(ioe, "Failed to delete temp folder: IO Exception.");
             }
+        } else {
+            if (shouldZIP) {
+                try {
+                    FileUtils.zipDir(sourceDIR, finalDIR);
+                } catch (IOException ioe) {
+                    LogUtils.exceptionLog(ioe, "Failed to ZIP backup: IO Exception.");
+                }
+                try {
+                    // Delete the original doBackup directory.
+                    FileUtils.deleteDirectory(new File(sourceDIR));
+                    new File(sourceDIR).delete();
+                } catch (IOException ioe) {
+                    LogUtils.exceptionLog(ioe, "Failed to delete temp folder: IO Exception.");
+                }
+            }
+
         }
+
 
 
     }

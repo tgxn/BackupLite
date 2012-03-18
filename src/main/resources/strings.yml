@@ -56,4 +56,4 @@ checkbackupinterval  : Please check your backupinterval setting is formatted cor
 
 stringnotfound       : 'String not found - '
 packagedwith         : 1.8.9-dev
-version              : str-50
+version              : str-50-1

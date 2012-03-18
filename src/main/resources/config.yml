@@ -45,6 +45,7 @@ enableautosave: true
 # Using this will ignore "backupworlds", "backupplugins", "skipworlds", "skipplugins", and "splitbackup"
 backupeverything: false
 
+
 #======== File & Location Settings ==========#
 
 ## Directory to store backup in. (Default: backups)
@@ -114,9 +115,10 @@ notifyallplayers: true
 # Requires internet connectivity.
 enableversioncheck: true
 
+
 ###############################################
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
-requiredstrings: str-dev-189-1
+requiredstrings: str-50-1
 version: 1.8.9-dev
