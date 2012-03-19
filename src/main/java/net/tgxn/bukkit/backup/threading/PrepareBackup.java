@@ -7,7 +7,6 @@ import java.util.logging.Level;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.utils.LogUtils;
-import net.tgxn.bukkit.backup.utils.SyncSaveAllUtil;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -97,7 +96,7 @@ public class PrepareBackup implements Runnable {
 
         // Check we should do a save-all.
         if (settings.getBooleanProperty("alwayssaveall")) {
-            server.getScheduler().scheduleSyncDelayedTask(plugin, new SyncSaveAllUtil(server, 0));
+            server.getScheduler().scheduleSyncDelayedTask(plugin, new SyncSaveAll(server, 0));
             LogUtils.sendLog(strings.getString("alwayssaveall"));
         }
     }
@@ -111,7 +110,7 @@ public class PrepareBackup implements Runnable {
         notifyStarted();
 
         // Perform final world save before backup, then turn off auto-saving.
-        server.getScheduler().scheduleSyncDelayedTask(plugin, new SyncSaveAllUtil(server, 1));
+        server.getScheduler().scheduleSyncDelayedTask(plugin, new SyncSaveAll(server, 1));
 
         // Save all players.
         server.savePlayers();

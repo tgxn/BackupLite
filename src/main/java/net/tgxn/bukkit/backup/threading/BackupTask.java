@@ -13,7 +13,6 @@ import net.tgxn.bukkit.backup.utils.FileUtils;
 import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import net.tgxn.bukkit.backup.utils.SharedUtils;
-import net.tgxn.bukkit.backup.utils.SyncSaveAllUtil;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -25,7 +24,7 @@ public class BackupTask implements Runnable {
     private Plugin plugin;
     private Settings settings;
     private Strings strings;
-    private SyncSaveAllUtil syncSaveAllUtil;
+    private SyncSaveAll syncSaveAllUtil;
 
     // settings
     private LinkedList<String> worldsToBackup;
@@ -545,7 +544,7 @@ public class BackupTask implements Runnable {
 
                 // Should we enable auto-save again?
                 if (settings.getBooleanProperty("enableautosave")) {
-                    syncSaveAllUtil = new SyncSaveAllUtil(server, 2);
+                    syncSaveAllUtil = new SyncSaveAll(server, 2);
                     server.getScheduler().scheduleSyncDelayedTask(plugin, syncSaveAllUtil);
                 }
 

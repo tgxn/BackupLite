@@ -6,10 +6,10 @@ import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.events.CommandHandler;
 import net.tgxn.bukkit.backup.events.EventListener;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
-import net.tgxn.bukkit.backup.utils.CheckInUtil;
+import net.tgxn.bukkit.backup.config.UpdateChecker;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import net.tgxn.bukkit.backup.utils.SharedUtils;
-import net.tgxn.bukkit.backup.utils.SyncSaveAllUtil;
+import net.tgxn.bukkit.backup.threading.SyncSaveAll;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,7 +22,7 @@ public class BackupMain extends JavaPlugin {
     private static Strings strings;
     private static Settings settings;
     private PrepareBackup prepareBackup;
-    private SyncSaveAllUtil syncSaveAllUtil;
+    private SyncSaveAll syncSaveAllUtil;
 
     @Override
     public void onLoad() {
@@ -98,13 +98,13 @@ public class BackupMain extends JavaPlugin {
             LogUtils.sendLog(strings.getString("savealltimeron", Integer.toString(saveAllInterval)));
 
             // Syncronised save-all.
-            syncSaveAllUtil = new SyncSaveAllUtil(pluginServer, 0);
+            syncSaveAllUtil = new SyncSaveAll(pluginServer, 0);
             saveAllTaskID = pluginServer.getScheduler().scheduleSyncRepeatingTask(this, syncSaveAllUtil, saveAllIntervalInTicks, saveAllIntervalInTicks);
         }
 
         // Version checking task.
         if (settings.getBooleanProperty("enableversioncheck")) {
-            pluginServer.getScheduler().scheduleAsyncDelayedTask(this, new CheckInUtil(this.getDescription().getVersion(), strings));
+            pluginServer.getScheduler().scheduleAsyncDelayedTask(this, new UpdateChecker(this.getDescription().getVersion(), strings));
         }
 
         // Notify loading complete.
