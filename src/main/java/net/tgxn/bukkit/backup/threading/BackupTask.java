@@ -34,6 +34,7 @@ public class BackupTask implements Runnable {
     private boolean shouldZIP;
     private boolean backupEverything;
     private boolean useTempFolder;
+    private String worldContainer;
 
     private String backupName; // the backups name, based on date an time. (default: '20120316-091450')
 
@@ -81,6 +82,8 @@ public class BackupTask implements Runnable {
     public void processBackup() {
         
         // Build folder paths.
+        worldContainer = server.getWorldContainer().getName().concat(FILE_SEPARATOR);
+
         backupName = getFolderName();
 
         rootBackupPath = settings.getStringProperty("backuppath").concat(FILE_SEPARATOR);
@@ -194,11 +197,23 @@ public class BackupTask implements Runnable {
             // Remove first world from the array and put it into a var.
             String currentWorldName = worldsToBackup.removeFirst();
 
+             String worldRootBackupPath = rootBackupPath;
+             String worldRootTempPath = rootTempPath;
+             String worldTempDestination = thisTempDestination.concat(FILE_SEPARATOR);
+
+            if(!worldContainer.equals(".")){
+                worldRootBackupPath = rootBackupPath.concat(worldContainer);
+                worldRootTempPath = rootTempPath.concat(worldContainer);
+                worldTempDestination = thisTempDestination.concat(FILE_SEPARATOR).concat(worldContainer);
+            }
+
+
+
             // Check for split backup.
             if (splitBackup) {
 
                 // Check this worlds folder exists.
-                File worldBackupFolder = new File(rootBackupPath.concat(currentWorldName));
+                File worldBackupFolder = new File(worldRootBackupPath.concat(currentWorldName));
                 SharedUtils.checkFolderAndCreate(worldBackupFolder);
 
                 // This worlds backup folder.
@@ -207,32 +222,32 @@ public class BackupTask implements Runnable {
                 String thisWorldBackupFolder;
 
                 if (useTempFolder) {
-                    thisWorldBackupFolder = rootTempPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
+                    thisWorldBackupFolder = worldRootTempPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
                 } else {
-                    thisWorldBackupFolder = rootBackupPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
+                    thisWorldBackupFolder = worldRootBackupPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
                 }
    
 
                 // Copy the current world into it's backup folder.
                 try {
-                    FileUtils.copyDirectory(currentWorldName, thisWorldBackupFolder);
+                    FileUtils.copyDirectory(worldContainer.concat(currentWorldName), thisWorldBackupFolder);
                 } catch (IOException ioe) {
                     ioe.printStackTrace(System.out);
                     LogUtils.sendLog("Failed to copy world: IO Exception.");
                 }
 
-                String finalWorldBackupFolder = rootBackupPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
+                String finalWorldBackupFolder = worldRootBackupPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
                 // Check and ZIP folder.
                 doCopyAndZIP(thisWorldBackupFolder, finalWorldBackupFolder);
 
             } else {
 
                 // This worlds backup folder.
-                String thisWorldBackupFolder = thisTempDestination.concat(FILE_SEPARATOR).concat(currentWorldName);
+                String thisWorldBackupFolder = worldTempDestination.concat(currentWorldName);
 
                 // Copy the current world into it's backup folder.
                 try {
-                    FileUtils.copyDirectory(currentWorldName, thisWorldBackupFolder);
+                    FileUtils.copyDirectory(worldContainer.concat(currentWorldName), thisWorldBackupFolder);
 
                 } catch (FileNotFoundException ex) {
                     LogUtils.exceptionLog(ex);
