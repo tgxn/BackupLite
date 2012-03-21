@@ -3,8 +3,9 @@ package net.tgxn.bukkit.backup.events;
 import java.io.File;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
+import net.tgxn.bukkit.backup.config.UpdateChecker;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
-import net.tgxn.bukkit.backup.utils.LogUtils;
+import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,40 +16,44 @@ import org.bukkit.plugin.Plugin;
 public class CommandHandler implements Listener, CommandExecutor {
 
     private PrepareBackup prepareBackup = null;
-    private final Plugin plugin;
+    private Plugin plugin;
+    private Server server;
     private Settings settings;
     private Strings strings;
+    private UpdateChecker updateChecker;
 
     /**
-     * The main constructor to initalize listening for commands.
+     * This class is used to listen for console and player commands. It also
+     * contains methods to handle them, and provide output.
      *
-     * @param prepareBackup The instance of prepareBackup.
-     * @param plugin The plugin object itself
-     * @param settings Load settings for the plugin.
-     * @param strings The strings configuration for th plugin.
+     * @param prepareBackup Instance of the prepareBackup.
+     * @param plugin Instance of the JavaPlugin.
+     * @param settings Instance of the settings loader.
+     * @param strings Instance of the strings loader.
      */
-    public CommandHandler(PrepareBackup prepareBackup, Plugin plugin, Settings settings, Strings strings) {
+    public CommandHandler(PrepareBackup prepareBackup, Plugin plugin, Settings settings, Strings strings, UpdateChecker updateChecker) {
         this.prepareBackup = prepareBackup;
         this.plugin = plugin;
+        this.server = plugin.getServer();
         this.settings = settings;
         this.strings = strings;
+        this.updateChecker = updateChecker;
     }
 
+    /**
+     * Called whenever a command is sent.
+     *
+     * @param sender
+     * @param command
+     * @param label
+     * @param args
+     * @return
+     */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        // Initalize variables.
-        Player player = null;
-
-        // Process in-game commands.
-        if ((sender instanceof Player)) {
-
-            // Get player object
-            player = (Player) sender;
-        }
-
-        // Do the actual processing.
-        return processCommand(label, args, player);
+        // Perform the command procesing.
+        return processCommand(sender, command, label, args);
     }
 
     /**
@@ -59,144 +64,162 @@ public class CommandHandler implements Listener, CommandExecutor {
      * @param player The player that requested the command.
      * @return True is success, False if fail.
      */
-    public boolean processCommand(String command, String[] args, Player player) {
+    public boolean processCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        if (player == null) {
-            if (command.equalsIgnoreCase("backup")) {
+        // For commands we actually handle.
+        if (label.equalsIgnoreCase("backup") || label.equalsIgnoreCase("bu")) {
 
-                if (args.length > 0) {
-                    if (args[0].equals("updateconf")) {
-                        updateConfig(null);
-                    } else if (args[0].equals("reload")) {
-                        reloadPlugin(plugin, player);
-                    }
+            // Check if arguments were specified.
+            if (args.length == 0) {
 
-
-                } else {
+                // Main command, perform manual backup.
+                if (checkPerms(sender, "backup.backup")) {
                     doManualBackup();
                 }
-            }
-        } else {
-            // For all playercommands.
 
+            } else if (args.length == 1) {
 
-
-            // For everything under the backup command.
-            if (command.equalsIgnoreCase("backup")) {
-
-
-                // Contains auguments.
-                if (args.length > 0) {
-                    String argument = args[0];
-                    if (argument.equals("help")) {
-                        if (checkPerms(player, "backup.help")) {
-                            sendHelp(player);
-                        }
-                    } else if (argument.equals("reload")) {
-                        if (checkPerms(player, "backup.reload")) {
-                            reloadPlugin(plugin, player);
-                        }
-                    } else if (argument.equals("list")) {
-                        if (checkPerms(player, "backup.list")) {
-                            listBackups(player);
-                        }
-                    } else if (argument.equals("config")) {
-                        if (checkPerms(player, "backup.config")) {
-                            showConfig(player);
-                        }
-                    } else if (argument.equals("log")) {
-                        if (checkPerms(player, "backup.log")) {
-                            showLog(player);
-                        }
-                    } else if (argument.equals("upgradeconf")) {
-                        if (checkPerms(player, "backup.upgradeconf")) {
-                            updateConfig(player);
-                        }
+                // Reload command - Reloads plugin.
+                if (args[0].equals("reload")) {
+                    if (checkPerms(sender, "backup.reload")) {
+                        reloadPlugin(sender);
                     }
-
-                } else {
-                    if (checkPerms(player, "backup.backup")) {
-                        doManualBackup();
+                } // Version command - Version information.
+                else if (args[0].equals("ver")) {
+                    if (checkPerms(sender, "backup.ver")) {
+                        showVersion(sender);
                     }
+                } // Help command - Show help & support info.
+                else if (args[0].equals("help")) {
+                    if (checkPerms(sender, "backup.help")) {
+                        showHelp(sender);
+                    }
+                } // List backups - Default 8.
+                else if (args[0].equals("list")) {
+                    if (checkPerms(sender, "backup.list")) {
+                        listBackups(sender, 8);
+                    }
+                } // Unknown command.
+                else {
+                    sender.sendMessage(strings.getString("unknowncommand"));
                 }
-            }
 
+            } else if (args.length == 2) {
+
+                // List backups - Set amount.
+                if (args[0].equals("list")) {
+                    if (checkPerms(sender, "backup.list")) {
+                        listBackups(sender, Integer.parseInt(args[1]));
+                    }
+                } // Unknown command.
+                else {
+                    sender.sendMessage(strings.getString("unknowncommand"));
+                }
+
+                // Unknown command.
+            } else {
+                sender.sendMessage(strings.getString("unknowncommand"));
+            }
         }
+
+        // Return true for manager.
         return true;
     }
 
-    public void reloadPlugin(Plugin plugin, Player player) {
-        plugin.onDisable();
-        plugin.onLoad();
-        plugin.onEnable();
-        if (player != null)
-            player.sendMessage(strings.getString("reloadedok", plugin.getDescription().getVersion()));
-    }
-
     /**
-     * Start a manual backup.
+     * Performs a manual backup.
      */
     private void doManualBackup() {
+
+        // Sets this as a manual backup in the preperation stage.
         prepareBackup.setAsManualBackup();
+
+        // Schedule an async task to run for the backup.
         plugin.getServer().getScheduler().scheduleAsyncDelayedTask(plugin, prepareBackup);
     }
 
     /**
-     * Send the plugin help to the player.
+     * Reload, and report success.
      *
-     * @param player The player who requested the help.
+     * @param sender The CommandSender.
      */
-    private void sendHelp(Player player) {
-        player.sendMessage("Backup v" + plugin.getDescription().getVersion() + " Help Menu");
-        player.sendMessage("Commands:");
-        player.sendMessage("/backup");
-        player.sendMessage("- Performs a backup.");
-        player.sendMessage("/backup upgradeconf");
-        player.sendMessage("- Re-Installs config file.");
-        player.sendMessage(".");
-        player.sendMessage(".");
-        player.sendMessage("Coming Soon :)");
-        player.sendMessage(".");
+    public void reloadPlugin(CommandSender sender) {
+        plugin.onDisable();
+        plugin.onLoad();
+        plugin.onEnable();
+        sender.sendMessage(strings.getString("reloadedok", plugin.getDescription().getVersion()));
     }
 
     /**
-     * Checks if the player has permissions. Also sends a message if the player
-     * does not have permissions.
+     * Show version method.
      *
-     * @param player The player's object.
-     * @param permission The name of the permission
-     * @return True if they have permission, false if no permission
+     * @param sender The CommandSender.
      */
-    private boolean checkPerms(Player player, String permission) {
+    private void showVersion(final CommandSender sender) {
 
-        // We hooked a perms system.
-        if (player.isPermissionSet(permission)) {
-            if (!player.hasPermission(permission)) {
-                player.sendMessage(strings.getString("norights"));
-                return false;
-            } else {
-                return true;
+        // Notify the caller.
+        sender.sendMessage(strings.getString("gettingversions"));
+
+        // Start a new asynchronous task to get version and print them.
+        server.getScheduler().scheduleAsyncDelayedTask(plugin, new Runnable() {
+
+            @Override
+            public void run() {
+
+                // Attempt to retrieve latest version.
+                String latestVersion = updateChecker.getVersion();
+
+                // Set up current version.
+                String currentVersion = plugin.getDescription().getVersion();
+
+                String upToDate = strings.getString("outofdate");
+                if (latestVersion.equals(currentVersion)) {
+                    upToDate = strings.getString("atlatestversion");
+                }
+
+                // Check for null.
+                if (latestVersion == null) {
+                    latestVersion = strings.getString("unknownfailedversion");
+                    upToDate = strings.getString("unknownfailedversion");
+                }
+
+                // Notify the user.
+                sender.sendMessage("Version Information for " + plugin.getDescription().getName());
+                sender.sendMessage(" ");
+                sender.sendMessage("Version Status: " + upToDate);
+                sender.sendMessage(" ");
+                sender.sendMessage("Loaded Version: " + plugin.getDescription().getVersion() + ".");
+                sender.sendMessage("Latest Version: " + latestVersion + ".");
+                sender.sendMessage(" ");
             }
-
-        } else {
-
-            // Check what to do in case of no permissions.
-            if (settings.getBooleanProperty("onlyops") && !player.isOp()) {
-                player.sendMessage(strings.getString("norights"));
-                return false;
-            } else {
-                return true;
-            }
-        }
+        });
     }
 
     /**
-     * For listing all the backups for a user. Lists to a maximum of 8 so that
-     * it doesn't flow off screen.
+     * Command to list help information to th sender.
      *
-     * @param player The player that requested the list.
+     * @param sender The CommandSender.
      */
-    private void listBackups(Player player) {
+    private void showHelp(CommandSender sender) {
+        sender.sendMessage(plugin.getDescription().getName() + " Help Menu");
+        sender.sendMessage(" ");
+        sender.sendMessage("Website: bukkitbackup.com");
+        sender.sendMessage("Email: bugs@bukkitbackup.com");
+        sender.sendMessage(" ");
+        sender.sendMessage("Dev Info");
+        sender.sendMessage("CI: ci.tgxn.net");
+        sender.sendMessage("BukktiDev: dev.bukkit.org/server-mods/backup");
+        sender.sendMessage(" ");
+    }
+
+    /**
+     * List the backups in the backup folder. We can use the parameter to limit
+     * the number of results.
+     *
+     * @param sender The CommandSender.
+     * @param amount The amount of results we want.
+     */
+    private void listBackups(CommandSender sender, int amount) {
 
         // Get the backups path.
         String backupDir = settings.getStringProperty("backuppath");
@@ -205,25 +228,25 @@ public class CommandHandler implements Listener, CommandExecutor {
         String[] filesList = new File(backupDir).list();
 
         // Inform what is happenning.
-        player.sendMessage("Listing backup directory: \"" + backupDir + "\".");
+        sender.sendMessage("Listing backup directory: \"" + backupDir + "\".");
 
         // Check if the directory exists.
         if (filesList == null) {
 
             // Error message.
-            player.sendMessage("Error listing directory!");
+            sender.sendMessage(strings.getString("errorfolderempty"));
         } else {
 
             // How many files in array.
             int amountoffiles = filesList.length;
 
             // Limit listings, so it doesnt flow off screen.
-            if (amountoffiles > 8) {
-                amountoffiles = 8;
+            if (amountoffiles > amount) {
+                amountoffiles = amount;
             }
 
             // Send informal message.
-            player.sendMessage("" + amountoffiles + " backups found, listing...");
+            sender.sendMessage("" + amountoffiles + " backups found, listing...");
 
             // Loop through files, and list them.
             for (int i = 0; i < amountoffiles; i++) {
@@ -233,51 +256,51 @@ public class CommandHandler implements Listener, CommandExecutor {
 
                 // Send messages for each file.
                 int number = i + 1;
-                player.sendMessage(number + "). " + filename);
+                sender.sendMessage(number + "). " + filename);
             }
         }
     }
 
     /**
-     * To show the plugins configuration.
+     * Checks if the player has permissions. Also sends a message if the player
+     * does not have permissions.
      *
-     * @param player The player that requested the configuration.
+     * @param player The player's object.
+     * @param permissionNode The name of the permission
+     * @return True if they have permission, false if no permission
      */
-    private void showConfig(Player player) {
+    private boolean checkPerms(CommandSender sender, String permissionNode) {
 
-        player.sendMessage("Backup Configuration");
+        // Check if sender is player or not.
+        if ((sender instanceof Player)) {
+            Player player = (Player) sender;
 
-        int interval = settings.getIntervalInMinutes("backupinterval");
-        if (interval != 0) {
-            player.sendMessage("Scheduled Backups: Enabled, " + interval + " mins between backups.");
-        } else {
-            player.sendMessage("Scheduled backups: Disabled, Manual backups only.");
-        }
+            // Check the player has permission set.
+            if (player.isPermissionSet(permissionNode)) {
 
-        boolean hasToZIP = settings.getBooleanProperty("zipbackup");
-        if (hasToZIP) {
-            player.sendMessage("Backup compression is Enabled.");
-        } else {
-            player.sendMessage("Backup compression is Disabled.");
-        }
-    }
+                // Check player for permissions node.
+                if (!player.hasPermission(permissionNode)) {
+                    player.sendMessage(strings.getString("norights"));
+                    return false;
+                } else {
+                    return true;
+                }
 
-    private void showLog(Player player) {
-        player.sendMessage("Coming Soon :)");
-    }
-
-    private void updateConfig(Player player) {
-        if (settings.checkConfigVersion(false)) {
-            if (player != null) {
-                player.sendMessage(strings.getString("updatingconf"));
-            }
-            settings.doConfigurationUpgrade();
-        } else {
-            if (player != null) {
-                player.sendMessage(strings.getString("confuptodate"));
             } else {
-                LogUtils.sendLog(strings.getString("confuptodate"), false);
+
+                // Check what to do in case of no permissions.
+                if (settings.getBooleanProperty("onlyops") && !player.isOp()) {
+                    player.sendMessage(strings.getString("norights"));
+                    return false;
+                } else {
+                    return true;
+                }
             }
+
+        } else {
+
+            // Console session.
+            return true;
         }
     }
 }

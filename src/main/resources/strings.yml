@@ -11,6 +11,7 @@ backupfinished       : '[Backup] Finished Backup!'
 backupstarted        : '[Backup] Started Backup...'
 updateconf           : '[Backup] Config upgrade requested, Upgrading...'
 reloadedok           : '[Backup] Reloaded %%ARG%% successfully!'
+gettingversions      : '[Backup] Please wait, Retrieving version information...'
 
 #========= Startup Strings ==========#
 
@@ -40,7 +41,9 @@ lastbackup           : Last player left, backing up!
 alwayssaveall        : Forcing /save-all, stand by!
 unknowntimeident     : Failed to detect interval amount. (Please use M, H, D, or W).
 pluginoutdate        : 'Plugin is out of date, This: %%ARG%%, Latest: %%ARG1%%.'
+outofdate            : Out of Date
 pluginupdate         : 'Plugin is up to date, At version: %%ARG%%.'
+atlatestversion      : At latest version!
 skipbackupbypass     : Skipping backup because all players have bypass node.
 
 #========= Error Strings ==========#
@@ -49,6 +52,9 @@ errordateformat      : Date format incorrect Check configuration!
 errorcreatetemp      : Error occurred when trying to backup %%ARG%%.  Backup is possibly incomplete.
 backupfailed         : An error occured during backup. Please report to an admin!
 checkbackupinterval  : Please check your backupinterval setting is formatted correctly.
+unknowncommand       : Unknown command or incorrect syntax.
+unknownfailedversion : Unknown / Failed
+errorfolderempty     : Error listing directory, No entries!
 
 ###############################################
 ##   Internal Settings (Read: DO NOT EDIT)   ##
@@ -56,4 +62,4 @@ checkbackupinterval  : Please check your backupinterval setting is formatted cor
 
 stringnotfound       : 'String not found - '
 packagedwith         : 1.8.9-dev
-version              : str-50-1
+version              : str-50-3

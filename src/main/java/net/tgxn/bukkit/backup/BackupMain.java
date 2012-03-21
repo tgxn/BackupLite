@@ -3,13 +3,13 @@ package net.tgxn.bukkit.backup;
 import java.io.File;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
+import net.tgxn.bukkit.backup.config.UpdateChecker;
 import net.tgxn.bukkit.backup.events.CommandHandler;
 import net.tgxn.bukkit.backup.events.EventListener;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
-import net.tgxn.bukkit.backup.config.UpdateChecker;
+import net.tgxn.bukkit.backup.threading.SyncSaveAll;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import net.tgxn.bukkit.backup.utils.SharedUtils;
-import net.tgxn.bukkit.backup.threading.SyncSaveAll;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,6 +23,7 @@ public class BackupMain extends JavaPlugin {
     private static Settings settings;
     private PrepareBackup prepareBackup;
     private SyncSaveAll syncSaveAllUtil;
+    private UpdateChecker updateChecker;
 
     @Override
     public void onLoad() {
@@ -63,8 +64,12 @@ public class BackupMain extends JavaPlugin {
         // Create new "PrepareBackup" instance.
         prepareBackup = new PrepareBackup(pluginServer, settings, strings);
 
+        // Initalize the update checker code.
+        updateChecker = new UpdateChecker(this.getDescription().getVersion(), strings);
+
         // Initalize Command Listener.
-        getCommand("backup").setExecutor(new CommandHandler(prepareBackup, this, settings, strings));
+        getCommand("backup").setExecutor(new CommandHandler(prepareBackup, this, settings, strings, updateChecker));
+        getCommand("bu").setExecutor(new CommandHandler(prepareBackup, this, settings, strings, updateChecker));
 
         // Initalize Event Listener.
         EventListener eventListener = new EventListener(prepareBackup, this, settings, strings);
@@ -102,9 +107,9 @@ public class BackupMain extends JavaPlugin {
             saveAllTaskID = pluginServer.getScheduler().scheduleSyncRepeatingTask(this, syncSaveAllUtil, saveAllIntervalInTicks, saveAllIntervalInTicks);
         }
 
-        // Version checking task.
+        // Update & version checking loading.
         if (settings.getBooleanProperty("enableversioncheck")) {
-            pluginServer.getScheduler().scheduleAsyncDelayedTask(this, new UpdateChecker(this.getDescription().getVersion(), strings));
+            pluginServer.getScheduler().scheduleAsyncDelayedTask(this, updateChecker);
         }
 
         // Notify loading complete.

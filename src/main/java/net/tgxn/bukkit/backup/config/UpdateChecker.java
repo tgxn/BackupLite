@@ -13,6 +13,7 @@ public class UpdateChecker implements Runnable {
     private Strings strings;
     private URL updateURL;
 
+
     /**
      * This class checks the web site for updates.
      * If one is found, it alerts the user.
@@ -29,6 +30,30 @@ public class UpdateChecker implements Runnable {
      * The run method checks the web site, and provides user feedback.
      */
     public void run() {
+        
+        // Read the version.
+        String webVersion = getVersion();
+
+        if(webVersion == null) {
+            LogUtils.sendLog("Failed to retrieve latest version information.");
+        } else {
+            // Check versions and output log to the user.
+            if (!webVersion.equals(thisVersion)) {
+                LogUtils.sendLog(strings.getString("pluginoutdate", thisVersion, webVersion));
+            } else {
+                LogUtils.sendLog(strings.getString("pluginupdate", thisVersion));
+            }
+        }
+    }
+
+    /**
+     * Opens a BufferedReader and attempts to retrieve the latest version.
+     * If this fails, it returns null.
+     *
+     * @return The latest version, or null if this fails.
+     */
+    public String getVersion() {
+        String webVersion;
         try {
 
             // Configure the URL to pull updated from.
@@ -36,23 +61,19 @@ public class UpdateChecker implements Runnable {
 
             // Read from the URL into a BufferedReader.
             BufferedReader bReader = new BufferedReader(new InputStreamReader(updateURL.openStream()));
-            
+
             // Read the line from the BufferedReader.
-            String webVersion = bReader.readLine();
+            webVersion = bReader.readLine();
 
             // Close the BufferedReader.
             bReader.close();
-            
-            // Check versions and output log to the user.
-            if (!webVersion.equals(thisVersion)) {
-                LogUtils.sendLog(strings.getString("pluginoutdate", thisVersion, webVersion));
-            } else {
-                LogUtils.sendLog(strings.getString("pluginupdate", thisVersion));
-            }
+
+            // Return the version.
+            return webVersion;
          } catch (MalformedURLException exeption) {
-            LogUtils.sendLog("Unable to retrieve latest version information.");
+            return null;
          } catch (IOException exeption) {
-            LogUtils.sendLog("Failed to retrieve latest version information.");
-        }
+            return null;
+         }
     }
 }
