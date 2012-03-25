@@ -127,4 +127,4 @@ enableversioncheck: true
 ###############################################
 
 requiredstrings: str-60-2
-version: 1.8.9
+version: 1.9-dev
