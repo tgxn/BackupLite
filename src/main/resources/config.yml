@@ -37,6 +37,10 @@ backupemptyserver: false
 # If set to false, all players will be able to perform all commands, unless you use a permissions system.
 onlyops: true
 
+## Should the bypass node be ignored? (Default: false)
+# If this is true, even if all players have the "backup.bypass" permissions node, the backup will still continue.
+ignorebypass: false
+
 ## Enables the auto-save function after the backup. (Defualt: true)
 # Note: If you set this to false, this plugin will backup your worlds but not save the data from the memory to your hard disc. If the server crashes between
 # backups, all work is lost. Disable if you use another plugin to save the world to disk (EG: autosave).
@@ -122,5 +126,5 @@ enableversioncheck: true
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
-requiredstrings: str-50-3
+requiredstrings: str-60-1
 version: 1.8.9-dev
