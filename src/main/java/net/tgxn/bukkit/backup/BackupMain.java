@@ -3,28 +3,27 @@ package net.tgxn.bukkit.backup;
 import java.io.File;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
+import net.tgxn.bukkit.backup.config.UpdateChecker;
 import net.tgxn.bukkit.backup.events.CommandHandler;
 import net.tgxn.bukkit.backup.events.EventListener;
 import net.tgxn.bukkit.backup.threading.PrepareBackup;
-import net.tgxn.bukkit.backup.utils.CheckInUtil;
+import net.tgxn.bukkit.backup.threading.SyncSaveAll;
 import net.tgxn.bukkit.backup.utils.LogUtils;
 import net.tgxn.bukkit.backup.utils.SharedUtils;
-import net.tgxn.bukkit.backup.utils.SyncSaveAllUtil;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class BackupMain extends JavaPlugin {
 
-    // Setup public variables used in this plugin.
     public int mainBackupTaskID = -2;
     public int saveAllTaskID = -2;
     public File mainDataFolder;
-    // Private variables for this class.
     private static Strings strings;
     private static Settings settings;
     private PrepareBackup prepareBackup;
-    private SyncSaveAllUtil syncSaveAllUtil;
+    private SyncSaveAll syncSaveAllUtil;
+    private UpdateChecker updateChecker;
 
     @Override
     public void onLoad() {
@@ -46,9 +45,9 @@ public class BackupMain extends JavaPlugin {
         strings.checkStringsVersion(settings.getStringProperty("requiredstrings"));
 
         // Complee initalization of LogUtils.
-        LogUtils.finishInitLogUtils(settings.getBooleanProperty("displaylog"), settings.getBooleanProperty("logtofile"), settings.getStringProperty("backuplogname"));
+        LogUtils.finishInitLogUtils(settings.getBooleanProperty("displaylog"));
 
-        // Check backup path and the temp folder, then notify users of this.
+        // Check backup path.
         if (SharedUtils.checkFolderAndCreate(new File(settings.getStringProperty("backuppath")))) {
             LogUtils.sendLog(strings.getString("createbudir"));
         }
@@ -65,8 +64,12 @@ public class BackupMain extends JavaPlugin {
         // Create new "PrepareBackup" instance.
         prepareBackup = new PrepareBackup(pluginServer, settings, strings);
 
+        // Initalize the update checker code.
+        updateChecker = new UpdateChecker(this.getDescription().getVersion(), strings);
+
         // Initalize Command Listener.
-        getCommand("backup").setExecutor(new CommandHandler(prepareBackup, this, settings, strings));
+        getCommand("backup").setExecutor(new CommandHandler(prepareBackup, this, settings, strings, updateChecker));
+        getCommand("bu").setExecutor(new CommandHandler(prepareBackup, this, settings, strings, updateChecker));
 
         // Initalize Event Listener.
         EventListener eventListener = new EventListener(prepareBackup, this, settings, strings);
@@ -74,59 +77,39 @@ public class BackupMain extends JavaPlugin {
 
         // Configure main backup task schedule.
         int backupInterval = settings.getIntervalInMinutes("backupinterval");
-        if (backupInterval != 0) {
-
-            int backupMinutes = backupInterval;
+        if (backupInterval != -1 && backupInterval != 0) {
 
             // Convert to server ticks.
-            backupInterval *= 1200;
+            int backupIntervalInTicks = (backupInterval * 1200);
 
             // Should the schedule repeat?
             if (settings.getBooleanProperty("norepeat")) {
-                mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncDelayedTask(this, prepareBackup, backupInterval);
-                LogUtils.sendLog(strings.getString("norepeatenabled", Integer.toString(backupMinutes)));
+                mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncDelayedTask(this, prepareBackup, backupIntervalInTicks);
+                LogUtils.sendLog(strings.getString("norepeatenabled", Integer.toString(backupInterval)));
             } else {
-                mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, prepareBackup, backupInterval, backupInterval);
+                mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, prepareBackup, backupIntervalInTicks, backupIntervalInTicks);
             }
-
         } else {
             LogUtils.sendLog(strings.getString("disbaledauto"));
         }
 
         // Configure save-all schedule.
         int saveAllInterval = settings.getIntervalInMinutes("saveallinterval");
-        if (saveAllInterval != 0) {
-
-            int saveAllMinutes = saveAllInterval;
+        if (saveAllInterval != 0 && saveAllInterval != -1) {
 
             // Convert to server ticks.
-            saveAllInterval *= 1200;
+            int saveAllIntervalInTicks = (saveAllInterval * 1200);
 
-            LogUtils.sendLog(strings.getString("savealltimeron", Integer.toString(saveAllMinutes)));
+            LogUtils.sendLog(strings.getString("savealltimeron", Integer.toString(saveAllInterval)));
 
             // Syncronised save-all.
-            syncSaveAllUtil = new SyncSaveAllUtil(pluginServer, 0);
-            saveAllTaskID = pluginServer.getScheduler().scheduleSyncRepeatingTask(this, syncSaveAllUtil, saveAllInterval, saveAllInterval);
+            syncSaveAllUtil = new SyncSaveAll(pluginServer, 0);
+            saveAllTaskID = pluginServer.getScheduler().scheduleSyncRepeatingTask(this, syncSaveAllUtil, saveAllIntervalInTicks, saveAllIntervalInTicks);
         }
 
-        // Startup configuration output.
-        if (settings.getBooleanProperty("showconfigonstartup")) {
-            String buInterval = settings.getStringProperty("backupinterval");
-            String saInterval = settings.getStringProperty("saveallinterval");
-            String max = Integer.toString(settings.getIntProperty("maxbackups"));
-            String empty = (settings.getBooleanProperty("backupemptyserver")) ? "Yes" : "No";
-            String everything = (settings.getBooleanProperty("backupeverything")) ? "Yes" : "No";
-            String split = (settings.getBooleanProperty("splitbackup")) ? "Yes" : "No";
-            String zip = (settings.getBooleanProperty("zipbackup")) ? "Yes" : "No";
-            String path = settings.getStringProperty("backuppath");
-            LogUtils.sendLog("Configuration:");
-            LogUtils.sendLog("Interval: " + buInterval + ", Max: " + max + ", On Empty: " + empty + ", Everything: " + everything + ".", false);
-            LogUtils.sendLog("Save-All Int: " + saInterval + ", Split: " + split + ", ZIP: " + zip + ", Path: " + path + ".", false);
-        }
-
-        // Version checking task.
+        // Update & version checking loading.
         if (settings.getBooleanProperty("enableversioncheck")) {
-            pluginServer.getScheduler().scheduleAsyncDelayedTask(this, new CheckInUtil(this.getDescription().getVersion(), strings));
+            pluginServer.getScheduler().scheduleAsyncDelayedTask(this, updateChecker);
         }
 
         // Notify loading complete.

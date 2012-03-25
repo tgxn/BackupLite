@@ -6,18 +6,24 @@
 #======== Backup Settings ==========#
 
 ## How often show the backup run? (Default: "15M" / 15 Minutes)
-# (Note: -1 Will disable automatic backups.)
+# (Note: -1 or 0 will disable automatic backups.)
 # Format: [Time][M-Minutes, H-Hours, D-Days, W-Weeks]
+# @TODO For setting absolute times, use this instead.
+#backupinterval: [{1:00PM},{5:00PM},{10:00PM},{12:05AM}]
 backupinterval: 15M
 
 ## Should the backup stop the schedule after the first backup? (Default: false)
-# One backup will be performed at the time specified under backupinterval.
+# If enabled, one backup will be performed at the time specified under backupinterval.
 norepeat: false
 
-## Enable scheduled save-all? (Default: "-1" / Off)
-# (Note: -1 disables this feature.)
+## Option to always perform a /save-all on backup schedule. (Default: false)
+# If false, /save-all's are only performed when a backup is required.
+alwayssaveall: false
+
+## Enable scheduled save-all? (Default: "0" / Off)
+# (Note: -1 or 0 disables this feature.)
 # Format: [Time][M-Minutes, H-Hours, D-Days, W-Weeks]
-saveallinterval: -1
+saveallinterval: 0
 
 ## How many backups are retained? (Default: 25)
 # If this limit is hit, the oldest backup(s) will be removed. 
@@ -27,33 +33,32 @@ maxbackups: 25
 # When the last player leaves the server, a final backup will be made. The automatic backup cycle will resume when a player re-joins.
 backupemptyserver: false
 
-## Should we backup the entire folder? (Default: false)
-# Use with caution, as this will be a long, large backup, it automatically ignores the backup folder, so it can still be in the server folder.
-# Using this will ignore "backupworlds", "backupplugins", "skipworlds", "skipplugins", and "splitbackup"
-backupeverything: false
-
-## If permissions system is not available, should everyone be able to access all commands, or just ops? (Default: true)
+## If permissions system is un-available, should everyone be able to access all commands, or just ops? (Default: true)
 # If set to false, all players will be able to perform all commands, unless you use a permissions system.
 onlyops: true
+
+## Should the bypass node be ignored? (Default: false)
+# If this is true, even if all players have the "backup.bypass" permissions node, the backup will still continue.
+ignorebypass: false
 
 ## Enables the auto-save function after the backup. (Defualt: true)
 # Note: If you set this to false, this plugin will backup your worlds but not save the data from the memory to your hard disc. If the server crashes between
 # backups, all work is lost. Disable if you use another plugin to save the world to disk (EG: autosave).
 enableautosave: true
 
-## Option to always perform a /save-all on backup. (Default: false)
-# If false, /save-all's are only performed when a backup is required.
-alwayssaveall: false
+## Should we backup the entire folder? (Default: false)
+# Use with caution, as this will be a long, large backup, it automatically ignores the backup folder, so it can still be in the server folder.
+# Using this will ignore "backupworlds", "backupplugins", "skipworlds", "skipplugins", and "splitbackup"
+backupeverything: false
 
 
 #======== File & Location Settings ==========#
 
 ## Directory to store backup in. (Default: backups)
-# Note: Path can be relative, or absolute.
+# Note: Path can be relative, or absolute. ('D:/Backups', '/var/backups', 'altbackups', and '~/backups' are all valid)
 backuppath: backups
 
 ## Do we use the temp folder when doing backup? (Default: true)
-# It is required for Zipped backups.
 usetemp: true
 
 ## Name for the temp folder. (Default: temp)
@@ -91,7 +96,7 @@ skipworlds:
 
 ## List of files to exclude from the plugin backup. (Default: none)
 # Seperate by a semicolon. eg. Plugin1;Plugin2;Plugin3. This takes effect at all directory levels.
-skipplugins:
+pluginlist:
 
 
 #======== Notification & Logging Settings ==========#
@@ -112,17 +117,14 @@ backuplogname: backup.log
 # False will only notify players with the "backup.notify" permission.
 notifyallplayers: true
 
-## Prints a list of configuration on plugin enable. (Default: false)
-# This is usefull for debugging configuration.
-showconfigonstartup: false
-
 ## Enable online version checking? (Default: true)
 # Requires internet connectivity.
 enableversioncheck: true
+
 
 ###############################################
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
-requiredstrings: str-188-1
-version: 1.8.8
+requiredstrings: str-60-2
+version: 1.8.9
