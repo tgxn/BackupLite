@@ -285,7 +285,9 @@ public class FileUtils {
         if (destFile.exists() && destFile.isDirectory()) {
             throw new IOException("Destination '" + destFile + "' exists but is a directory");
         }
-
+        if(!srcFile.exists()){
+            throw new IOException("Source file '"+srcFile+"' does not exist");
+        }
         FileInputStream fis = null;
         FileOutputStream fos = null;
         FileChannel input = null;
@@ -488,6 +490,14 @@ public class FileUtils {
         if (!zipName.endsWith(".zip")) {
             zipName += ".zip";
         }
+        try {
+            File zipFile = new File(directory, zipName);
+            if(!zipFile.exists()){
+                zipFile.createNewFile();
+            }
+        } catch (Exception e) {
+            LogUtils.exceptionLog(e);
+ 	}
         ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipName));
         zipDir(directory, zos, "");
         // close the stream
