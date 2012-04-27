@@ -169,18 +169,24 @@ public class CommandHandler implements Listener, CommandExecutor {
                 // Attempt to retrieve latest version.
                 String latestVersion = updateChecker.getVersion();
 
-                // Set up current version.
-                String currentVersion = plugin.getDescription().getVersion();
-
                 String upToDate = strings.getString("outofdate");
-                if (latestVersion.equals(currentVersion)) {
-                    upToDate = strings.getString("atlatestversion");
-                }
 
                 // Check for null.
                 if (latestVersion == null) {
+
+                    // Set null messages.
                     latestVersion = strings.getString("unknownfailedversion");
                     upToDate = strings.getString("unknownfailedversion");
+
+                } else {
+
+                    // Set up current version.
+                    String currentVersion = plugin.getDescription().getVersion();
+
+                    // Compare versions.
+                    if (latestVersion.equals(currentVersion)) {
+                        upToDate = strings.getString("atlatestversion");
+                    }
                 }
 
                 // Notify the user.
