@@ -277,8 +277,10 @@ public class BackupTask implements Runnable {
                     // Loop each plugin.
                     for (int i = 0; i < pluginList.size(); i++) {
 
+                        String findMe = "plugins".concat(FILE_SEPARATOR).concat(pluginList.get(i));
+
                         // Check if the current plugin matches the string.
-                        if (pluginList.get(i).equals(name.getName())) {
+                        if (findMe.equals(name.getPath())) {
                             return false;
                         }
                     }

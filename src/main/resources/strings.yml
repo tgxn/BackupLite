@@ -61,5 +61,5 @@ errorfolderempty     : Error listing directory, No entries!
 ###############################################
 
 stringnotfound       : 'String not found - '
-packagedwith         : 2.0-dev
+packagedwith         : 1.9-dev
 version              : str-61-1

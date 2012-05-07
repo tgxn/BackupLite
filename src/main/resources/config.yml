@@ -95,7 +95,7 @@ backupplugins: true
 skipworlds:
 
 ## List of files to exclude from the plugin backup. (Default: none)
-# Seperate by a semicolon. eg. Plugin1;Plugin2;Plugin3. This takes effect at all directory levels.
+# Seperate by a semicolon. eg. Plugin1;Plugin2;Plugin3. This takes effect inside plugins/
 pluginlist:
 
 
@@ -127,4 +127,4 @@ enableversioncheck: true
 ###############################################
 
 requiredstrings: str-61-1
-version: 2.0-dev
+version: 1.9-dev
