@@ -29,6 +29,7 @@ public class BackupTask implements Runnable {
     // settings
     private LinkedList<String> worldsToBackup;
     private List<String> pluginList;
+    private boolean pluginListMode;
     private boolean splitBackup;
     private boolean shouldZIP;
     private boolean backupEverything;
@@ -68,6 +69,7 @@ public class BackupTask implements Runnable {
         backupEverything = settings.getBooleanProperty("backupeverything");
         splitBackup = settings.getBooleanProperty("splitbackup");
         shouldZIP = settings.getBooleanProperty("zipbackup");
+        pluginListMode = settings.getBooleanProperty("pluginlistmode");
         pluginList = Arrays.asList(settings.getStringProperty("pluginlist").split(";"));
         useTempFolder = settings.getBooleanProperty("usetemp");
 
@@ -281,10 +283,17 @@ public class BackupTask implements Runnable {
 
                         // Check if the current plugin matches the string.
                         if (findMe.equals(name.getPath())) {
-                            return false;
+
+                            // Return false for exclude, true to include.
+                            if(pluginListMode)
+                                return false;
+                            else
+                                return true;
                         }
                     }
                 }
+
+                // All true.
                 return true;
             }
         };

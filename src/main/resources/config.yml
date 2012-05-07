@@ -94,10 +94,13 @@ backupplugins: true
 # Seperate by a semicolon. eg. World1;World2;Nether
 skipworlds:
 
-## List of files to exclude from the plugin backup. (Default: none)
+## Mode for the below list. (Default: true [Exclude listed DIR's])
+# This can be true or false, false makes only the below plugin paths get included.
+pluginlistmode: true
+
+## List of files to exclude/include from the plugin backup. (Default: none)
 # Seperate by a semicolon. eg. Plugin1;Plugin2;Plugin3. This takes effect inside plugins/
 pluginlist:
-
 
 #======== Notification & Logging Settings ==========#
 
