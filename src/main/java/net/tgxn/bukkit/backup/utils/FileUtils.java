@@ -490,15 +490,16 @@ public class FileUtils {
         if (!zipName.endsWith(".zip")) {
             zipName += ".zip";
         }
-        //
-        try {
-            File zipFile = new File(directory, zipName);
-            if(!zipFile.exists()){
-                zipFile.createNewFile();
-            }
-        } catch (Exception e) {
-            LogUtils.exceptionLog(e);
- 	}
+        //error...
+//        // WHADDDAFUCKKKK!!
+//        try {
+//            File zipFile = new File(zipName);
+//            if(!zipFile.exists()){
+//                zipFile.createNewFile();
+//            }
+//        } catch (Exception e) {
+//            LogUtils.exceptionLog(e);
+// 	}
 
         // create a ZipOutputStream to zip the data to
         ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipName));

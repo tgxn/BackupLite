@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.tgxn.bukkit.backup.config.Settings;
 import net.tgxn.bukkit.backup.config.Strings;
 import net.tgxn.bukkit.backup.utils.FileUtils;
@@ -29,6 +31,7 @@ public class BackupTask implements Runnable {
     // settings
     private LinkedList<String> worldsToBackup;
     private List<String> pluginList;
+    private boolean pluginListMode;
     private boolean splitBackup;
     private boolean shouldZIP;
     private boolean backupEverything;
@@ -68,6 +71,7 @@ public class BackupTask implements Runnable {
         backupEverything = settings.getBooleanProperty("backupeverything");
         splitBackup = settings.getBooleanProperty("splitbackup");
         shouldZIP = settings.getBooleanProperty("zipbackup");
+        pluginListMode = settings.getBooleanProperty("pluginlistmode");
         pluginList = Arrays.asList(settings.getStringProperty("pluginlist").split(";"));
         useTempFolder = settings.getBooleanProperty("usetemp");
 
@@ -276,16 +280,27 @@ public class BackupTask implements Runnable {
 
                     // Loop each plugin.
                     for (int i = 0; i < pluginList.size(); i++) {
-
+                        
                         String findMe = "plugins".concat(FILE_SEPARATOR).concat(pluginList.get(i));
 
+                        int isFound = name.getPath().indexOf(findMe);
+
                         // Check if the current plugin matches the string.
-                        if (findMe.equals(name.getPath())) {
-                            return false;
+                        if (isFound != -1) {
+
+                            // Return false for exclude, true to include.
+                            if(pluginListMode)
+                                return false;
+                            else
+                                return true;
                         }
                     }
                 }
-                return true;
+
+                 if(pluginListMode)
+                    return true;
+                else
+                    return false;
             }
         };
 
@@ -317,7 +332,10 @@ public class BackupTask implements Runnable {
         // Perform plugin backup.
         try {
             if (pluginList.size() > 0 && !pluginList.get(0).isEmpty()) {
-                LogUtils.sendLog(strings.getString("disabledplugins"));
+                if(pluginListMode)
+                    LogUtils.sendLog(strings.getString("disabledplugins"));
+                else
+                    LogUtils.sendLog(strings.getString("enabledplugins"));
                 LogUtils.sendLog(pluginList.toString());
             }
             FileUtils.copyDirectory(pluginsFolder, new File(pluginsBackupPath), pluginsFileFilter, true);
