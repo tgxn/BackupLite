@@ -321,6 +321,8 @@ public class BackupTask implements Runnable {
             }
 
             finalPluginsPath = rootBackupPath.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
+
+            SharedUtils.checkFolderAndCreate(new File(rootBackupPath.concat("plugins")));
         } else {
             pluginsBackupPath = thisTempDestination.concat(FILE_SEPARATOR).concat("plugins");
             finalPluginsPath = null;
