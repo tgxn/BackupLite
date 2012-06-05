@@ -1,11 +1,11 @@
 package com.bukkitbackup.plugin.config;
 
+import com.bukkitbackup.plugin.utils.LogUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import com.bukkitbackup.plugin.utils.LogUtils;
 
 public class UpdateChecker implements Runnable {
 
