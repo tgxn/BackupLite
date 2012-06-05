@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>net.tgxn.bukkit</groupId>
+    <groupId>com.bukkitbackup</groupId>
     <artifactId>Backup</artifactId>
     <version>1.9-dev</version>
     <name>Backup</name>
@@ -64,7 +64,7 @@
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>1.2.5-R1.0</version>
+            <version>1.2.5-R3.0</version>
         </dependency>
     </dependencies>
     <properties>

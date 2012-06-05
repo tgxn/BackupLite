@@ -1,4 +1,4 @@
-package net.tgxn.bukkit.backup.threading;
+package com.bukkitbackup.plugin.threading;
 
 import org.bukkit.Server;
 import org.bukkit.command.ConsoleCommandSender;

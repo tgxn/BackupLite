@@ -124,10 +124,9 @@ notifyallplayers: true
 # Requires internet connectivity.
 enableversioncheck: true
 
-
 ###############################################
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
-requiredstrings: str-61-1
+requiredstrings: str-61-2
 version: 1.9-dev

@@ -16,7 +16,7 @@
  *
  * (modified version)
  */
-package net.tgxn.bukkit.backup.utils;
+package com.bukkitbackup.plugin.utils;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
