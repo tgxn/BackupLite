@@ -1,12 +1,12 @@
-package net.tgxn.bukkit.backup.threading;
+package com.bukkitbackup.plugin.threading;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
-import net.tgxn.bukkit.backup.config.Settings;
-import net.tgxn.bukkit.backup.config.Strings;
-import net.tgxn.bukkit.backup.utils.LogUtils;
+import com.bukkitbackup.plugin.config.Settings;
+import com.bukkitbackup.plugin.config.Strings;
+import com.bukkitbackup.plugin.utils.LogUtils;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.entity.Player;

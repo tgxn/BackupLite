@@ -1,26 +1,25 @@
-package net.tgxn.bukkit.backup.config;
+package com.bukkitbackup.plugin.config;
 
+import com.bukkitbackup.plugin.utils.LogUtils;
 import java.io.*;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.tgxn.bukkit.backup.utils.LogUtils;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 public final class Settings {
-
-    // Private variables used in this class.
+    
     private Plugin plugin;
     private Strings strings;
-    private File configFile;
-    private FileConfiguration fileSettingConfiguration;
+    private File configurationFile;
+    private FileConfiguration fileConfiguration;
 
-    public Settings(Plugin plugin, File configFile, Strings strings) {
+    public Settings(Plugin plugin, File configurationFile, Strings strings) {
         this.plugin = plugin;
-        this.configFile = configFile;
+        this.configurationFile = configurationFile;
         this.strings = strings;
 
         // Checks if config exists, creates if not.
@@ -38,7 +37,7 @@ public final class Settings {
      */
     private void checkAndCreate() {
         try {
-            if (!configFile.exists()) {
+            if (!configurationFile.exists()) {
                 LogUtils.sendLog(Level.WARNING, strings.getString("newconfigfile"));
                 createDefaultSettings();
             }
@@ -50,12 +49,12 @@ public final class Settings {
     }
 
     /**
-     * Load the configuration to memory from the configFile.
+     * Load the configuration to memory from the configurationFile.
      */
     private void loadProperties() {
-        fileSettingConfiguration = new YamlConfiguration();
+        fileConfiguration = new YamlConfiguration();
         try {
-            fileSettingConfiguration.load(configFile);
+            fileConfiguration.load(configurationFile);
         } catch (InvalidConfigurationException ice) {
             LogUtils.exceptionLog(ice, "Failed to load configuration.");
         } catch (IOException ioe) {
@@ -73,10 +72,10 @@ public final class Settings {
         boolean needsUpgrade = false;
 
         // Check configuration is loaded.
-        if (fileSettingConfiguration != null) {
+        if (fileConfiguration != null) {
 
             // Get the version information from the file.
-            String configVersion = fileSettingConfiguration.getString("version", plugin.getDescription().getVersion());
+            String configVersion = fileConfiguration.getString("version", plugin.getDescription().getVersion());
             String pluginVersion = plugin.getDescription().getVersion();
 
             // Check we got a version from the config file.
@@ -103,8 +102,8 @@ public final class Settings {
      */
     public void doConfigurationUpgrade() {
         LogUtils.sendLog(strings.getString("updatingconf"), true);
-        if (configFile.exists()) {
-            configFile.delete();
+        if (configurationFile.exists()) {
+            configurationFile.delete();
         }
         createDefaultSettings();
         LogUtils.sendLog(strings.getString("updatingconf"), true);
@@ -121,7 +120,7 @@ public final class Settings {
         try {
             // Open a stream to the properties file in the jar, because we can only access over the class loader.
             bReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/resources/config.yml")));
-            bWriter = new BufferedWriter(new FileWriter(configFile));
+            bWriter = new BufferedWriter(new FileWriter(configurationFile));
 
             // Copy the content to the configfile location.
             while ((line = bReader.readLine()) != null) {
@@ -151,7 +150,7 @@ public final class Settings {
      * @return The value of the property, defaults to -1.
      */
     public int getIntProperty(String property) {
-        return fileSettingConfiguration.getInt(property, -1);
+        return fileConfiguration.getInt(property, -1);
     }
 
     /**
@@ -161,7 +160,7 @@ public final class Settings {
      * @return The value of the property, defaults to true.
      */
     public boolean getBooleanProperty(String property) {
-        return fileSettingConfiguration.getBoolean(property, true);
+        return fileConfiguration.getBoolean(property, true);
     }
 
     /**
@@ -171,7 +170,7 @@ public final class Settings {
      * @return The value of the property.
      */
     public String getStringProperty(String property) {
-        return fileSettingConfiguration.getString(property, "");
+        return fileConfiguration.getString(property, "");
     }
 
     /**

@@ -1,10 +1,10 @@
-package net.tgxn.bukkit.backup.events;
+package com.bukkitbackup.plugin.events;
 
 import java.io.File;
-import net.tgxn.bukkit.backup.config.Settings;
-import net.tgxn.bukkit.backup.config.Strings;
-import net.tgxn.bukkit.backup.config.UpdateChecker;
-import net.tgxn.bukkit.backup.threading.PrepareBackup;
+import com.bukkitbackup.plugin.config.Settings;
+import com.bukkitbackup.plugin.config.Strings;
+import com.bukkitbackup.plugin.config.UpdateChecker;
+import com.bukkitbackup.plugin.threading.PrepareBackup;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

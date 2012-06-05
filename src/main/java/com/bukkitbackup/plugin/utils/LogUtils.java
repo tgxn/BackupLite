@@ -1,4 +1,4 @@
-package net.tgxn.bukkit.backup.utils;
+package com.bukkitbackup.plugin.utils;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,6 +27,7 @@ public class LogUtils {
             LogUtils.logLevel = Level.INFO;
             LogUtils.logger.setLevel(Level.INFO);
             LogUtils.plugin = plugin;
+            
         }
     }
 

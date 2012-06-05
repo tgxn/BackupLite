@@ -16,7 +16,7 @@
  *
  * (modified version)
  */
-package net.tgxn.bukkit.backup.utils;
+package com.bukkitbackup.plugin.utils;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -486,18 +486,12 @@ public class FileUtils {
      * @throws IOException
      */
     public static void zipDir(String directory, String zipName) throws IOException {
-        // create a ZipOutputStream to zip the data to
+        // Make sure name is correct.
         if (!zipName.endsWith(".zip")) {
             zipName += ".zip";
         }
-        try {
-            File zipFile = new File(directory, zipName);
-            if(!zipFile.exists()){
-                zipFile.createNewFile();
-            }
-        } catch (Exception e) {
-            LogUtils.exceptionLog(e);
- 	}
+		
+        // create a ZipOutputStream to zip the data to
         ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipName));
         zipDir(directory, zos, "");
         // close the stream

@@ -1,4 +1,4 @@
-package net.tgxn.bukkit.backup.threading;
+package com.bukkitbackup.plugin.threading;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.tgxn.bukkit.backup.config.Settings;
-import net.tgxn.bukkit.backup.config.Strings;
-import net.tgxn.bukkit.backup.utils.FileUtils;
-import static net.tgxn.bukkit.backup.utils.FileUtils.FILE_SEPARATOR;
-import net.tgxn.bukkit.backup.utils.LogUtils;
-import net.tgxn.bukkit.backup.utils.SharedUtils;
+import com.bukkitbackup.plugin.config.Settings;
+import com.bukkitbackup.plugin.config.Strings;
+import com.bukkitbackup.plugin.utils.FileUtils;
+import static com.bukkitbackup.plugin.utils.FileUtils.FILE_SEPARATOR;
+import com.bukkitbackup.plugin.utils.LogUtils;
+import com.bukkitbackup.plugin.utils.SharedUtils;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -25,25 +25,21 @@ public class BackupTask implements Runnable {
     private Settings settings;
     private Strings strings;
     private SyncSaveAll syncSaveAllUtil;
-
     // settings
     private LinkedList<String> worldsToBackup;
     private List<String> pluginList;
+    private boolean pluginListMode;
     private boolean splitBackup;
     private boolean shouldZIP;
     private boolean backupEverything;
     private boolean useTempFolder;
     private String worldContainer;
-
     private String backupName; // the backups name, based on date an time. (default: '20120316-091450')
-
     // folders
     private String rootBackupPath; // the root of all out backups (default: 'backups/') with trailing /
     private String rootTempPath; // the root of the temp folder (default: 'backups/temp/') with trailing /
-
     private String thisFinalDestination; // the final resting place for the backup (default: 'backups/20120316-091450')
     private String thisTempDestination; // the temp instance folder (default: 'backups/temp/20120316-091450')
-
 
     /**
      * The main BackupTask constructor.
@@ -63,11 +59,12 @@ public class BackupTask implements Runnable {
 
     @Override
     public void run() {
-        
+
         // Load settings.
         backupEverything = settings.getBooleanProperty("backupeverything");
         splitBackup = settings.getBooleanProperty("splitbackup");
         shouldZIP = settings.getBooleanProperty("zipbackup");
+        pluginListMode = settings.getBooleanProperty("pluginlistmode");
         pluginList = Arrays.asList(settings.getStringProperty("pluginlist").split(";"));
         useTempFolder = settings.getBooleanProperty("usetemp");
 
@@ -79,7 +76,7 @@ public class BackupTask implements Runnable {
      * This method does high-level backup processing.
      */
     public void processBackup() {
-        
+
         // Build folder paths.
         worldContainer = server.getWorldContainer().getName().concat(FILE_SEPARATOR);
 
@@ -88,8 +85,9 @@ public class BackupTask implements Runnable {
         rootBackupPath = settings.getStringProperty("backuppath").concat(FILE_SEPARATOR);
 
         rootTempPath = rootBackupPath.concat(settings.getStringProperty("tempfoldername")).concat(FILE_SEPARATOR);
-        if (useTempFolder)
+        if (useTempFolder) {
             SharedUtils.checkFolderAndCreate(new File(rootTempPath));
+        }
 
         // Set up destinations for temp and full backups.
         if (useTempFolder) {
@@ -107,7 +105,7 @@ public class BackupTask implements Runnable {
         if (backupEverything) {
 
             doEverythingBackup();
-            
+
         } else {
 
             // Make sure world backup is enabled and that we have worlds to backup.
@@ -125,14 +123,16 @@ public class BackupTask implements Runnable {
             }
 
             // If this is a non-split backup, we need to ZIP the whole thing.
-            if (!splitBackup)
+            if (!splitBackup) {
                 doCopyAndZIP(thisTempDestination, thisFinalDestination);
+            }
 
         }
 
         // Should we delete any old backups.
-        if (!deleteOldBackups())
+        if (!deleteOldBackups()) {
             LogUtils.sendLog("Failed to delete old backups.");
+        }
 
         // Finish backup.
         finishBackup();
@@ -196,11 +196,11 @@ public class BackupTask implements Runnable {
             // Remove first world from the array and put it into a var.
             String currentWorldName = worldsToBackup.removeFirst();
 
-             String worldRootBackupPath = rootBackupPath;
-             String worldRootTempPath = rootTempPath;
-             String worldTempDestination = thisTempDestination.concat(FILE_SEPARATOR);
+            String worldRootBackupPath = rootBackupPath;
+            String worldRootTempPath = rootTempPath;
+            String worldTempDestination = thisTempDestination.concat(FILE_SEPARATOR);
 
-            if(!worldContainer.equals(".")){
+            if (!worldContainer.equals(".")) {
                 worldRootBackupPath = rootBackupPath.concat(worldContainer);
                 worldRootTempPath = rootTempPath.concat(worldContainer);
                 worldTempDestination = thisTempDestination.concat(FILE_SEPARATOR).concat(worldContainer);
@@ -225,7 +225,7 @@ public class BackupTask implements Runnable {
                 } else {
                     thisWorldBackupFolder = worldRootBackupPath.concat(currentWorldName).concat(FILE_SEPARATOR).concat(backupName);
                 }
-   
+
 
                 // Copy the current world into it's backup folder.
                 try {
@@ -277,13 +277,28 @@ public class BackupTask implements Runnable {
                     // Loop each plugin.
                     for (int i = 0; i < pluginList.size(); i++) {
 
+                        String findMe = "plugins".concat(FILE_SEPARATOR).concat(pluginList.get(i));
+
+                        int isFound = name.getPath().indexOf(findMe);
+
                         // Check if the current plugin matches the string.
-                        if (pluginList.get(i).equals(name.getName())) {
-                            return false;
+                        if (isFound != -1) {
+
+                            // Return false for exclude, true to include.
+                            if (pluginListMode) {
+                                return false;
+                            } else {
+                                return true;
+                            }
                         }
                     }
                 }
-                return true;
+
+                if (pluginListMode) {
+                    return true;
+                } else {
+                    return false;
+                }
             }
         };
 
@@ -304,6 +319,8 @@ public class BackupTask implements Runnable {
             }
 
             finalPluginsPath = rootBackupPath.concat("plugins").concat(FILE_SEPARATOR).concat(backupName);
+
+            SharedUtils.checkFolderAndCreate(new File(rootBackupPath.concat("plugins")));
         } else {
             pluginsBackupPath = thisTempDestination.concat(FILE_SEPARATOR).concat("plugins");
             finalPluginsPath = null;
@@ -315,7 +332,11 @@ public class BackupTask implements Runnable {
         // Perform plugin backup.
         try {
             if (pluginList.size() > 0 && !pluginList.get(0).isEmpty()) {
-                LogUtils.sendLog(strings.getString("disabledplugins"));
+                if (pluginListMode) {
+                    LogUtils.sendLog(strings.getString("disabledplugins"));
+                } else {
+                    LogUtils.sendLog(strings.getString("enabledplugins"));
+                }
                 LogUtils.sendLog(pluginList.toString());
             }
             FileUtils.copyDirectory(pluginsFolder, new File(pluginsBackupPath), pluginsFileFilter, true);

@@ -1,15 +1,15 @@
-package net.tgxn.bukkit.backup;
+package com.bukkitbackup.plugin;
 
+import com.bukkitbackup.plugin.config.Settings;
+import com.bukkitbackup.plugin.config.Strings;
+import com.bukkitbackup.plugin.config.UpdateChecker;
+import com.bukkitbackup.plugin.events.CommandHandler;
+import com.bukkitbackup.plugin.events.EventListener;
+import com.bukkitbackup.plugin.threading.PrepareBackup;
+import com.bukkitbackup.plugin.threading.SyncSaveAll;
+import com.bukkitbackup.plugin.utils.LogUtils;
+import com.bukkitbackup.plugin.utils.SharedUtils;
 import java.io.File;
-import net.tgxn.bukkit.backup.config.Settings;
-import net.tgxn.bukkit.backup.config.Strings;
-import net.tgxn.bukkit.backup.config.UpdateChecker;
-import net.tgxn.bukkit.backup.events.CommandHandler;
-import net.tgxn.bukkit.backup.events.EventListener;
-import net.tgxn.bukkit.backup.threading.PrepareBackup;
-import net.tgxn.bukkit.backup.threading.SyncSaveAll;
-import net.tgxn.bukkit.backup.utils.LogUtils;
-import net.tgxn.bukkit.backup.utils.SharedUtils;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -44,7 +44,7 @@ public class BackupMain extends JavaPlugin {
         // Run version checking on strings file.
         strings.checkStringsVersion(settings.getStringProperty("requiredstrings"));
 
-        // Complee initalization of LogUtils.
+        // Complete initalization of LogUtils.
         LogUtils.finishInitLogUtils(settings.getBooleanProperty("displaylog"));
 
         // Check backup path.
