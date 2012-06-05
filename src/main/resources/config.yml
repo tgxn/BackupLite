@@ -8,8 +8,6 @@
 ## How often show the backup run? (Default: "15M" / 15 Minutes)
 # (Note: -1 or 0 will disable automatic backups.)
 # Format: [Time][M-Minutes, H-Hours, D-Days, W-Weeks]
-# @TODO For setting absolute times, use this instead.
-#backupinterval: [{1:00PM},{5:00PM},{10:00PM},{12:05AM}]
 backupinterval: 15M
 
 ## Should the backup stop the schedule after the first backup? (Default: false)
@@ -128,5 +126,5 @@ enableversioncheck: true
 ##   Internal Settings (Read: DO NOT EDIT)   ##
 ###############################################
 
-requiredstrings: str-61-2
-version: 1.9-dev
+requiredstrings: str-61-3
+version: 1.9
