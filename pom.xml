@@ -16,7 +16,7 @@
         <url>https://github.com/gamerx/BackupLite/issues</url>
     </issueManagement>
     <build>
-        <finalName>Backup</finalName>
+        <finalName>BackupLite</finalName>
         <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
         <resources>
             <resource>
