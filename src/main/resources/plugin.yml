@@ -1,10 +1,10 @@
-name: Backup
-version: 1.9
-description: A full and simple backup plugin.
-authors: [Meldanor, gamerx, lycano]
+name: BackupLite
+version: 0.5
+description: A simple backup plugin.
+authors: [gamerx]
 website: http://www.bukkitbackup.com/
 dev-url: http://dev.bukkit.org/server-mods/backup/
-main: com.bukkitbackup.plugin.BackupMain
+main: com.bukkitbackup.lite.BackupMain
 commands:
   backup:
     description: Starts a backup of the server.

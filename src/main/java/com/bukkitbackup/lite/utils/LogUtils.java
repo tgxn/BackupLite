@@ -1,4 +1,4 @@
-package com.bukkitbackup.plugin.utils;
+package com.bukkitbackup.lite.utils;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

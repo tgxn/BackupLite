@@ -16,7 +16,7 @@
  *
  * (modified version)
  */
-package com.bukkitbackup.plugin.utils;
+package com.bukkitbackup.lite.utils;
 
 import java.io.*;
 import java.nio.channels.FileChannel;

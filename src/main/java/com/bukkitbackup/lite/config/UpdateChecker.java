@@ -1,6 +1,6 @@
-package com.bukkitbackup.plugin.config;
+package com.bukkitbackup.lite.config;
 
-import com.bukkitbackup.plugin.utils.LogUtils;
+import com.bukkitbackup.lite.utils.LogUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

@@ -1,11 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.bukkitbackup</groupId>
-    <artifactId>Backup</artifactId>
-    <version>1.9</version>
-    <name>Backup</name>
-    <description>A Backup plugin for Bukkit's Server mod API.</description>
-    <url>https://github.com/gamerx/Backup</url>
+    <artifactId>BackupLite</artifactId>
+    <name>BackupLite</name>
+    <description>A Lite Backup plugin for Bukkit's Server mod API.</description>
+    <url>https://github.com/gamerx/BackupLite</url>
     <repositories>
         <repository>
             <id>maven.tgxn.net</id>
@@ -14,7 +13,7 @@
     </repositories>
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/gamerx/Backup/issues</url>
+        <url>https://github.com/gamerx/BackupLite/issues</url>
     </issueManagement>
     <build>
         <finalName>Backup</finalName>
@@ -70,4 +69,5 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    <version>0.5</version>
 </project>

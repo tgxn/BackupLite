@@ -1,4 +1,4 @@
-package com.bukkitbackup.plugin.threading;
+package com.bukkitbackup.lite.threading;
 
 import org.bukkit.Server;
 import org.bukkit.command.ConsoleCommandSender;

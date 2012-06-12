@@ -1,14 +1,14 @@
-package com.bukkitbackup.plugin;
+package com.bukkitbackup.lite;
 
-import com.bukkitbackup.plugin.config.Settings;
-import com.bukkitbackup.plugin.config.Strings;
-import com.bukkitbackup.plugin.config.UpdateChecker;
-import com.bukkitbackup.plugin.events.CommandHandler;
-import com.bukkitbackup.plugin.events.EventListener;
-import com.bukkitbackup.plugin.threading.PrepareBackup;
-import com.bukkitbackup.plugin.threading.SyncSaveAll;
-import com.bukkitbackup.plugin.utils.LogUtils;
-import com.bukkitbackup.plugin.utils.SharedUtils;
+import com.bukkitbackup.lite.config.Settings;
+import com.bukkitbackup.lite.config.Strings;
+import com.bukkitbackup.lite.config.UpdateChecker;
+import com.bukkitbackup.lite.events.CommandHandler;
+import com.bukkitbackup.lite.events.EventListener;
+import com.bukkitbackup.lite.threading.PrepareBackup;
+import com.bukkitbackup.lite.threading.SyncSaveAll;
+import com.bukkitbackup.lite.utils.LogUtils;
+import com.bukkitbackup.lite.utils.SharedUtils;
 import java.io.File;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;

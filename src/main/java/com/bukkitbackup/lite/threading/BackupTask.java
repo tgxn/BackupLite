@@ -1,4 +1,4 @@
-package com.bukkitbackup.plugin.threading;
+package com.bukkitbackup.lite.threading;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.bukkitbackup.plugin.config.Settings;
-import com.bukkitbackup.plugin.config.Strings;
-import com.bukkitbackup.plugin.utils.FileUtils;
-import static com.bukkitbackup.plugin.utils.FileUtils.FILE_SEPARATOR;
-import com.bukkitbackup.plugin.utils.LogUtils;
-import com.bukkitbackup.plugin.utils.SharedUtils;
+import com.bukkitbackup.lite.config.Settings;
+import com.bukkitbackup.lite.config.Strings;
+import com.bukkitbackup.lite.utils.FileUtils;
+import static com.bukkitbackup.lite.utils.FileUtils.FILE_SEPARATOR;
+import com.bukkitbackup.lite.utils.LogUtils;
+import com.bukkitbackup.lite.utils.SharedUtils;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;

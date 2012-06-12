@@ -1,6 +1,6 @@
-package com.bukkitbackup.plugin.config;
+package com.bukkitbackup.lite.config;
 
-import com.bukkitbackup.plugin.utils.LogUtils;
+import com.bukkitbackup.lite.utils.LogUtils;
 import java.io.*;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
