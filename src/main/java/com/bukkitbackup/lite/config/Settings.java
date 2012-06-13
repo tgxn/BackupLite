@@ -1,8 +1,8 @@
 package com.bukkitbackup.lite.config;
 
 import com.bukkitbackup.lite.utils.LogUtils;
+import com.bukkitbackup.lite.utils.SharedUtils;
 import java.io.*;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -13,14 +13,12 @@ import org.bukkit.plugin.Plugin;
 public final class Settings {
     
     private Plugin plugin;
-    private Strings strings;
     private File configurationFile;
     private FileConfiguration fileConfiguration;
 
-    public Settings(Plugin plugin, File configurationFile, Strings strings) {
+    public Settings(Plugin plugin, File configurationFile) {
         this.plugin = plugin;
         this.configurationFile = configurationFile;
-        this.strings = strings;
 
         // Checks if config exists, creates if not.
         checkAndCreate();
@@ -28,8 +26,8 @@ public final class Settings {
         // Load the properties into memory.
         loadProperties();
 
-        // Checks configuration version, notifys the user/log.
-        checkConfigVersion(true);
+        if (SharedUtils.checkFolderAndCreate(new File(this.getStringProperty("backuppath"))))
+            LogUtils.sendLog("Created backup directory.");
     }
 
     /**
@@ -38,7 +36,7 @@ public final class Settings {
     private void checkAndCreate() {
         try {
             if (!configurationFile.exists()) {
-                LogUtils.sendLog(Level.WARNING, strings.getString("newconfigfile"));
+                LogUtils.sendLog("Generated Config File.");
                 createDefaultSettings();
             }
         } catch (NullPointerException npe) {
@@ -60,53 +58,6 @@ public final class Settings {
         } catch (IOException ioe) {
             LogUtils.exceptionLog(ioe, "Failed to load configuration.");
         }
-    }
-
-    /**
-     * Checks configuration version, and return true if it requires an update.
-     *
-     * @return False for no update done, True for update done.
-     */
-    public boolean checkConfigVersion(boolean notify) {
-
-        boolean needsUpgrade = false;
-
-        // Check configuration is loaded.
-        if (fileConfiguration != null) {
-
-            // Get the version information from the file.
-            String configVersion = fileConfiguration.getString("version", plugin.getDescription().getVersion());
-            String pluginVersion = plugin.getDescription().getVersion();
-
-            // Check we got a version from the config file.
-            if (configVersion == null) {
-                LogUtils.sendLog(strings.getString("failedtogetpropsver"), Level.SEVERE, true);
-                needsUpgrade = true;
-            }
-
-            // Check if the config is outdated.
-            if (!configVersion.equals(pluginVersion)) {
-                needsUpgrade = true;
-            }
-
-            // After we have checked the versions, we have determined that we need to update.
-            if (needsUpgrade && notify) {
-                LogUtils.sendLog(Level.SEVERE, strings.getString("configupdate"));
-            }
-        }
-        return needsUpgrade;
-    }
-
-    /**
-     * Used to upgrade the configuration file.
-     */
-    public void doConfigurationUpgrade() {
-        LogUtils.sendLog(strings.getString("updatingconf"), true);
-        if (configurationFile.exists()) {
-            configurationFile.delete();
-        }
-        createDefaultSettings();
-        LogUtils.sendLog(strings.getString("updatingconf"), true);
     }
 
     /**
@@ -207,15 +158,15 @@ public final class Settings {
                 } else if (letter.equals("w")) {
                     return time * 10080;
                 } else {
-                    LogUtils.sendLog(strings.getString("unknowntimeident"));
+                    LogUtils.sendLog("Error formatting time.");
                     return time;
                 }
             } else {
-                LogUtils.sendLog(strings.getString("checkbackupinterval"));
+                LogUtils.sendLog("Error formatting time.");
                 return 0;
             }
         } else {
-            LogUtils.sendLog(strings.getString("checkbackupinterval"));
+            LogUtils.sendLog("Error formatting time.");
             return 0;
         }
     }

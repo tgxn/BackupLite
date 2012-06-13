@@ -1,7 +1,6 @@
 package com.bukkitbackup.lite.events;
 
 import com.bukkitbackup.lite.config.Settings;
-import com.bukkitbackup.lite.config.Strings;
 import com.bukkitbackup.lite.threading.PrepareBackup;
 import com.bukkitbackup.lite.utils.LogUtils;
 import org.bukkit.event.EventHandler;
@@ -22,7 +21,6 @@ public class EventListener implements Listener {
     private PrepareBackup prepareBackup = null;
     private Plugin plugin;
     private Settings settings;
-    private Strings strings;
     private int lastBackupID;
     
     /**
@@ -31,11 +29,10 @@ public class EventListener implements Listener {
      * @param backupTask The BackupTast to call.
      * @param plugin Plugin to link this class too.
      */
-    public EventListener(PrepareBackup backupTask, Plugin plugin, Settings settings, Strings strings) {
+    public EventListener(PrepareBackup backupTask, Plugin plugin, Settings settings) {
         this.prepareBackup = backupTask;
         this.plugin = plugin;
         this.settings = settings;
-        this.strings = strings;
         lastBackupID = -2;
     }
     
@@ -69,7 +66,7 @@ public class EventListener implements Listener {
                 lastBackupID = plugin.getServer().getScheduler().scheduleAsyncDelayedTask(plugin, prepareBackup, interval);
                 LogUtils.sendLog("Scheduled last backup for " + intervalInMinutes +" minutes.");
             } else {
-                LogUtils.sendLog(strings.getString("disbaledauto"));
+                LogUtils.sendLog("Automatic backups are disabled.");
             }
          }
     }

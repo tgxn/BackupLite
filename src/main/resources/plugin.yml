@@ -1,10 +1,10 @@
 name: BackupLite
-version: 0.5
+version: 0.9
 description: A simple backup plugin.
 authors: [gamerx]
 website: http://www.bukkitbackup.com/
 dev-url: http://dev.bukkit.org/server-mods/backup/
-main: com.bukkitbackup.lite.BackupMain
+main: com.bukkitbackup.lite.BackupLite
 commands:
   backup:
     description: Starts a backup of the server.

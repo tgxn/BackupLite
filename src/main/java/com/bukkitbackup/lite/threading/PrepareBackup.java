@@ -1,12 +1,11 @@
 package com.bukkitbackup.lite.threading;
 
+import com.bukkitbackup.lite.config.Settings;
+import com.bukkitbackup.lite.utils.LogUtils;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
-import com.bukkitbackup.lite.config.Settings;
-import com.bukkitbackup.lite.config.Strings;
-import com.bukkitbackup.lite.utils.LogUtils;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -20,14 +19,12 @@ public class PrepareBackup implements Runnable {
 
     private final Server server;
     private final Settings settings;
-    private Strings strings;
     private Plugin plugin;
 
-    public PrepareBackup(Server server, Settings settings, Strings strings) {
+    public PrepareBackup(Server server, Settings settings) {
         this.server = server;
         this.settings = settings;
         this.plugin = server.getPluginManager().getPlugin("Backup");
-        this.strings = strings;
         isLastBackup = false;
     }
 
@@ -60,45 +57,22 @@ public class PrepareBackup implements Runnable {
                     
                     // Check if last backup
                     if (isLastBackup) {
-                        LogUtils.sendLog(strings.getString("lastbackup"));
+                        LogUtils.sendLog("Last Backup");
                         prepareBackup();
                         isLastBackup = false;
                     } else {
-                        LogUtils.sendLog(strings.getString("abortedbackup", Integer.toString(settings.getIntervalInMinutes("backupinterval"))), Level.INFO, true);
+                        LogUtils.sendLog("Aborted backup, next backup in:" + Integer.toString(settings.getIntervalInMinutes("backupinterval")));
                     }
                 } else {
 
-                    // Default don't do backup.
-                    boolean doBackup = false;
-
-                    // Get all online players.
-                    Player[] players = server.getOnlinePlayers();
-
-                    // Loop players.
-                    for (int player = 0; player < players.length; player++) {
-                        Player currentplayer = players[player];
-
-                        // If any players do not have the node, do the doBackup.
-                        if (!currentplayer.hasPermission("backup.bypass")) {
-                            doBackup = true;
-                        }
-                    }
-
-                    // Final check if we should do the backup.
-                    if (doBackup) {
+                    
                         prepareBackup();
-                    } else {
-                        LogUtils.sendLog(strings.getString("skipbackupbypass"));
-                    }
+                   
                 }
             }
         }
+        server.getScheduler().scheduleSyncDelayedTask(plugin, new SyncSaveAll(server, 0));
 
-        // Check we should do a save-all.
-        if (settings.getBooleanProperty("alwayssaveall")) {
-            server.getScheduler().scheduleSyncDelayedTask(plugin, new SyncSaveAll(server, 0));
-            LogUtils.sendLog(strings.getString("alwayssaveall"));
-        }
     }
 
     /**
@@ -120,7 +94,7 @@ public class PrepareBackup implements Runnable {
         worldsToBackup = new LinkedList<String>();
         for (World world : server.getWorlds()) {
             if ((world.getName() != null) && !world.getName().isEmpty() && (!ignoredWorldNames.contains(world.getName()))) {
-                LogUtils.sendLog("Adding world '" + world.getName() + "' to backup list", Level.FINE, true);
+                LogUtils.sendLog("Adding world '" + world.getName() + "' to backup list");
                 worldsToBackup.add(world.getName());
             }
         }
@@ -129,7 +103,7 @@ public class PrepareBackup implements Runnable {
         server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
             @Override
             public void run() {
-                server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(server, settings, strings, worldsToBackup));
+                server.getScheduler().scheduleAsyncDelayedTask(plugin, new BackupTask(server, settings, worldsToBackup));
             }
         });
         isManualBackup = false;
@@ -149,7 +123,7 @@ public class PrepareBackup implements Runnable {
         if (worldNames.size() > 0 && !worldNames.get(0).isEmpty()) {
 
             // Log what worlds are disabled.
-            LogUtils.sendLog(strings.getString("disabledworlds"));
+            LogUtils.sendLog("The followwing worlds are disabled:");
             LogUtils.sendLog(worldNames.toString());
         }
 
@@ -164,7 +138,7 @@ public class PrepareBackup implements Runnable {
     private void notifyStarted() {
 
         // Get message.
-        String startBackupMessage = strings.getString("backupstarted");
+        String startBackupMessage = "Started backup";
 
         // Check the string is set.
         if (startBackupMessage != null && !startBackupMessage.trim().isEmpty()) {

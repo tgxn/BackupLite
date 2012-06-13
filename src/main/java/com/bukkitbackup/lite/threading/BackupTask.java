@@ -1,5 +1,10 @@
 package com.bukkitbackup.lite.threading;
 
+import com.bukkitbackup.lite.config.Settings;
+import com.bukkitbackup.lite.utils.FileUtils;
+import static com.bukkitbackup.lite.utils.FileUtils.FILE_SEPARATOR;
+import com.bukkitbackup.lite.utils.LogUtils;
+import com.bukkitbackup.lite.utils.SharedUtils;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
@@ -7,12 +12,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.bukkitbackup.lite.config.Settings;
-import com.bukkitbackup.lite.config.Strings;
-import com.bukkitbackup.lite.utils.FileUtils;
-import static com.bukkitbackup.lite.utils.FileUtils.FILE_SEPARATOR;
-import com.bukkitbackup.lite.utils.LogUtils;
-import com.bukkitbackup.lite.utils.SharedUtils;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -23,7 +22,6 @@ public class BackupTask implements Runnable {
     private Server server;
     private Plugin plugin;
     private Settings settings;
-    private Strings strings;
     private SyncSaveAll syncSaveAllUtil;
     // settings
     private LinkedList<String> worldsToBackup;
@@ -49,11 +47,10 @@ public class BackupTask implements Runnable {
      * @param worldsToBackup The list of worlds that need to be backed up.
      * @param server The server we are backing up.
      */
-    public BackupTask(Server server, Settings settings, Strings strings, LinkedList<String> worldsToBackup) {
+    public BackupTask(Server server, Settings settings, LinkedList<String> worldsToBackup) {
         this.server = server;
         this.plugin = server.getPluginManager().getPlugin("Backup");
         this.settings = settings;
-        this.strings = strings;
         this.worldsToBackup = worldsToBackup;
     }
 
@@ -101,33 +98,13 @@ public class BackupTask implements Runnable {
 
         thisFinalDestination = rootBackupPath.concat(backupName);
 
-        // Are we backing all server files or just worlds and plugins?
-        if (backupEverything) {
 
-            doEverythingBackup();
+            backupWorlds();
+            backupPlugins();
 
-        } else {
+            doCopyAndZIP(thisTempDestination, thisFinalDestination);
 
-            // Make sure world backup is enabled and that we have worlds to backup.
-            if (settings.getBooleanProperty("backupworlds") && worldsToBackup != null) {
-                backupWorlds();
-            } else {
-                LogUtils.sendLog(strings.getString("skipworlds"), Level.INFO, true);
-            }
-
-            // Check plugin backup is enabled
-            if (settings.getBooleanProperty("backupplugins")) {
-                backupPlugins();
-            } else {
-                LogUtils.sendLog(strings.getString("skipplugins"), Level.INFO, true);
-            }
-
-            // If this is a non-split backup, we need to ZIP the whole thing.
-            if (!splitBackup) {
-                doCopyAndZIP(thisTempDestination, thisFinalDestination);
-            }
-
-        }
+        
 
         // Should we delete any old backups.
         if (!deleteOldBackups()) {
@@ -136,50 +113,6 @@ public class BackupTask implements Runnable {
 
         // Finish backup.
         finishBackup();
-    }
-
-    private void doEverythingBackup() {
-
-        // Filefiler for excludes.
-        FileFilter ff = new FileFilter() {
-
-            /**
-             * Files to accept/deny.
-             */
-            @Override
-            public boolean accept(File f) {
-
-                // Disallow server.log and the backuppath.
-                if (f.getName().equals(settings.getStringProperty("backuppath"))) {
-                    return false;
-                }
-
-                if (f.getName().equals("server.log")) {
-                    return false;
-                }
-
-                return true;
-            }
-        };
-
-        // Setup Source and destination DIR's.
-        File srcDIR = new File("./");
-        File destDIR = new File(thisTempDestination);
-
-        // Copy this world into the doBackup directory, in a folder called the worlds name.
-        try {
-
-            // Copy the directory.
-            FileUtils.copyDirectory(srcDIR, destDIR, ff, true);
-
-            // Perform the zipping action. 
-            doCopyAndZIP(thisTempDestination, thisFinalDestination);
-
-        } catch (FileNotFoundException fnfe) {
-            LogUtils.exceptionLog(fnfe, "Failed to copy server: File not found.");
-        } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe, "Failed to copy server: IO Exception.");
-        }
     }
 
     /**
@@ -333,9 +266,9 @@ public class BackupTask implements Runnable {
         try {
             if (pluginList.size() > 0 && !pluginList.get(0).isEmpty()) {
                 if (pluginListMode) {
-                    LogUtils.sendLog(strings.getString("disabledplugins"));
+                    LogUtils.sendLog("The following plugins are disabled:");
                 } else {
-                    LogUtils.sendLog(strings.getString("enabledplugins"));
+                    LogUtils.sendLog("The following plugins are enabled:");
                 }
                 LogUtils.sendLog(pluginList.toString());
             }
@@ -498,7 +431,7 @@ public class BackupTask implements Runnable {
             File[] filesList = backupDir.listFiles();
 
             if (filesList == null) {
-                LogUtils.sendLog(Level.SEVERE, "Failed to list backup directory.");
+                LogUtils.sendLog("Failed to list backup directory.");
                 return;
             }
 
@@ -525,7 +458,7 @@ public class BackupTask implements Runnable {
                 }
 
                 // Inform the user what backups are being deleted.
-                LogUtils.sendLog(strings.getString("removeold"));
+                LogUtils.sendLog("Removing old backups:");
                 LogUtils.sendLog(Arrays.toString(backupList.toArray()));
 
                 // Finally delete the backups.
@@ -578,7 +511,7 @@ public class BackupTask implements Runnable {
             }
 
             private void notifyCompleted() {
-                String completedBackupMessage = strings.getString("backupfinished");
+                String completedBackupMessage = "Completed Backup.";
 
                 // Check there is a message.
                 if (completedBackupMessage != null && !completedBackupMessage.trim().isEmpty()) {

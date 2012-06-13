@@ -18,7 +18,6 @@
             <outputDirectory>/plugins/${finalName}/</outputDirectory>
             <includes>
                 <include>config.yml</include>
-                <include>strings.yml</include>
             </includes>
         </fileSet>
     </fileSets>
