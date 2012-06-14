@@ -3,6 +3,7 @@
     <groupId>com.bukkitbackup</groupId>
     <artifactId>BackupLite</artifactId>
     <name>BackupLite</name>
+    <version>0.9-dev</version>
     <description>A Lite Backup plugin for Bukkit's Server mod API.</description>
     <url>https://github.com/gamerx/BackupLite</url>
     <repositories>
@@ -62,11 +63,10 @@
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>1.2.5-R3.0</version>
+            <version>1.2.5-R4.0</version>
         </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <version>0.5</version>
 </project>

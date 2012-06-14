@@ -1,12 +1,8 @@
 /*
  *          -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
  * 
- *  Backup - Bukkit server backup plugin. (continued development)
+ *  BackupLite - Simple Bukkit server backup plugin.
  *  Copyright (C) 2012 Domenic Horner (gamerx) <https://github.com/gamerx>
- *  Copyright (C) 2011 Lycano <https://github.com/lycano>
- * 
- *  Backup - CraftBukkit server Backup plugin (original author)
- *  Copyright (C) 2011 Kilian Gaertner <https://github.com/Meldanor>
  * 
  *          -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
  * 

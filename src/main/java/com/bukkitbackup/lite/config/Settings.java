@@ -5,27 +5,24 @@ import com.bukkitbackup.lite.utils.SharedUtils;
 import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.Plugin;
 
 public final class Settings {
     
-    private Plugin plugin;
     private File configurationFile;
-    private FileConfiguration fileConfiguration;
+    private FileConfiguration yamlConfig;
 
-    public Settings(Plugin plugin, File configurationFile) {
-        this.plugin = plugin;
+    public Settings(File configurationFile) {
         this.configurationFile = configurationFile;
 
         // Checks if config exists, creates if not.
-        checkAndCreate();
+        checkAndCreateConfig();
 
         // Load the properties into memory.
         loadProperties();
 
+        // Create backups folder.
         if (SharedUtils.checkFolderAndCreate(new File(this.getStringProperty("backuppath"))))
             LogUtils.sendLog("Created backup directory.");
     }
@@ -33,16 +30,12 @@ public final class Settings {
     /**
      * Check that the configuration file exists, and creates it if necessary.
      */
-    private void checkAndCreate() {
+    private void checkAndCreateConfig() {
         try {
-            if (!configurationFile.exists()) {
-                LogUtils.sendLog("Generated Config File.");
+            if (!configurationFile.exists())
                 createDefaultSettings();
-            }
-        } catch (NullPointerException npe) {
-            LogUtils.exceptionLog(npe, "Failed to create default configuration file.");
-        } catch (SecurityException se) {
-            LogUtils.exceptionLog(se, "Failed to create default configuration file.");
+        } catch (Exception ex) {
+            LogUtils.exceptionLog(ex, "Failed to create default configuration file.");
         }
     }
 
@@ -50,13 +43,11 @@ public final class Settings {
      * Load the configuration to memory from the configurationFile.
      */
     private void loadProperties() {
-        fileConfiguration = new YamlConfiguration();
         try {
-            fileConfiguration.load(configurationFile);
-        } catch (InvalidConfigurationException ice) {
-            LogUtils.exceptionLog(ice, "Failed to load configuration.");
-        } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe, "Failed to load configuration.");
+            yamlConfig = new YamlConfiguration();
+            yamlConfig.load(configurationFile);
+        } catch (Exception ex) {
+            LogUtils.exceptionLog(ex, "Failed to load configuration.");
         }
     }
 
@@ -64,7 +55,6 @@ public final class Settings {
      * Load the properties file from the JAR and place it in the backup DIR.
      */
     private void createDefaultSettings() {
-
         BufferedReader bReader = null;
         BufferedWriter bWriter = null;
         String line;
@@ -78,8 +68,9 @@ public final class Settings {
                 bWriter.write(line);
                 bWriter.newLine();
             }
-        } catch (IOException ioe) {
-            LogUtils.exceptionLog(ioe, "Error opening stream.");
+            LogUtils.sendLog("Generated new configuration file.");
+        } catch (Exception ex) {
+            LogUtils.exceptionLog(ex, "Error creating configuration.");
         } finally {
             try {
                 if (bReader != null) {
@@ -101,7 +92,7 @@ public final class Settings {
      * @return The value of the property, defaults to -1.
      */
     public int getIntProperty(String property) {
-        return fileConfiguration.getInt(property, -1);
+        return yamlConfig.getInt(property, -1);
     }
 
     /**
@@ -111,7 +102,7 @@ public final class Settings {
      * @return The value of the property, defaults to true.
      */
     public boolean getBooleanProperty(String property) {
-        return fileConfiguration.getBoolean(property, true);
+        return yamlConfig.getBoolean(property, true);
     }
 
     /**
@@ -121,7 +112,7 @@ public final class Settings {
      * @return The value of the property.
      */
     public String getStringProperty(String property) {
-        return fileConfiguration.getString(property, "");
+        return yamlConfig.getString(property, "");
     }
 
     /**

@@ -6,54 +6,49 @@ import com.bukkitbackup.lite.events.CommandHandler;
 import com.bukkitbackup.lite.events.EventListener;
 import com.bukkitbackup.lite.threading.PrepareBackup;
 import com.bukkitbackup.lite.utils.LogUtils;
+import com.bukkitbackup.lite.utils.MetricUtils;
 import com.bukkitbackup.lite.utils.SharedUtils;
 import java.io.File;
-import org.bukkit.Server;
-import org.bukkit.plugin.PluginManager;
+import java.io.IOException;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class BackupLite extends JavaPlugin {
 
-    public File mainDataFolder;
-    public int mainBackupTaskID = -2;
+    public File pluginDataFolder;
+    public int backupTaskID = -2;
     public int saveAllTaskID = -2;
-    
+
+    private String clientID;
     private static Settings settings;
     private PrepareBackup prepareBackup;
 
     @Override
     public void onLoad() {
-
-        mainDataFolder = this.getDataFolder();
-
+        pluginDataFolder = this.getDataFolder();
         LogUtils.initLogUtils(this);
-
-        SharedUtils.checkFolderAndCreate(mainDataFolder);
-
-        settings = new Settings(this, new File(mainDataFolder, "config.yml"));
-
+        SharedUtils.checkFolderAndCreate(pluginDataFolder);
+        settings = new Settings(new File(pluginDataFolder, "config.yml"));
+        try {
+            MetricUtils metricUtils = new MetricUtils(this);
+            metricUtils.start();
+            clientID = metricUtils.guid;
+        } catch (IOException ex) {
+            LogUtils.exceptionLog(ex, "Exception loading metrics.");
+        }
+        this.getServer().getScheduler().scheduleAsyncDelayedTask(this, new UpdateChecker(this.getDescription(), clientID));
     }
 
     @Override
     public void onEnable() {
 
-        // Get server and plugin manager instances.
-        Server pluginServer = getServer();
-        PluginManager pluginManager = pluginServer.getPluginManager();
+        prepareBackup = new PrepareBackup(getServer(), settings);
 
-        // Create new "PrepareBackup" instance.
-        prepareBackup = new PrepareBackup(pluginServer, settings);
-
-        // Initalize the update checker code.
-        pluginServer.getScheduler().scheduleAsyncDelayedTask(this, new UpdateChecker(this));
-
-        // Initalize Command Listener.
         getCommand("backup").setExecutor(new CommandHandler(prepareBackup, this, settings));
         getCommand("bu").setExecutor(new CommandHandler(prepareBackup, this, settings));
 
         // Initalize Event Listener.
         EventListener eventListener = new EventListener(prepareBackup, this, settings);
-        pluginManager.registerEvents(eventListener, this);
+        getServer().getPluginManager().registerEvents(eventListener, this);
 
         // Configure main backup task schedule.
         int backupInterval = settings.getIntervalInMinutes("backupinterval");
@@ -61,16 +56,13 @@ public class BackupLite extends JavaPlugin {
 
             // Convert to server ticks.
             int backupIntervalInTicks = (backupInterval * 1200);
-
-
-            mainBackupTaskID = pluginServer.getScheduler().scheduleAsyncRepeatingTask(this, prepareBackup, backupIntervalInTicks, backupIntervalInTicks);
-            
+            backupTaskID = getServer().getScheduler().scheduleAsyncRepeatingTask(this, prepareBackup, backupIntervalInTicks, backupIntervalInTicks);
         } else {
             LogUtils.sendLog("Backup schedule is disabled.");
         }
 
         // Notify loading complete.
-        LogUtils.sendLog(this.getDescription().getFullName() + " has completed loading!", false);
+        LogUtils.sendLog(this.getDescription().getFullName() + " has completed loading!");
     }
 
     @Override
@@ -80,6 +72,6 @@ public class BackupLite extends JavaPlugin {
         this.getServer().getScheduler().cancelTasks(this);
 
         // Shutdown complete.
-        LogUtils.sendLog(this.getDescription().getFullName() + " has completely un-loaded!", false);
+        LogUtils.sendLog(this.getDescription().getFullName() + " has completely un-loaded!");
     }
 }

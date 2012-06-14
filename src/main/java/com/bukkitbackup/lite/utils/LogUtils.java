@@ -18,6 +18,10 @@ public class LogUtils {
         }
     }
 
+    public static void sendLog(String message) {
+        logger.log(Level.INFO, "[".concat(plugin.getDescription().getName()).concat("] ").concat(message));
+    }
+
     public static void exceptionLog(Throwable ste, String message) {
         sendLog(message);
         exceptionLog(ste);
@@ -26,15 +30,5 @@ public class LogUtils {
     public static void exceptionLog(Throwable ste) {
         sendLog("Please provide following error with support request:");
         ste.printStackTrace(System.out);
-    }
-
-    public static void sendLog(String message) {
-        sendLog(message, true);
-    }
-    public static void sendLog(String message, boolean tags) {
-        if(tags)
-            logger.log(Level.INFO, "[" + plugin.getDescription().getName() + "] " + message);
-        else
-            logger.log(Level.INFO, message);
     }
 }

@@ -5,7 +5,6 @@ import com.bukkitbackup.lite.utils.LogUtils;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -24,7 +23,7 @@ public class PrepareBackup implements Runnable {
     public PrepareBackup(Server server, Settings settings) {
         this.server = server;
         this.settings = settings;
-        this.plugin = server.getPluginManager().getPlugin("Backup");
+        this.plugin = server.getPluginManager().getPlugin("BackupLite");
         isLastBackup = false;
     }
 
