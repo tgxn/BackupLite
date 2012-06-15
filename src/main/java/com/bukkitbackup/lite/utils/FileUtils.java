@@ -533,4 +533,30 @@ public class FileUtils {
         }
 
     }
+
+    public static boolean deleteDir(File dir) {
+        if (dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+        return dir.delete();
+    }
+
+    public static boolean checkFolderAndCreate(File toCheck) {
+        if (!toCheck.exists()) {
+            try {
+                if (toCheck.mkdirs()) {
+                    return true;
+                }
+            } catch (SecurityException se) {
+                LogUtils.exceptionLog(se);
+            }
+        }
+        return false;
+    }
 }

@@ -4,14 +4,12 @@ import com.bukkitbackup.lite.config.Settings;
 import com.bukkitbackup.lite.utils.FileUtils;
 import static com.bukkitbackup.lite.utils.FileUtils.FILE_SEPARATOR;
 import com.bukkitbackup.lite.utils.LogUtils;
-import com.bukkitbackup.lite.utils.SharedUtils;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import org.bukkit.Server;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 public class BackupTask implements Runnable {
@@ -76,11 +74,11 @@ public class BackupTask implements Runnable {
 
         // Temp folder.
         tempFolder = backupsFolder.concat("temp").concat(FILE_SEPARATOR);
-        SharedUtils.checkFolderAndCreate(new File(tempFolder));
+        FileUtils.checkFolderAndCreate(new File(tempFolder));
       
         // This temp instance.
         thisTempDestination = tempFolder.concat(backupName).concat(FILE_SEPARATOR);
-        SharedUtils.checkFolderAndCreate(new File(thisTempDestination));
+        FileUtils.checkFolderAndCreate(new File(thisTempDestination));
         
         // Do the bakcups.
         backupWorlds();
@@ -184,15 +182,10 @@ public class BackupTask implements Runnable {
         pluginsFolder.setLastModified(System.currentTimeMillis());
 
         // Check if this is a split backup or not, and set backup path depending on this.
-        String pluginsBackupPath;
-        String finalPluginsPath;
+        String pluginsBackupPath = thisTempDestination.concat(FILE_SEPARATOR).concat("plugins");
         
-            pluginsBackupPath = thisTempDestination.concat(FILE_SEPARATOR).concat("plugins");
-            finalPluginsPath = null;
-        
-
         // Create if needed.
-        SharedUtils.checkFolderAndCreate(new File(pluginsBackupPath));
+        FileUtils.checkFolderAndCreate(new File(pluginsBackupPath));
 
         // Perform plugin backup.
         try {
@@ -333,7 +326,7 @@ public class BackupTask implements Runnable {
 
                 // Finally delete the backups.
                 for (File backupToDelete : backupList) {
-                    deleteDir(backupToDelete);
+                    FileUtils.deleteDir(backupToDelete);
                 }
             }
         } catch (SecurityException se) {
@@ -341,69 +334,15 @@ public class BackupTask implements Runnable {
         }
     }
 
-    public boolean deleteDir(File dir) {
-        if (dir.isDirectory()) {
-            String[] children = dir.list();
-            for (int i = 0; i < children.length; i++) {
-                boolean success = deleteDir(new File(dir, children[i]));
-                if (!success) {
-                    return false;
-                }
-            }
-        }
-        return dir.delete();
-    }
-
-    /**
-     * Creates a temporary Runnable that is running on the main thread by the
-     * scheduler to prevent thread problems.
-     */
     private void finishBackup() {
-
-        // Create new Runnable instance.
-        Runnable run = new Runnable() {
-
+        Runnable newSyncTask = new Runnable() {
             @Override
             public void run() {
-
-                // Should we enable auto-save again?
-                if (settings.getBooleanProperty("enableautosave")) {
-                    syncSaveAllUtil = new SyncSaveAll(server, 2);
-                    server.getScheduler().scheduleSyncDelayedTask(plugin, syncSaveAllUtil);
-                }
-
-                // Delete the temp directory.
-                File tempFile = new File(tempFolder);
-                deleteDir(tempFile);
-
-                // Notify that it has completed.
-                notifyCompleted();
-            }
-
-            private void notifyCompleted() {
-                String completedBackupMessage = "Completed Backup.";
-
-                // Check there is a message.
-                if (completedBackupMessage != null && !completedBackupMessage.trim().isEmpty()) {
-
-                    if (settings.getBooleanProperty("notifyallplayers")) {
-                        server.broadcastMessage(completedBackupMessage);
-                    } else {
-                        // Verify Permissions
-                        Player[] players = server.getOnlinePlayers();
-                        // Loop through all online players.
-                        for (int pos = 0; pos < players.length; pos++) {
-                            Player currentplayer = players[pos];
-
-                            // If the current player has the right permissions, notify them.
-                            if (currentplayer.hasPermission("backup.notify")) {
-                                currentplayer.sendMessage(completedBackupMessage);
-                            }
-                        }
-                    }
-                }
+                server.getScheduler().scheduleSyncDelayedTask(plugin, new SyncSaveAll(server, 2));
+                FileUtils.deleteDir(new File(tempFolder));
+                server.broadcastMessage("Completed Backup.");
             }
         };
-        server.getScheduler().scheduleSyncDelayedTask(plugin, run);
+        server.getScheduler().scheduleSyncDelayedTask(plugin, newSyncTask);
     }
 }

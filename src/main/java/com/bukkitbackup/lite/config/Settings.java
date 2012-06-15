@@ -1,7 +1,7 @@
 package com.bukkitbackup.lite.config;
 
+import com.bukkitbackup.lite.utils.FileUtils;
 import com.bukkitbackup.lite.utils.LogUtils;
-import com.bukkitbackup.lite.utils.SharedUtils;
 import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,7 +23,7 @@ public final class Settings {
         loadProperties();
 
         // Create backups folder.
-        if (SharedUtils.checkFolderAndCreate(new File(this.getStringProperty("backuppath"))))
+        if (FileUtils.checkFolderAndCreate(new File(this.getStringProperty("backuppath"))))
             LogUtils.sendLog("Created backup directory.");
     }
 
