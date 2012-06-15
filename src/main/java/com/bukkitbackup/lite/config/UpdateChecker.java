@@ -56,7 +56,7 @@ public class UpdateChecker implements Runnable {
         try {
 
             // Configure the URL to pull updated from.
-            URL updateURL = new URL("http://checkin.bukkitbackup.com/?ver=" + descriptionFile.getVersion() + "&guid="+clientID+"&name="+descriptionFile.getName()+"&fromplugin");
+            URL updateURL = new URL("http://checkin.bukkitbackup.com/?ver=" + descriptionFile.getVersion() + "&uuid="+clientID+"&name="+descriptionFile.getName()+"&fromplugin");
 
             // Read from the URL into a BufferedReader.
             BufferedReader bReader = new BufferedReader(new InputStreamReader(updateURL.openStream()));
